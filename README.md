@@ -41,18 +41,40 @@ playwright install
 
 ## Usage
 
+### Web Interface
+
 1. Start the FastAPI server:
 ```bash
 python main.py
 ```
 
-2. Open your browser and navigate to `http://localhost:8000`
+2. Open your browser and navigate to `http://localhost:8080`
 
 3. Enter a Facebook username to scrape
 
 4. The first time you run the scraper, it will open a browser window where you need to manually log in to Facebook. The login session will be saved for future use.
 
 5. View and download the scraped data in JSON format or as a PDF report
+
+### Command Line Interface
+
+A command-line interface is available for direct scraping without starting the web server:
+
+```bash
+# Basic usage
+./fb_scraper_cli.py zuck
+
+# With options
+./fb_scraper_cli.py zuck --wait 120 --output ./my_results
+
+# Run in headless mode (no visible browser)
+./fb_scraper_cli.py zuck --headless
+```
+
+Command-line options:
+- `--headless`: Run without showing the browser window
+- `--wait`: Time to wait (in seconds) if a security checkpoint is detected
+- `--output`: Directory to save results
 
 ## API Endpoints
 
@@ -125,6 +147,44 @@ xvfb-run python3 main.py
 ## Session Management
 
 The scraper now includes improved session persistence to avoid repeated logins. Here's how it works:
+
+### Security Checkpoint Handling
+
+The scraper automatically detects Facebook security checkpoints and CAPTCHAs and pauses for 2 minutes to allow you to solve them manually. Security checkpoints typically appear:
+
+1. When accessing Facebook from a new device/location
+2. After suspicious activity
+3. When automation is detected
+
+Once you solve a checkpoint manually, Facebook usually remembers your browser for future sessions, and you won't need to solve it again.
+
+#### Adjusting Checkpoint Wait Time
+
+After you've successfully solved a security checkpoint once, Facebook typically won't show it again. You can adjust or disable the wait time using the provided script:
+
+```bash
+# To reduce wait time to 30 seconds
+python adjust_wait_time.py 30
+
+# To disable wait time completely (once you're confident checkpoints won't appear)
+python adjust_wait_time.py 0
+```
+
+#### Testing Security Checkpoint Detection
+
+You can test the security checkpoint detection feature using the test script:
+
+```bash
+python test_security.py <username>
+# Example: python test_security.py zuck
+```
+
+This will:
+1. Open Facebook in a browser
+2. Navigate to the specified profile
+3. Check for security checkpoints
+4. If a checkpoint is found, wait for you to solve it manually
+5. Take a screenshot of the profile page
 
 ### How Session Persistence Works
 

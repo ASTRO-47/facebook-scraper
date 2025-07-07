@@ -16,45 +16,18 @@ class ProfileScraper:
     async def navigate_to_profile(self, username: str) -> bool:
         """Navigate to user profile page"""
         profile_url = f"https://www.facebook.com/{username}"
+        await self.page.goto(profile_url, wait_until="networkidle")
         
-        try:
-            # Navigate to the profile page
-            await self.page.goto(profile_url, wait_until="domcontentloaded", timeout=60000)
+        # Check for security checkpoint or CAPTCHA
+        # This will pause for 2 minutes if a checkpoint is detected
+        await self.utils.handle_security_checkpoint(wait_time=120)
+        
+        # Check if profile exists
+        not_found = await self.page.query_selector('div:text-matches("This page isn\'t available|The link you followed may be broken")')
+        if not_found:
+            return False
             
-            # Check for security checkpoint/CAPTCHA and pause for manual solving if found
-            security_check = await self.utils.check_for_security_checkpoint()
-            if security_check:
-                # If security checkpoint is detected, handle it
-                await self.utils.handle_security_checkpoint()
-                
-                # After handling the checkpoint, wait for navigation to complete
-                await self.utils.wait_for_navigation_to_complete()
-            else:
-                # If no security checkpoint, wait for network to be idle
-                try:
-                    await self.page.wait_for_load_state("networkidle", timeout=30000)
-                except:
-                    # Continue even if networkidle times out
-                    pass
-            
-            # Check if profile exists
-            not_found = await self.page.query_selector('div:text-matches("This page isn\'t available|The link you followed may be broken")')
-            if not_found:
-                return False
-                
-            return True
-            
-        except Exception as e:
-            # If any error occurs during navigation, check for security checkpoint again
-            security_check = await self.utils.check_for_security_checkpoint()
-            if security_check:
-                await self.utils.handle_security_checkpoint()
-                # Try again after resolving the security checkpoint
-                return await self.navigate_to_profile(username)
-            else:
-                # Some other error occurred
-                print(f"Error navigating to profile: {str(e)}")
-                return False
+        return True
 
     async def get_basic_info(self) -> Dict[str, Any]:
         """Extract basic profile information"""

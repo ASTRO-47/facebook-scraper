@@ -78,6 +78,11 @@
                             <h5 class="card-title">Scrape a Facebook Profile</h5>
                             <p class="card-text">Enter a Facebook username to begin scraping (make sure you're logged in to Facebook in the browser window that will open)</p>
                             
+                            <div class="alert alert-warning" role="alert">
+                                <strong>Security Checkpoint Note:</strong> If Facebook asks you to prove you're human, the browser will pause for 2 minutes 
+                                to allow you to solve the puzzle manually. After solving once, Facebook typically won't ask again for future sessions.
+                            </div>
+                            
                             <form id="scrapeForm" class="row g-3">
                                 <div class="col-md-8">
                                     <input type="text" class="form-control" id="username" placeholder="Facebook Username (e.g., zuck)" required>
@@ -150,6 +155,10 @@
                     case 'running':
                         statusIndicator.classList.add('status-running');
                         statusText.innerText = 'Running...';
+                        break;
+                    case 'checkpoint':
+                        statusIndicator.classList.add('status-running');
+                        statusText.innerText = 'Security Checkpoint Detected - Please solve the puzzle manually';
                         break;
                     case 'complete':
                         statusIndicator.classList.add('status-complete');

@@ -1,0 +1,46 @@
+{
+  "metadata": {
+    "username": "imad.zaghba.5",
+    "scraped_at": 1751932504,
+    "scraper_version": "1.0.0"
+  },
+  "profile": {
+    "basic_info": {
+      "name": "Imad Ezz (The Godfather)",
+      "bio": "",
+      "profile_picture": "/static/screenshots/profile_header.png",
+      "work": [],
+      "education": [],
+      "current_city": "",
+      "hometown": "",
+      "birthday": "",
+      "email": "",
+      "phone": ""
+    },
+    "connections": {
+      "friends": [],
+      "following": [],
+      "groups": [],
+      "pages_followed": []
+    },
+    "content": {
+      "own_posts": [],
+      "tagged_posts": [],
+      "comments_made": [],
+      "locations": [
+        {
+          "name": "This page isn't available right now",
+          "details": ""
+        },
+        {
+          "name": "This may be because of a technical error that we're working to get fixed. Try reloading this page.",
+          "details": ""
+        },
+        {
+          "name": "Reload Page",
+          "details": "Reload Page"
+        }
+      ]
+    }
+  }
+}

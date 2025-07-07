@@ -66,20 +66,18 @@ class FacebookSession:
         
         try:
             await self.page.goto("https://www.facebook.com/", wait_until="domcontentloaded", timeout=30000)
+            await self.page.wait_for_load_state("networkidle", timeout=20000)
             
-            # Import utility functions for security checkpoint detection
+            # Check for security checkpoint
             from .utils import ScraperUtils
             utils = ScraperUtils(self.page)
             
-            # Check for security checkpoint/CAPTCHA
-            security_check = await utils.check_for_security_checkpoint()
-            if security_check:
-                logger.info("Security checkpoint detected during login check")
-                await utils.handle_security_checkpoint()
-                # After handling security checkpoint, check login status again
-                return await self.login_check()
-                
-            await self.page.wait_for_load_state("networkidle", timeout=20000)
+            # Check and handle security checkpoint (this pauses for 2 minutes if detected)
+            checkpoint_detected = await utils.check_for_security_checkpoint()
+            if checkpoint_detected:
+                logger.warning("Security checkpoint detected during login! Please solve the puzzle manually.")
+                # Wait for the user to solve the puzzle (2 minutes)
+                await utils.handle_security_checkpoint(wait_time=120)
             
             # Check for login indicators
             # Method 1: Check for login form presence
@@ -99,12 +97,6 @@ class FacebookSession:
                     'a[aria-label="Home"], a[href="https://www.facebook.com/?ref=logo"], [data-testid="user-icon"]', 
                     timeout=120000
                 )
-                
-                # After login, check for security checkpoint
-                security_check = await utils.check_for_security_checkpoint()
-                if security_check:
-                    logger.info("Security checkpoint detected after login")
-                    await utils.handle_security_checkpoint()
                 
                 logger.info("Login detected!")
                 # Session is automatically persisted with the persistent browser context

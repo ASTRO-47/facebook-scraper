@@ -75,48 +75,66 @@ class ScraperUtils:
         login_form = await self.page.query_selector('form[data-testid="royal_login_form"]')
         login_button = await self.page.query_selector('button[name="login"]')
         
-        # Check for security checkpoint/CAPTCHA
-        security_check = await self.check_for_security_checkpoint()
-        if security_check:
-            return False
-        
         return (user_icon is not None or home_icon is not None) and (login_form is None and login_button is None)
         
     async def check_for_security_checkpoint(self) -> bool:
-        """Check if Facebook is showing a security checkpoint or CAPTCHA"""
-        # Common security checkpoint indicators
-        security_indicators = [
-            'captcha', 
-            'security check', 
-            'confirm your identity',
-            'prove you\'re not a robot',
-            'checkpoint',
-            'verification',
-            'something went wrong',
-            'we need to confirm it\'s you',
-            'confirm it\'s you'
+        """
+        Detect if Facebook is showing a security checkpoint or CAPTCHA
+        Returns True if security checkpoint detected, False otherwise
+        """
+        # Look for common security checkpoint indicators
+        checkpoint_indicators = [
+            'a text containing "Confirm it\'s you"',
+            'a text containing "Security check"', 
+            'a text containing "prove you\'re a person"',
+            'a text containing "confirm your identity"',
+            'a text containing "verify your account"',
+            'a text containing "challenge"',
+            'a text containing "puzzle"',
+            'div[aria-label="Checkpoint"]',
+            'form[action*="checkpoint"]',
+            'img[alt*="captcha"]',
+            'img[src*="captcha"]',
+            'input[name="captcha_response"]',
+            'a[href*="checkpoint"]'
         ]
         
-        # Check page title
-        title = await self.page.title()
-        if any(indicator.lower() in title.lower() for indicator in security_indicators):
-            logger.info("Security checkpoint detected in page title")
-            return True
-            
-        # Check for common security checkpoint elements
-        security_elements = []
-        for indicator in security_indicators:
-            elements = await self.page.query_selector_all(f'text="{indicator}"i')
-            security_elements.extend(elements)
-            
-        # Check for captcha iframe or image
-        captcha_elements = await self.page.query_selector_all('iframe[src*="captcha"], img[src*="captcha"]')
-        security_elements.extend(captcha_elements)
+        for indicator in checkpoint_indicators:
+            try:
+                element = None
+                if indicator.startswith('a text'):
+                    # Extract the text to search for
+                    text_to_find = indicator.split('"')[1]
+                    # Use evaluate to find text on the page
+                    has_text = await self.page.evaluate(f'''
+                        () => {{
+                            return document.body.innerText.includes("{text_to_find}")
+                        }}
+                    ''')
+                    if has_text:
+                        logger.info(f"Security checkpoint detected: Page contains text '{text_to_find}'")
+                        return True
+                else:
+                    # Use regular selector
+                    element = await self.page.query_selector(indicator)
+                    if element:
+                        logger.info(f"Security checkpoint detected: Found element matching {indicator}")
+                        return True
+            except Exception as e:
+                logger.debug(f"Error checking for security indicator {indicator}: {str(e)}")
+                
+        # Check for generic indicators like unusual activity messages
+        page_text = await self.page.evaluate('() => document.body.innerText')
+        security_phrases = [
+            "unusual activity", "security check", "captcha", "robot", 
+            "human", "verify", "puzzle", "checkpoint"
+        ]
         
-        if security_elements:
-            logger.info("Security checkpoint detected on page")
-            return True
-            
+        for phrase in security_phrases:
+            if phrase.lower() in page_text.lower():
+                logger.info(f"Security checkpoint detected: Page contains phrase '{phrase}'")
+                return True
+                
         return False
     
     async def handle_dialogs(self):
@@ -137,6 +155,34 @@ class ScraperUtils:
             await self.page.wait_for_load_state("domcontentloaded", timeout=5000)
         except Exception:
             pass
+    
+    async def handle_security_checkpoint(self, wait_time: int = 120):
+        """
+        Handle Facebook security checkpoint by pausing for user to solve the CAPTCHA/puzzle
+        
+        Args:
+            wait_time: Time in seconds to wait for manual intervention (default: 120 seconds/2 minutes)
+        """
+        is_checkpoint = await self.check_for_security_checkpoint()
+        
+        if is_checkpoint:
+            logger.warning(f"⚠️ SECURITY CHECKPOINT DETECTED! ⚠️")
+            logger.warning(f"Please solve the security puzzle/CAPTCHA manually in the browser.")
+            logger.warning(f"Waiting for {wait_time} seconds to give you time to complete the challenge...")
+            
+            # Take a screenshot to help identify the checkpoint
+            await self.take_screenshot("security_checkpoint")
+            
+            # Wait for the specified time to allow manual solving
+            for i in range(wait_time):
+                if i % 10 == 0:  # Log every 10 seconds
+                    logger.info(f"Still waiting... {wait_time - i} seconds remaining")
+                await asyncio.sleep(1)
+            
+            logger.info("Wait time completed. Proceeding with scraping...")
+            return True
+        
+        return False
     
     async def save_cookies_to_file(self, filepath: str = "cookies.json"):
         """Save current cookies to a file"""
@@ -165,49 +211,6 @@ class ScraperUtils:
         except Exception as e:
             logger.error(f"Failed to load cookies: {str(e)}")
             return False
-    
-    async def handle_security_checkpoint(self, timeout: int = 300000):
-        """Pause for manual intervention if a security checkpoint is detected
-        
-        Args:
-            timeout: Maximum time to wait for manual intervention in milliseconds (default: 5 minutes)
-        """
-        security_detected = await self.check_for_security_checkpoint()
-        
-        if security_detected:
-            logger.warning("SECURITY CHECKPOINT DETECTED! Please solve the CAPTCHA or security challenge manually.")
-            print("\n" + "*" * 80)
-            print("* SECURITY CHECKPOINT DETECTED!")
-            print("* Please solve the CAPTCHA or security verification in the browser window.")
-            print("* The script will wait until you complete the verification.")
-            print("* Press Enter in the terminal after completing the verification to continue.")
-            print("*" * 80 + "\n")
-            
-            # Take a screenshot to help with debugging
-            await self.take_screenshot("security_checkpoint")
-            
-            # Wait for user input to continue
-            input_future = asyncio.Future()
-            
-            def on_input():
-                if not input_future.done():
-                    input_future.set_result(None)
-            
-            # Schedule getting input in a separate thread
-            asyncio.get_event_loop().run_in_executor(
-                None, lambda: [input("Press Enter after solving the verification..."), on_input()]
-            )
-            
-            # Wait for either user input or timeout
-            try:
-                await asyncio.wait_for(input_future, timeout=timeout/1000)  # Convert to seconds
-                logger.info("User confirmed security checkpoint has been resolved")
-                return True
-            except asyncio.TimeoutError:
-                logger.warning(f"Security checkpoint wait timed out after {timeout/1000} seconds")
-                return False
-        
-        return False
 
     async def expand_comments(self, max_expansion: int = 3):
         """Expand comments on posts"""

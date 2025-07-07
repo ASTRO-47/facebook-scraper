@@ -74,11 +74,29 @@ async def scrape_profile(username: str):
         posts_scraper = PostsScraper(page, utils)
         json_builder = JSONBuilder(output_dir="static/output")
         
-        # Navigate to profile
+        # Setup dialog handlers
+        await utils.handle_dialogs()
+        
+        # Navigate to profile and handle security checkpoint if needed
+        print(f"Navigating to profile {username}. If a security puzzle appears, you'll have 2 minutes to solve it...")
         profile_exists = await profile_scraper.navigate_to_profile(username)
         if not profile_exists:
             await session.close()
             raise HTTPException(status_code=404, detail=f"Profile '{username}' not found")
+        
+        # Check for security checkpoint one more time after navigating to profile
+        print("Checking for security checkpoints...")
+        checkpoint_detected = await utils.check_for_security_checkpoint()
+        if checkpoint_detected:
+            print("Security checkpoint detected! Please solve it manually.")
+            # Take a screenshot of the security checkpoint
+            checkpoint_screenshot = await utils.take_screenshot("security_checkpoint")
+            print(f"Security checkpoint screenshot saved to {checkpoint_screenshot}")
+            print("Waiting for 2 minutes to allow manual solving of the security puzzle...")
+            
+            # Wait for the user to solve the challenge
+            await utils.handle_security_checkpoint(wait_time=120)
+            print("Security checkpoint wait time completed. Continuing with scraping...")
         
         # Scrape all data
         scrape_data = {}
