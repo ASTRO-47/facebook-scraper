@@ -6,6 +6,7 @@ import os
 import asyncio
 from playwright.async_api import async_playwright, Page, BrowserContext
 import logging
+from .utils import ScraperUtils  # Add this import
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, 
@@ -28,15 +29,18 @@ class FacebookSession:
         
         # Launch browser with persistent context to maintain session data
         logger.info(f"Launching browser with persistent context at {self.user_data_dir}")
+        
+        # Use the default Chromium browser that comes with Playwright
         self.browser = await self.playwright.chromium.launch_persistent_context(
             user_data_dir=self.user_data_dir,
             headless=self.headless,
-            user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/99.0.4844.84 Safari/537.36",
+            user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36",
             viewport={"width": 1280, "height": 800},
             ignore_https_errors=True,
             locale="en-US",
             accept_downloads=True,
-            proxy=None  # No proxy to avoid session issues
+            proxy=None,
+            # Remove the channel parameter completely
         )
         
         # Configure request interception to avoid being detected as bot
@@ -60,53 +64,70 @@ class FacebookSession:
         logger.info("Browser session initialized successfully")
         return self.page
     
-    async def login_check(self):
-        """Check if user is logged in to Facebook with improved detection"""
-        logger.info("Checking login status...")
-        
+    async def prefill_login(self, email="boy240930@gmail.com"):
+        """Pre-fill the login form with the provided email"""
         try:
-            await self.page.goto("https://www.facebook.com/", wait_until="domcontentloaded", timeout=30000)
-            await self.page.wait_for_load_state("networkidle", timeout=20000)
+            # Navigate to login page if not already there
+            current_url = self.page.url
+            if "facebook.com" not in current_url:
+                await self.page.goto("https://www.facebook.com", wait_until="networkidle")
             
-            # Check for security checkpoint
-            from .utils import ScraperUtils
+            # Check if we're already on a login page
+            email_field = await self.page.query_selector('input[name="email"]')
+            if email_field:
+                await self.page.fill('input[name="email"]', email)
+                print(f"Pre-filled email: {email}")
+            
+        except Exception as e:
+            print(f"Error pre-filling login: {e}")
+    
+    async def login_check(self):
+        """Check if the user is logged in, and wait for manual login if needed"""
+        try:
+            print("Checking if logged in to Facebook...")
+            await self.page.goto("https://www.facebook.com", wait_until="networkidle")
+            
+            # Various login detection methods
+            is_logged_in = await self.page.is_visible("[data-testid='royal_name']", timeout=3000) or \
+                           await self.page.is_visible("[aria-label='Home']", timeout=1000) or \
+                           await self.page.is_visible("[data-testid='blue_bar']", timeout=1000)
+            
             utils = ScraperUtils(self.page)
             
-            # Check and handle security checkpoint (this pauses for 2 minutes if detected)
-            checkpoint_detected = await utils.check_for_security_checkpoint()
-            if checkpoint_detected:
-                logger.warning("Security checkpoint detected during login! Please solve the puzzle manually.")
-                # Wait for the user to solve the puzzle (2 minutes)
-                await utils.handle_security_checkpoint(wait_time=120)
-            
-            # Check for login indicators
-            # Method 1: Check for login form presence
-            login_form = await self.page.query_selector('form[data-testid="royal_login_form"]')
-            
-            # Method 2: Check for login button presence
-            login_button = await self.page.query_selector('button[name="login"]')
-            
-            # Method 3: Try to find user menu (indicates logged in)
-            user_menu = await self.page.query_selector('[aria-label="Your profile"], [aria-label="Account"], [data-testid="user-icon"]')
-            
-            if (login_form or login_button) and not user_menu:
-                logger.info("Not logged in. Please log in manually...")
+            if not is_logged_in:
+                print("\n" + "="*80)
+                print("NOT LOGGED IN - MANUAL ACTION REQUIRED")
+                print("Please log in or create an account in the browser window.")
+                print("The browser will remain open until you press Enter in this terminal.")
+                print("Take your time to complete any security challenges or account creation.")
+                print("="*80 + "\n")
                 
-                # Wait for login to complete
-                await self.page.wait_for_selector(
-                    'a[aria-label="Home"], a[href="https://www.facebook.com/?ref=logo"], [data-testid="user-icon"]', 
-                    timeout=120000
-                )
+                # Pre-fill the login form with email if available
+                await self.prefill_login()
                 
-                logger.info("Login detected!")
-                # Session is automatically persisted with the persistent browser context
-                return False
+                # Wait indefinitely for user to press Enter
+                input("Press Enter when you have finished logging in...")
+                
+                # After user presses Enter, verify login success
+                await asyncio.sleep(2)  # Give a moment to ensure the page updates
+                
+                # Check login status again
+                is_logged_in = await self.page.is_visible("[data-testid='royal_name']", timeout=3000) or \
+                               await self.page.is_visible("[aria-label='Home']", timeout=1000) or \
+                               await self.page.is_visible("[data-testid='blue_bar']", timeout=1000)
+                
+                if is_logged_in:
+                    print("Login successful! Session will be saved for future use.")
+                    return True
+                else:
+                    print("Still not logged in. Please try again.")
+                    return False
             else:
-                logger.info("Already logged in")
+                print("Already logged in!")
                 return True
                 
         except Exception as e:
-            logger.error(f"Error during login check: {str(e)}")
+            print(f"Error checking login: {e}")
             return False
     
     async def close(self):

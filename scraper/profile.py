@@ -13,21 +13,27 @@ class ProfileScraper:
         self.page = page
         self.utils = utils
 
-    async def navigate_to_profile(self, username: str) -> bool:
-        """Navigate to user profile page"""
-        profile_url = f"https://www.facebook.com/{username}"
-        await self.page.goto(profile_url, wait_until="networkidle")
-        
-        # Check for security checkpoint or CAPTCHA
-        # This will pause for 2 minutes if a checkpoint is detected
-        await self.utils.handle_security_checkpoint(wait_time=120)
-        
-        # Check if profile exists
-        not_found = await self.page.query_selector('div:text-matches("This page isn\'t available|The link you followed may be broken")')
-        if not_found:
-            return False
+    async def navigate_to_profile(self, username):
+        """Navigate to a user's profile page"""
+        try:
+            # Navigate to the profile
+            profile_url = f"https://www.facebook.com/{username}"
+            print(f"Navigating to {profile_url}")
+            await self.page.goto(profile_url, wait_until="networkidle")
+            await asyncio.sleep(2)  # Wait for any redirects or overlays
             
-        return True
+            # Check for security checkpoint
+            if await self.utils.check_for_security_checkpoint():
+                print("Security checkpoint detected!")
+                # Use None for indefinite wait
+                await self.utils.handle_security_checkpoint(wait_time=None)
+        
+            # Take a screenshot of the profile
+            await self.utils.take_screenshot(f"profile_{username}")
+            return True
+        except Exception as e:
+            print(f"Error navigating to profile: {str(e)}")
+            return False
 
     async def get_basic_info(self) -> Dict[str, Any]:
         """Extract basic profile information"""

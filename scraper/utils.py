@@ -156,33 +156,27 @@ class ScraperUtils:
         except Exception:
             pass
     
-    async def handle_security_checkpoint(self, wait_time: int = 120):
+    async def handle_security_checkpoint(self, wait_time: int = None):
         """
-        Handle Facebook security checkpoint by pausing for user to solve the CAPTCHA/puzzle
+        Handles a security checkpoint by waiting indefinitely or for a specified time.
         
         Args:
-            wait_time: Time in seconds to wait for manual intervention (default: 120 seconds/2 minutes)
+            wait_time: If None, wait indefinitely; otherwise, wait for the specified number of seconds
         """
-        is_checkpoint = await self.check_for_security_checkpoint()
+        print("\n" + "="*80)
+        print("SECURITY CHECKPOINT OR LOGIN REQUIRED")
+        print("Please solve the security checkpoint or complete the login process manually in the browser window.")
         
-        if is_checkpoint:
-            logger.warning(f"⚠️ SECURITY CHECKPOINT DETECTED! ⚠️")
-            logger.warning(f"Please solve the security puzzle/CAPTCHA manually in the browser.")
-            logger.warning(f"Waiting for {wait_time} seconds to give you time to complete the challenge...")
-            
-            # Take a screenshot to help identify the checkpoint
-            await self.take_screenshot("security_checkpoint")
-            
-            # Wait for the specified time to allow manual solving
-            for i in range(wait_time):
-                if i % 10 == 0:  # Log every 10 seconds
-                    logger.info(f"Still waiting... {wait_time - i} seconds remaining")
-                await asyncio.sleep(1)
-            
-            logger.info("Wait time completed. Proceeding with scraping...")
-            return True
+        # Always wait indefinitely, ignoring the wait_time parameter
+        print("The browser will wait indefinitely until you press Enter in this terminal.")
+        print("Take your time to complete any security challenges or account creation.")
+        print("="*80 + "\n")
         
-        return False
+        # Wait indefinitely until user presses Enter
+        input("Press Enter after completing the login or security checkpoint...")
+        
+        print("Continuing with scraping...")
+        await asyncio.sleep(1)  # Short pause before proceeding
     
     async def save_cookies_to_file(self, filepath: str = "cookies.json"):
         """Save current cookies to a file"""
