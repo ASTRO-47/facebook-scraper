@@ -99,64 +99,25 @@ class ProfileScraper:
             return False
 
     async def get_basic_info(self) -> Dict[str, Any]:
-        """Extract basic profile information"""
+        """Extract basic profile information with improved selectors and fallbacks"""
         try:
+            print("🔍 Extracting basic profile information...")
+            
             # Take screenshot of profile header
-            screenshot_path = await self.utils.take_screenshot("profile_header", "div[role='main']")
+            screenshot_path = await self.utils.take_screenshot("profile_header")
             
-            # Get profile name with better error handling
-            name_element = await self.page.query_selector('h1')
-            name = await name_element.text_content() if name_element else "Unknown"
+            # Get profile name with multiple fallback selectors
+            name = await self._extract_profile_name()
+            print(f"📝 Profile name: {name}")
             
-            # Get bio if available
-            bio_element = await self.page.query_selector('div[role="main"] > div > div > div > div > div > div > span')
-            bio = await bio_element.text_content() if bio_element else ""
+            # Get bio/description with multiple fallback selectors
+            bio = await self._extract_profile_bio()
+            print(f"📝 Profile bio: {bio[:50]}..." if bio else "📝 No bio found")
             
             # Try to navigate to About page with better error handling
-            try:
-                about_link = await self.page.query_selector('a[href*="/about"]')
-                if about_link:
-                    await about_link.click()
-                    await asyncio.sleep(3)
-                    # Wait for about page to load
-                    await self.page.wait_for_load_state("domcontentloaded", timeout=30000)
-                else:
-                    print("About link not found, using basic profile info only")
-            except Exception as e:
-                print(f"Could not navigate to about page: {e}")
-                
-            # Extract detailed information with fallbacks
-            about_data = {}
+            about_data = await self._extract_about_info()
             
-            try:
-                # Work and Education
-                work_education = await self._extract_section_data("Work and Education")
-                about_data.update(work_education)
-            except Exception as e:
-                print(f"Error extracting work/education: {e}")
-                
-            try:
-                # Places Lived
-                places = await self._extract_section_data("Places Lived") 
-                about_data.update(places)
-            except Exception as e:
-                print(f"Error extracting places: {e}")
-                
-            try:
-                # Contact Info
-                contact = await self._extract_section_data("Contact Info")
-                about_data.update(contact)
-            except Exception as e:
-                print(f"Error extracting contact info: {e}")
-                
-            try:
-                # Basic Info (including birthday)
-                basic = await self._extract_section_data("Basic Info")
-                about_data.update(basic)
-            except Exception as e:
-                print(f"Error extracting basic info: {e}")
-                
-            return {
+            result = {
                 "name": self.utils.clean_text(name),
                 "bio": self.utils.clean_text(bio),
                 "profile_picture": screenshot_path,
@@ -169,8 +130,11 @@ class ProfileScraper:
                 "birthday": about_data.get("birthday", ""),
             }
             
+            print(f"✅ Basic info extracted: {len([v for v in result.values() if v])} fields found")
+            return result
+            
         except Exception as e:
-            print(f"Error in get_basic_info: {e}")
+            print(f"❌ Error in get_basic_info: {e}")
             return {
                 "name": "Unknown",
                 "bio": "",
@@ -183,97 +147,288 @@ class ProfileScraper:
                 "phone": "",
                 "birthday": "",
             }
-    
-    async def _extract_section_data(self, section_name: str) -> Dict[str, Any]:
-        """Helper method to extract data from about page sections"""
+
+    async def _extract_profile_name(self) -> str:
+        """Extract profile name with multiple fallback selectors"""
+        name_selectors = [
+            'h1[data-testid="profile-name"]',  # Modern Facebook
+            'h1',  # Generic h1
+            '[data-testid="profile-name"]',
+            'div[role="main"] h1',
+            'div[data-pagelet*="Profile"] h1',
+            'span[dir="auto"]',  # Another common pattern
+        ]
+        
+        for selector in name_selectors:
+            try:
+                element = await self.page.query_selector(selector)
+                if element:
+                    name = await element.text_content()
+                    if name and len(name.strip()) > 0:
+                        print(f"✅ Found name using selector: {selector}")
+                        return name.strip()
+            except Exception as e:
+                print(f"⚠️ Name selector {selector} failed: {e}")
+                continue
+        
+        return "Unknown"
+
+    async def _extract_profile_bio(self) -> str:
+        """Extract profile bio/description with multiple fallback selectors"""
+        bio_selectors = [
+            '[data-testid="profile-bio"]',
+            'div[data-pagelet*="Profile"] span[dir="auto"]',
+            'div[role="main"] div > div > div > span[dir="auto"]',
+            'meta[name="description"]',  # Meta description as fallback
+        ]
+        
+        for selector in bio_selectors:
+            try:
+                if selector.startswith('meta'):
+                    element = await self.page.query_selector(selector)
+                    if element:
+                        bio = await element.get_attribute('content')
+                        if bio and len(bio.strip()) > 0:
+                            print(f"✅ Found bio using selector: {selector}")
+                            return bio.strip()
+                else:
+                    elements = await self.page.query_selector_all(selector)
+                    for element in elements:
+                        bio = await element.text_content()
+                        if bio and len(bio.strip()) > 10:  # Min length to avoid false positives
+                            print(f"✅ Found bio using selector: {selector}")
+                            return bio.strip()
+            except Exception as e:
+                print(f"⚠️ Bio selector {selector} failed: {e}")
+                continue
+        
+        return ""
+
+    async def _extract_about_info(self) -> Dict[str, Any]:
+        """Extract detailed information from About page with improved methods"""
+        about_data = {}
+        
+        try:
+            print("🔍 Attempting to navigate to About page...")
+            
+            # Multiple ways to find and click About link
+            about_selectors = [
+                'a[href*="/about"]',
+                'nav a:text("About")',
+                'div[role="tablist"] a:text("About")',
+                '[data-testid*="about"]',
+            ]
+            
+            about_clicked = False
+            for selector in about_selectors:
+                try:
+                    about_link = await self.page.query_selector(selector)
+                    if about_link:
+                        await about_link.click()
+                        await asyncio.sleep(3)
+                        await self.page.wait_for_load_state("domcontentloaded", timeout=30000)
+                        print(f"✅ Navigated to About using selector: {selector}")
+                        about_clicked = True
+                        break
+                except Exception as e:
+                    print(f"⚠️ About selector {selector} failed: {e}")
+                    continue
+            
+            if not about_clicked:
+                print("⚠️ Could not navigate to About page, using main profile page")
+                return about_data
+            
+            # Extract different types of information
+            about_data.update(await self._extract_work_education())
+            about_data.update(await self._extract_places())
+            about_data.update(await self._extract_contact_info())
+            about_data.update(await self._extract_basic_details())
+            
+        except Exception as e:
+            print(f"❌ Error extracting about info: {e}")
+        
+        return about_data
+
+    async def _extract_work_education(self) -> Dict[str, Any]:
+        """Extract work and education information with improved selectors"""
         result = {}
         
-        # Click on section if not already active
-        section_links = await self.page.query_selector_all(f'div[role="navigation"] a:text("{section_name}")')
-        if section_links:
-            await section_links[0].click()
-            await asyncio.sleep(2)
-        
-        if section_name == "Work and Education":
-            # Extract work information
-            work_elements = await self.page.query_selector_all('div[role="main"] div:has(> div:text-matches("(Work|Worked)"))')
+        try:
+            # Look for work information with multiple patterns
+            work_patterns = [
+                'div:has-text("Works at")',
+                'div:has-text("Work")',
+                'div:has-text("Worked at")',
+                '[data-testid*="work"]',
+            ]
+            
             work_list = []
+            for pattern in work_patterns:
+                try:
+                    elements = await self.page.query_selector_all(pattern)
+                    for element in elements:
+                        text = await element.text_content()
+                        if text and "Add a workplace" not in text and len(text.strip()) > 5:
+                            work_list.append(self.utils.clean_text(text))
+                except Exception:
+                    continue
             
-            for element in work_elements:
-                text = await element.text_content()
-                if text and "Add a workplace" not in text:
-                    work_list.append(self.utils.clean_text(text))
+            result["work"] = list(set(work_list))  # Remove duplicates
             
-            result["work"] = work_list
+            # Look for education information
+            edu_patterns = [
+                'div:has-text("Studied at")',
+                'div:has-text("Studies at")',
+                'div:has-text("Education")',
+                'div:has-text("School")',
+                'div:has-text("University")',
+                '[data-testid*="education"]',
+            ]
             
-            # Extract education information
-            edu_elements = await self.page.query_selector_all('div[role="main"] div:has(> div:text-matches("(College|School|University|Education|Studied)"))')
             edu_list = []
+            for pattern in edu_patterns:
+                try:
+                    elements = await self.page.query_selector_all(pattern)
+                    for element in elements:
+                        text = await element.text_content()
+                        if text and "Add a school" not in text and len(text.strip()) > 5:
+                            edu_list.append(self.utils.clean_text(text))
+                except Exception:
+                    continue
             
-            for element in edu_elements:
-                text = await element.text_content()
-                if text and "Add a school" not in text:
-                    edu_list.append(self.utils.clean_text(text))
+            result["education"] = list(set(edu_list))  # Remove duplicates
             
-            result["education"] = edu_list
+        except Exception as e:
+            print(f"❌ Error extracting work/education: {e}")
+        
+        return result
+
+    async def _extract_places(self) -> Dict[str, Any]:
+        """Extract location information with improved selectors"""
+        result = {}
+        
+        try:
+            # Look for location information
+            location_patterns = [
+                'div:has-text("Lives in")',
+                'div:has-text("From")',
+                'div:has-text("Current city")',
+                'div:has-text("Hometown")',
+                '[data-testid*="location"]',
+            ]
             
-        elif section_name == "Places Lived":
-            # Extract current city
-            city_element = await self.page.query_selector('div[role="main"] div:has(> div:text("Current city"))')
-            if city_element:
-                result["current_city"] = self.utils.clean_text(await city_element.text_content())
+            for pattern in location_patterns:
+                try:
+                    elements = await self.page.query_selector_all(pattern)
+                    for element in elements:
+                        text = await element.text_content()
+                        if text:
+                            text = self.utils.clean_text(text)
+                            if "Lives in" in text or "Current city" in text:
+                                result["current_city"] = text.replace("Lives in", "").replace("Current city", "").strip()
+                            elif "From" in text or "Hometown" in text:
+                                result["hometown"] = text.replace("From", "").replace("Hometown", "").strip()
+                except Exception:
+                    continue
             
-            # Extract hometown
-            hometown_element = await self.page.query_selector('div[role="main"] div:has(> div:text("Hometown"))')
-            if hometown_element:
-                result["hometown"] = self.utils.clean_text(await hometown_element.text_content())
-                
-        elif section_name == "Contact Info":
-            # Extract email
-            email_element = await self.page.query_selector('div[role="main"] div:has(> div:text("Email"))') 
-            if email_element:
-                text = await email_element.text_content()
-                email_match = re.search(r'[\w.+-]+@[\w-]+\.[\w.-]+', text)
-                if email_match:
-                    result["email"] = email_match.group(0)
+        except Exception as e:
+            print(f"❌ Error extracting places: {e}")
+        
+        return result
+
+    async def _extract_contact_info(self) -> Dict[str, Any]:
+        """Extract contact information with improved patterns"""
+        result = {}
+        
+        try:
+            # Get all text content and search for patterns
+            page_text = await self.page.evaluate('() => document.body.innerText')
             
-            # Extract phone
-            phone_element = await self.page.query_selector('div[role="main"] div:has(> div:text("Mobile"))') 
-            if phone_element:
-                text = await phone_element.text_content()
-                phone_match = re.search(r'(\+\d{1,3})?[\s.-]?\(?\d{3}\)?[\s.-]?\d{3}[\s.-]?\d{4}', text)
-                if phone_match:
-                    result["phone"] = phone_match.group(0)
-                    
-        elif section_name == "Basic Info":
-            # Extract birthday
-            birthday_element = await self.page.query_selector('div[role="main"] div:has(> div:text("Birthday"))') 
-            if birthday_element:
-                text = await birthday_element.text_content()
-                result["birthday"] = self.utils.clean_text(text.replace("Birthday", ""))
-                
+            # Extract email with regex
+            email_pattern = r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b'
+            email_matches = re.findall(email_pattern, page_text)
+            if email_matches:
+                result["email"] = email_matches[0]
+            
+            # Extract phone with regex (basic patterns)
+            phone_pattern = r'(\+\d{1,3}[-.\s]?)?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}'
+            phone_matches = re.findall(phone_pattern, page_text)
+            if phone_matches:
+                result["phone"] = ''.join(phone_matches[0]) if isinstance(phone_matches[0], tuple) else phone_matches[0]
+            
+        except Exception as e:
+            print(f"❌ Error extracting contact info: {e}")
+        
+        return result
+
+    async def _extract_basic_details(self) -> Dict[str, Any]:
+        """Extract basic details like birthday with improved patterns"""
+        result = {}
+        
+        try:
+            # Look for birthday information
+            birthday_patterns = [
+                'div:has-text("Birthday")',
+                'div:has-text("Born")',
+                '[data-testid*="birthday"]',
+            ]
+            
+            for pattern in birthday_patterns:
+                try:
+                    elements = await self.page.query_selector_all(pattern)
+                    for element in elements:
+                        text = await element.text_content()
+                        if text and ("Birthday" in text or "Born" in text):
+                            birthday = text.replace("Birthday", "").replace("Born", "").strip()
+                            if birthday:
+                                result["birthday"] = self.utils.clean_text(birthday)
+                                break
+                except Exception:
+                    continue
+            
+        except Exception as e:
+            print(f"❌ Error extracting basic details: {e}")
+        
         return result
 
     async def get_friends_list(self, max_scrolls: int = 5) -> List[Dict[str, str]]:
-        """Extract friends list"""
+        """Extract friends list with improved selectors and error handling"""
         try:
+            print("🔍 Extracting friends list...")
+            
             # Check if page/browser is still available
             if not self.page or self.page.is_closed():
-                print("Page is closed, cannot get friends list")
+                print("❌ Page is closed, cannot get friends list")
                 return []
                 
             # Get the username - use original username if available, otherwise extract from URL
             username = self.original_username or self._extract_username_from_url(self.page.url)
             
             if not username:
-                print("Could not extract username from URL")
+                print("❌ Could not extract username from URL")
                 return []
                 
             # Navigate to Friends page with proper URL construction
             friends_url = f"https://www.facebook.com/{username}/friends"
-            print(f"Navigating to friends page: {friends_url}")
+            print(f"🔗 Navigating to friends page: {friends_url}")
             await self.page.goto(friends_url, wait_until="domcontentloaded", timeout=60000)
             await asyncio.sleep(5)  # Wait for page to stabilize
+            
+            # Check for privacy restrictions
+            privacy_indicators = [
+                'div:text-matches("This content isn\'t available|Friends list is private|No friends to show")',
+                'div:has-text("Only you can see")',
+                'div:has-text("private")',
+            ]
+            
+            for indicator in privacy_indicators:
+                try:
+                    privacy_element = await self.page.query_selector(indicator)
+                    if privacy_element:
+                        print("🔒 Friends list is private or restricted")
+                        return []
+                except Exception:
+                    continue
             
             # Scroll to load more friends
             await self.utils.scroll_to_bottom(max_scrolls)
@@ -281,67 +436,108 @@ class ProfileScraper:
             # Take screenshot of friends page
             await self.utils.take_screenshot("friends_list")
             
-            # Extract friends information
+            # Extract friends information with multiple selector strategies
             friends_list = []
-            friend_elements = await self.page.query_selector_all('div[data-pagelet="ProfileAppSection_0"] > div > div > div > div')
             
-            for element in friend_elements:
+            # Strategy 1: Modern Facebook selectors
+            friend_selectors = [
+                'div[data-pagelet*="ProfileAppSection"] a[href*="/"]',
+                'div[role="main"] a[href*="facebook.com/"]',
+                'a[href*="/"] span[dir="auto"]',
+                'div[data-testid*="friend"] a',
+            ]
+            
+            for selector in friend_selectors:
                 try:
-                    name_element = await element.query_selector('span[dir="auto"]')
-                    if not name_element:
-                        continue
+                    elements = await self.page.query_selector_all(selector)
+                    print(f"🔍 Found {len(elements)} elements with selector: {selector}")
                     
-                    name = await name_element.text_content()
+                    for element in elements:
+                        try:
+                            # Get name
+                            name_element = await element.query_selector('span[dir="auto"]')
+                            if not name_element:
+                                name_element = element
+                            
+                            name = await name_element.text_content()
+                            if not name or len(name.strip()) < 2:
+                                continue
+                            
+                            # Get profile URL
+                            if await element.evaluate('el => el.tagName.toLowerCase()') == 'a':
+                                href = await element.get_attribute('href')
+                            else:
+                                link_element = await element.query_selector('a[href*="/"]')
+                                href = await link_element.get_attribute('href') if link_element else ""
+                            
+                            # Clean and validate
+                            name = self.utils.clean_text(name)
+                            if name and "Add Friend" not in name and len(name) > 1:
+                                friend_data = {
+                                    "name": name,
+                                    "profile_url": href if href else "",
+                                    "bio": ""  # Could be extracted if available
+                                }
+                                
+                                # Avoid duplicates
+                                if not any(f["name"] == name for f in friends_list):
+                                    friends_list.append(friend_data)
+                                    
+                        except Exception as e:
+                            print(f"⚠️ Error extracting individual friend: {e}")
+                            continue
                     
-                    # Try to get profile link
-                    link_element = await element.query_selector('a[href*="/"]')
-                    profile_url = ""
-                    if link_element:
-                        href = await link_element.get_attribute('href')
-                        if href:
-                            profile_url = href
-                    
-                    if name and "Add Friend" not in name:
-                        friends_list.append({
-                            "name": self.utils.clean_text(name),
-                            "profile_url": profile_url
-                        })
+                    if friends_list:  # If we found friends with this selector, use them
+                        break
+                        
                 except Exception as e:
-                    print(f"Error extracting friend info: {e}")
+                    print(f"⚠️ Friend selector {selector} failed: {e}")
                     continue
             
-            print(f"Extracted {len(friends_list)} friends")
-            return friends_list
+            print(f"✅ Extracted {len(friends_list)} friends")
+            return friends_list[:50]  # Limit to prevent excessive data
             
         except Exception as e:
-            print(f"Error getting friends list: {e}")
+            print(f"❌ Error getting friends list: {e}")
             return []
 
     async def get_groups(self) -> List[Dict[str, str]]:
-        """Extract groups the user is a member of"""
+        """Extract groups the user is a member of with improved selectors"""
         try:
+            print("🔍 Extracting groups list...")
+            
             # Check if page/browser is still available
             if not self.page or self.page.is_closed():
-                print("Page is closed, cannot get groups")
+                print("❌ Page is closed, cannot get groups")
                 return []
                 
             # Get the username - use original username if available, otherwise extract from URL
             username = self.original_username or self._extract_username_from_url(self.page.url)
             
             if not username:
-                print("Could not extract username from URL")
+                print("❌ Could not extract username from URL")
                 return []
                 
             # Navigate to Groups page with proper URL construction
             groups_url = f"https://www.facebook.com/{username}/groups"
-            print(f"Navigating to groups page: {groups_url}")
+            print(f"🔗 Navigating to groups page: {groups_url}")
             await self.page.goto(groups_url, wait_until="domcontentloaded", timeout=60000)
             await asyncio.sleep(5)  # Wait for page to stabilize
             
-            # Check if groups page exists
-            no_content = await self.page.query_selector('div:text-matches("This content isn\'t available|No groups to show")')
-            if no_content:
-                return []
+            # Check if groups page exists or is private
+            privacy_indicators = [
+                'div:text-matches("This content isn\'t available|No groups to show|Groups are private")',
+                'div:has-text("Only you can see")',
+            ]
+            
+            for indicator in privacy_indicators:
+                try:
+                    privacy_element = await self.page.query_selector(indicator)
+                    if privacy_element:
+                        print("🔒 Groups list is private or empty")
+                        return []
+                except Exception:
+                    continue
                 
             # Scroll to load more groups
             await self.utils.scroll_to_bottom(3)
@@ -349,59 +545,94 @@ class ProfileScraper:
             # Take screenshot
             await self.utils.take_screenshot("groups_list")
             
-            # Extract groups information
+            # Extract groups information with multiple strategies
             groups_list = []
-            group_elements = await self.page.query_selector_all('div[data-pagelet*="Group"] a[href*="/groups/"]')
             
-            for element in group_elements:
+            group_selectors = [
+                'a[href*="/groups/"]',
+                'div[data-testid*="group"] a',
+                'div[role="main"] a[href*="facebook.com/groups/"]',
+            ]
+            
+            for selector in group_selectors:
                 try:
-                    # Get group name
-                    name = await element.text_content()
+                    elements = await self.page.query_selector_all(selector)
+                    print(f"🔍 Found {len(elements)} group elements with selector: {selector}")
                     
-                    # Get group URL
-                    href = await element.get_attribute('href')
+                    for element in elements:
+                        try:
+                            # Get group name
+                            name = await element.text_content()
+                            
+                            # Get group URL
+                            href = await element.get_attribute('href')
+                            
+                            if name and href and name.strip() and "/groups/" in href:
+                                group_data = {
+                                    "group_name": self.utils.clean_text(name.strip()),
+                                    "group_url": href,
+                                    "bio": ""  # Could be extracted if available
+                                }
+                                
+                                # Avoid duplicates
+                                if not any(g["group_name"] == group_data["group_name"] for g in groups_list):
+                                    groups_list.append(group_data)
+                                    
+                        except Exception as e:
+                            print(f"⚠️ Error extracting individual group: {e}")
+                            continue
                     
-                    if name and href and name.strip():
-                        groups_list.append({
-                            "name": self.utils.clean_text(name.strip()),
-                            "url": href
-                        })
+                    if groups_list:  # If we found groups with this selector, use them
+                        break
+                        
                 except Exception as e:
-                    print(f"Error extracting group info: {e}")
+                    print(f"⚠️ Group selector {selector} failed: {e}")
                     continue
             
-            print(f"Extracted {len(groups_list)} groups")
+            print(f"✅ Extracted {len(groups_list)} groups")
             return groups_list
             
         except Exception as e:
-            print(f"Error getting groups: {e}")
+            print(f"❌ Error getting groups: {e}")
             return []
 
     async def get_pages_followed(self) -> List[Dict[str, str]]:
-        """Extract pages the user follows"""
+        """Extract pages the user follows with improved selectors"""
         try:
+            print("🔍 Extracting pages followed...")
+            
             # Check if page/browser is still available
             if not self.page or self.page.is_closed():
-                print("Page is closed, cannot get pages followed")
+                print("❌ Page is closed, cannot get pages followed")
                 return []
                 
             # Get the username - use original username if available, otherwise extract from URL
             username = self.original_username or self._extract_username_from_url(self.page.url)
             
             if not username:
-                print("Could not extract username from URL")
+                print("❌ Could not extract username from URL")
                 return []
                 
             # Navigate to Likes page with proper URL construction
             likes_url = f"https://www.facebook.com/{username}/likes"
-            print(f"Navigating to likes page: {likes_url}")
+            print(f"🔗 Navigating to likes page: {likes_url}")
             await self.page.goto(likes_url, wait_until="domcontentloaded", timeout=60000)
             await asyncio.sleep(5)  # Wait for page to stabilize
             
-            # Check if likes page exists
-            no_content = await self.page.query_selector('div:text-matches("This content isn\'t available|No pages to show")')
-            if no_content:
-                return []
+            # Check if likes page exists or is private
+            privacy_indicators = [
+                'div:text-matches("This content isn\'t available|No pages to show|Likes are private")',
+                'div:has-text("Only you can see")',
+            ]
+            
+            for indicator in privacy_indicators:
+                try:
+                    privacy_element = await self.page.query_selector(indicator)
+                    if privacy_element:
+                        print("🔒 Pages list is private or empty")
+                        return []
+                except Exception:
+                    continue
                 
             # Scroll to load more pages
             await self.utils.scroll_to_bottom(3)
@@ -409,106 +640,168 @@ class ProfileScraper:
             # Take screenshot of liked pages
             await self.utils.take_screenshot("pages_followed")
             
-            # Extract pages information
+            # Extract pages information with multiple strategies
             pages_list = []
-            page_elements = await self.page.query_selector_all('div[role="main"] > div > div > div > div')
             
-            for element in page_elements:
+            page_selectors = [
+                'div[role="main"] a[href*="facebook.com/"][href*="/"]',
+                'a[href*="facebook.com/"] span[dir="auto"]',
+                'div[data-testid*="page"] a',
+            ]
+            
+            for selector in page_selectors:
                 try:
-                    name_element = await element.query_selector('span[dir="auto"]')
-                    if not name_element:
-                        continue
+                    elements = await self.page.query_selector_all(selector)
+                    print(f"🔍 Found {len(elements)} page elements with selector: {selector}")
                     
-                    name = await name_element.text_content()
+                    for element in elements:
+                        try:
+                            # Get page name
+                            name_element = await element.query_selector('span[dir="auto"]')
+                            if not name_element:
+                                name_element = element
+                            
+                            name = await name_element.text_content()
+                            
+                            # Get page URL
+                            if await element.evaluate('el => el.tagName.toLowerCase()') == 'a':
+                                href = await element.get_attribute('href')
+                            else:
+                                link_element = await element.query_selector('a[href*="facebook.com"]')
+                                href = await link_element.get_attribute('href') if link_element else ""
+                            
+                            if name and href and name.strip():
+                                # Filter out navigation links and duplicates
+                                if not ("/likes" in href or "?ref=" in href or "/friends" in href):
+                                    page_data = {
+                                        "page_name": self.utils.clean_text(name.strip()),
+                                        "page_url": href,
+                                        "bio": ""  # Could be extracted if available
+                                    }
+                                    
+                                    # Avoid duplicates
+                                    if not any(p["page_name"] == page_data["page_name"] for p in pages_list):
+                                        pages_list.append(page_data)
+                                        
+                        except Exception as e:
+                            print(f"⚠️ Error extracting individual page: {e}")
+                            continue
                     
-                    # Try to get page link
-                    link_element = await element.query_selector('a[href*="facebook.com"]')
-                    page_url = ""
-                    if link_element:
-                        href = await link_element.get_attribute('href')
-                        if href and not ("/likes" in href or "?ref=" in href):
-                            page_url = href
-                    
-                    if name and page_url:
-                        pages_list.append({
-                            "name": self.utils.clean_text(name),
-                            "url": page_url
-                        })
+                    if pages_list:  # If we found pages with this selector, use them
+                        break
+                        
                 except Exception as e:
-                    print(f"Error extracting page info: {e}")
+                    print(f"⚠️ Page selector {selector} failed: {e}")
                     continue
             
-            print(f"Extracted {len(pages_list)} pages")
+            print(f"✅ Extracted {len(pages_list)} pages")
             return pages_list
             
         except Exception as e:
-            print(f"Error getting pages: {e}")
+            print(f"❌ Error getting pages: {e}")
             return []
 
     async def get_following_list(self) -> List[Dict[str, str]]:
-        """Extract list of profiles the user is following"""
+        """Extract list of profiles the user is following with improved selectors"""
         try:
+            print("🔍 Extracting following list...")
+            
             # Check if page/browser is still available
             if not self.page or self.page.is_closed():
-                print("Page is closed, cannot get following list")
+                print("❌ Page is closed, cannot get following list")
                 return []
                 
             # Get the username - use original username if available, otherwise extract from URL
             username = self.original_username or self._extract_username_from_url(self.page.url)
             
             if not username:
-                print("Could not extract username from URL")
+                print("❌ Could not extract username from URL")
                 return []
                 
             # Navigate to Following page with proper URL construction
             following_url = f"https://www.facebook.com/{username}/following"
-            print(f"Navigating to following page: {following_url}")
+            print(f"🔗 Navigating to following page: {following_url}")
             await self.page.goto(following_url, wait_until="domcontentloaded", timeout=60000)
             await asyncio.sleep(5)  # Wait for page to stabilize
             
-            # Check if following page exists
-            no_content = await self.page.query_selector('div:text-matches("This content isn\'t available|No pages to show")')
-            if no_content:
-                return []
+            # Check if following page exists or is private
+            privacy_indicators = [
+                'div:text-matches("This content isn\'t available|No following to show|Following is private")',
+                'div:has-text("Only you can see")',
+            ]
+            
+            for indicator in privacy_indicators:
+                try:
+                    privacy_element = await self.page.query_selector(indicator)
+                    if privacy_element:
+                        print("🔒 Following list is private or empty")
+                        return []
+                except Exception:
+                    continue
                 
-            # Scroll to load more followed profiles
+            # Scroll to load more following
             await self.utils.scroll_to_bottom(3)
             
-            # Take screenshot of following list
+            # Take screenshot of following page
             await self.utils.take_screenshot("following_list")
             
-            # Extract following information
+            # Extract following information with multiple strategies
             following_list = []
-            follow_elements = await self.page.query_selector_all('div[role="main"] > div > div > div > div')
             
-            for element in follow_elements:
+            following_selectors = [
+                'div[role="main"] a[href*="facebook.com/"][href*="/"]',
+                'a[href*="/"] span[dir="auto"]',
+                'div[data-testid*="following"] a',
+            ]
+            
+            for selector in following_selectors:
                 try:
-                    name_element = await element.query_selector('span[dir="auto"]')
-                    if not name_element:
-                        continue
+                    elements = await self.page.query_selector_all(selector)
+                    print(f"🔍 Found {len(elements)} following elements with selector: {selector}")
                     
-                    name = await name_element.text_content()
+                    for element in elements:
+                        try:
+                            # Get profile name
+                            name_element = await element.query_selector('span[dir="auto"]')
+                            if not name_element:
+                                name_element = element
+                            
+                            name = await name_element.text_content()
+                            
+                            # Get profile URL
+                            if await element.evaluate('el => el.tagName.toLowerCase()') == 'a':
+                                href = await element.get_attribute('href')
+                            else:
+                                link_element = await element.query_selector('a[href*="facebook.com"]')
+                                href = await link_element.get_attribute('href') if link_element else ""
+                            
+                            if name and href and name.strip():
+                                # Filter out navigation links and duplicates
+                                if not ("/following" in href or "?ref=" in href or "/friends" in href):
+                                    following_data = {
+                                        "name": self.utils.clean_text(name.strip()),
+                                        "profile_url": href,
+                                        "bio": ""  # Could be extracted if available
+                                    }
+                                    
+                                    # Avoid duplicates
+                                    if not any(f["name"] == following_data["name"] for f in following_list):
+                                        following_list.append(following_data)
+                                        
+                        except Exception as e:
+                            print(f"⚠️ Error extracting individual following: {e}")
+                            continue
                     
-                    # Try to get profile link
-                    link_element = await element.query_selector('a[href*="facebook.com"]')
-                    profile_url = ""
-                    if link_element:
-                        href = await link_element.get_attribute('href')
-                        if href and not ("/following" in href or "?ref=" in href):
-                            profile_url = href
-                    
-                    if name and profile_url:
-                        following_list.append({
-                            "name": self.utils.clean_text(name),
-                            "url": profile_url
-                        })
+                    if following_list:  # If we found following with this selector, use them
+                        break
+                        
                 except Exception as e:
-                    print(f"Error extracting following info: {e}")
+                    print(f"⚠️ Following selector {selector} failed: {e}")
                     continue
             
-            print(f"Extracted {len(following_list)} following")
+            print(f"✅ Extracted {len(following_list)} following")
             return following_list
             
         except Exception as e:
-            print(f"Error getting following list: {e}")
+            print(f"❌ Error getting following list: {e}")
             return []

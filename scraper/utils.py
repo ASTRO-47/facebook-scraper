@@ -156,28 +156,6 @@ class ScraperUtils:
         except Exception:
             pass
     
-    async def handle_security_checkpoint(self, wait_time: int = None):
-        """
-        Handles a security checkpoint by waiting indefinitely or for a specified time.
-        
-        Args:
-            wait_time: If None, wait indefinitely; otherwise, wait for the specified number of seconds
-        """
-        print("\n" + "="*80)
-        print("SECURITY CHECKPOINT OR LOGIN REQUIRED")
-        print("Please solve the security checkpoint or complete the login process manually in the browser window.")
-        
-        # Always wait indefinitely, ignoring the wait_time parameter
-        print("The browser will wait indefinitely until you press Enter in this terminal.")
-        print("Take your time to complete any security challenges or account creation.")
-        print("="*80 + "\n")
-        
-        # Wait indefinitely until user presses Enter
-        input("Press Enter after completing the login or security checkpoint...")
-        
-        print("Continuing with scraping...")
-        await asyncio.sleep(1)  # Short pause before proceeding
-    
     async def save_cookies_to_file(self, filepath: str = "cookies.json"):
         """Save current cookies to a file"""
         try:
@@ -245,3 +223,167 @@ class ScraperUtils:
         """Generate unique filename for screenshots and outputs"""
         timestamp = int(time.time())
         return f"{username}_{base}_{timestamp}"
+
+    async def human_like_delay(self, min_seconds=2, max_seconds=8):
+        """Add realistic human-like delays between actions"""
+        import random
+        delay = random.uniform(min_seconds, max_seconds)
+        print(f"⏳ Human-like delay: {delay:.1f} seconds")
+        await asyncio.sleep(delay)
+    
+    async def slow_type(self, selector, text, delay_range=(0.05, 0.3)):
+        """Type text slowly like a human"""
+        import random
+        await self.page.click(selector)
+        await asyncio.sleep(random.uniform(0.5, 1.5))  # Pause after clicking
+        
+        for char in text:
+            await self.page.keyboard.type(char)
+            await asyncio.sleep(random.uniform(delay_range[0], delay_range[1]))
+    
+    async def human_scroll(self, pixels=None, direction="down"):
+        """Scroll like a human - randomly and in chunks"""
+        import random
+        
+        if pixels is None:
+            pixels = random.randint(200, 800)
+        
+        # Scroll in smaller chunks like humans do
+        chunks = random.randint(3, 6)
+        chunk_size = pixels // chunks
+        
+        for i in range(chunks):
+            scroll_amount = chunk_size + random.randint(-50, 50)
+            if direction == "down":
+                await self.page.mouse.wheel(0, scroll_amount)
+            else:
+                await self.page.mouse.wheel(0, -scroll_amount)
+            
+            # Random pause between scroll chunks
+            await asyncio.sleep(random.uniform(0.2, 0.8))
+    
+    async def random_mouse_movement(self):
+        """Add random mouse movements to simulate human behavior"""
+        import random
+        
+        # Get page dimensions
+        viewport = self.page.viewport_size
+        width = viewport['width']
+        height = viewport['height']
+        
+        # Generate 2-4 random mouse movements
+        movements = random.randint(2, 4)
+        
+        for _ in range(movements):
+            x = random.randint(100, width - 100)
+            y = random.randint(100, height - 100)
+            
+            # Move mouse with some randomness in the path
+            await self.page.mouse.move(x, y)
+            await asyncio.sleep(random.uniform(0.1, 0.5))
+    
+    async def safe_click(self, selector, human_like=True):
+        """Click with human-like behavior"""
+        import random
+        
+        if human_like:
+            # Random mouse movement before click
+            await self.random_mouse_movement()
+            await asyncio.sleep(random.uniform(0.3, 1.0))
+        
+        # Wait for element to be visible and clickable
+        await self.page.wait_for_selector(selector, state="visible", timeout=10000)
+        
+        # Sometimes hover before clicking
+        if random.choice([True, False]):
+            await self.page.hover(selector)
+            await asyncio.sleep(random.uniform(0.2, 0.7))
+        
+        await self.page.click(selector)
+        
+        if human_like:
+            await self.human_like_delay(1, 3)
+    
+    async def facebook_security_check(self):
+        """Enhanced security checkpoint detection for international accounts"""
+        security_indicators = [
+            # Standard checkpoints
+            "security checkpoint", "verify your identity", "confirm your identity",
+            "unusual activity", "suspicious activity", "verify it's you",
+            
+            # International login specific
+            "login from a new location", "new device", "different country",
+            "verify this login", "was this you", "approve this login",
+            "location verification", "account security", "protect your account",
+            
+            # Arabic/French variations (for Moroccan accounts)
+            "نقطة أمان", "تأكيد الهوية", "نشاط مشبوه",
+            "point de sécurité", "vérifier votre identité", "activité suspecte"
+        ]
+        
+        try:
+            page_content = await self.page.content()
+            page_text = page_content.lower()
+            
+            # Check for security checkpoint indicators
+            for indicator in security_indicators:
+                if indicator.lower() in page_text:
+                    print(f"🔒 Security checkpoint detected: {indicator}")
+                    return True
+            
+            # Check for specific security-related selectors
+            security_selectors = [
+                "[data-testid='security_checkpoint']",
+                "[role='dialog'][aria-label*='Security']",
+                "[role='dialog'][aria-label*='Verify']", 
+                "form[action*='checkpoint']",
+                "div[id*='checkpoint']",
+                "button[value='Continue']",
+                "button[value='This Was Me']"
+            ]
+            
+            for selector in security_selectors:
+                if await self.page.is_visible(selector):
+                    print(f"🔒 Security checkpoint element found: {selector}")
+                    return True
+                    
+            return False
+            
+        except Exception as e:
+            print(f"Error checking for security checkpoint: {e}")
+            return False
+    
+    async def handle_security_checkpoint(self, wait_time=300):
+        """Enhanced security checkpoint handler for international accounts"""
+        print("\n" + "="*60)
+        print("🔒 SECURITY CHECKPOINT DETECTED")
+        print("="*60)
+        print("For international accounts (Moroccan account in US):")
+        print("1. ✅ Click 'This Was Me' or 'Yes, Continue'")
+        print("2. 📱 You may need to verify via SMS or email")
+        print("3. 📋 Have your ID ready if asked for verification")
+        print("4. 🌍 Confirm the login location is correct")
+        print("5. ⚠️ DO NOT use VPN - use your real US location")
+        print("6. 📝 Answer any security questions honestly")
+        print("="*60)
+        
+        # Take screenshot for debugging
+        checkpoint_screenshot = await self.take_screenshot("security_checkpoint_international")
+        print(f"📸 Checkpoint screenshot saved: {checkpoint_screenshot}")
+        
+        print(f"⏳ Waiting {wait_time} seconds for manual resolution...")
+        print("Press Ctrl+C to skip waiting if you've resolved it quickly")
+        
+        try:
+            await asyncio.sleep(wait_time)
+        except KeyboardInterrupt:
+            print("\n⚡ Manual intervention detected, continuing...")
+        
+        # Verify checkpoint is resolved
+        is_resolved = not await self.facebook_security_check()
+        if is_resolved:
+            print("✅ Security checkpoint appears to be resolved!")
+        else:
+            print("⚠️ Security checkpoint may still be active")
+        
+        return is_resolved

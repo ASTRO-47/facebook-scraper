@@ -70,7 +70,6 @@ async def scrape_profile(username: str):
             print("Successfully logged in and session saved!")
         else:
             print("Already logged in!")
-        
         # Initialize helper classes
         utils = ScraperUtils(page, screenshot_dir="static/screenshots")
         profile_scraper = ProfileScraper(page, utils)
@@ -82,7 +81,12 @@ async def scrape_profile(username: str):
         
         # Navigate to profile and handle security checkpoint if needed
         print(f"🎯 Navigating to profile {username}...")
-        print("⏱️ This may take up to 2 minutes depending on Facebook's response time")
+        print("⏱️ This may take up to 5 minutes depending on Facebook's response time")
+        print("🌍 Using international account-friendly navigation...")
+        
+        # Add human behavior before navigation
+        await utils.random_mouse_movement()
+        await utils.human_like_delay(3, 8)
         
         profile_exists = await profile_scraper.navigate_to_profile(username)
         if not profile_exists:
@@ -92,20 +96,18 @@ async def scrape_profile(username: str):
         
         # Extra wait after successful navigation to ensure page is fully loaded
         print("✅ Profile loaded successfully, waiting for page to stabilize...")
-        await asyncio.sleep(10)
+        await utils.human_like_delay(10, 20)  # Longer stabilization time
         
-        # Additional checkpoint check after navigation
-        print("🔍 Final security checkpoint check...")
-        checkpoint_detected = await utils.check_for_security_checkpoint()
+        # Additional checkpoint check after navigation using enhanced detection
+        print("🔍 Enhanced security checkpoint check for international accounts...")
+        checkpoint_detected = await utils.facebook_security_check()
         if checkpoint_detected:
             print("🔒 Security checkpoint detected after profile navigation!")
-            checkpoint_screenshot = await utils.take_screenshot("security_checkpoint_post_nav")
-            print(f"📸 Checkpoint screenshot: {checkpoint_screenshot}")
-            print("⏳ Waiting 3 minutes for manual checkpoint resolution...")
+            print("⏳ This is normal for international accounts (Moroccan account in US)")
             
-            await utils.handle_security_checkpoint(wait_time=180)
-            print("✅ Checkpoint wait completed, continuing with scraping...")
-            await asyncio.sleep(10)  # Extra stabilization time
+            await utils.handle_security_checkpoint(wait_time=300)  # 5 minutes
+            print("✅ Checkpoint handling completed, continuing with scraping...")
+            await utils.human_like_delay(10, 20)  # Extra stabilization time
         
         # Scrape all data with comprehensive error handling and delays
         scrape_data = {}
@@ -120,21 +122,27 @@ async def scrape_profile(username: str):
                 try:
                     print(f"📊 {name} (attempt {attempt + 1}/{max_retries + 1})...")
                     
+                    # Add realistic human behavior before each scraping operation
+                    await utils.random_mouse_movement()
+                    await utils.human_like_delay(5, 15)  # Much longer delays
+                    await utils.human_scroll()  # Random scrolling
+                    
                     # Add timeout context for each scraping operation
                     result = await asyncio.wait_for(
                         func(*args, **kwargs), 
-                        timeout=180.0  # 3 minutes per operation
+                        timeout=300.0  # 5 minutes per operation (increased)
                     )
                     
                     print(f"✅ {name} completed successfully")
-                    await asyncio.sleep(8)  # Wait between operations for page stability
+                    # Much longer wait between operations for realism
+                    await utils.human_like_delay(15, 30)  # 15-30 seconds between operations
                     return result
                     
                 except asyncio.TimeoutError:
-                    print(f"⚠️ Timeout in {name} after 3 minutes")
+                    print(f"⚠️ Timeout in {name} after 5 minutes")
                     if attempt < max_retries:
-                        print(f"🔄 Retrying {name} in 15 seconds...")
-                        await asyncio.sleep(15)
+                        print(f"🔄 Retrying {name} in 30 seconds...")
+                        await asyncio.sleep(30)  # Longer retry delay
                     else:
                         print(f"❌ Failed {name} after {max_retries + 1} attempts (timeout)")
                         return {}
@@ -142,8 +150,8 @@ async def scrape_profile(username: str):
                 except Exception as e:
                     print(f"⚠️ Error in {name}: {str(e)}")
                     if attempt < max_retries:
-                        print(f"🔄 Retrying {name} in 15 seconds...")
-                        await asyncio.sleep(15)
+                        print(f"🔄 Retrying {name} in 30 seconds...")
+                        await asyncio.sleep(30)
                     else:
                         print(f"❌ Failed {name} after {max_retries + 1} attempts")
                         return {}

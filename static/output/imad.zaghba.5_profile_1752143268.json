@@ -1,0 +1,68 @@
+{
+  "metadata": {
+    "username": "imad.zaghba.5",
+    "scraped_at": 1752143268,
+    "scraper_version": "1.0.0"
+  },
+  "profile": {
+    "basic_info": {
+      "name": "Notifications",
+      "bio": "",
+      "profile_picture": "/static/screenshots/profile_header.png",
+      "work": [],
+      "education": [],
+      "current_city": "",
+      "hometown": "",
+      "birthday": "",
+      "email": "",
+      "phone": ""
+    },
+    "connections": {
+      "friends": [],
+      "following": [
+        {
+          "name": "Imad Ezz (The Godfather)",
+          "url": "https://www.facebook.com/photo/?fbid=1418604855945717&set=a.104286320710917&__tn__=%3C"
+        },
+        {
+          "name": "More",
+          "url": "https://www.facebook.com/imad.zaghba.5"
+        },
+        {
+          "name": "Friends",
+          "url": "https://www.facebook.com/imad.zaghba.5/friends"
+        }
+      ],
+      "groups": [],
+      "pages_followed": [
+        {
+          "name": "Imad Ezz (The Godfather)",
+          "url": "https://www.facebook.com/photo/?fbid=1418604855945717&set=a.104286320710917&__tn__=%3C"
+        },
+        {
+          "name": "More",
+          "url": "https://www.facebook.com/imad.zaghba.5"
+        }
+      ]
+    },
+    "content": {
+      "own_posts": [],
+      "tagged_posts": [],
+      "comments_made": [],
+      "locations": [
+        {
+          "name": "Imad Ezz (The Godfather)",
+          "details": "Imad Ezz (The Godfather)"
+        },
+        {
+          "name": "More",
+          "details": "More"
+        },
+        {
+          "name": "Check-ins",
+          "details": "Recent"
+        }
+      ]
+    }
+  }
+}

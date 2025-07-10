@@ -16,7 +16,7 @@ logging.basicConfig(level=logging.INFO,
 logger = logging.getLogger('facebook_scraper')
 
 class FacebookSession:
-    def __init__(self, headless=True, user_data_dir="./user_data"):
+    def __init__(self, headless=False, user_data_dir="./user_data"):
         self.headless = headless
         self.user_data_dir = user_data_dir
         self.browser = None
@@ -59,13 +59,35 @@ class FacebookSession:
         
         try:
             # Use the default Chromium browser that comes with Playwright
+            # Random realistic user agents for better stealth
+            user_agents = [
+                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36",
+                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+                "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36",
+                "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36"
+            ]
+            
+            import random
+            selected_user_agent = random.choice(user_agents)
+            print(f"Using user agent: {selected_user_agent}")
+            
+            # Randomize viewport to look more human
+            viewports = [
+                {"width": 1366, "height": 768},
+                {"width": 1920, "height": 1080},
+                {"width": 1440, "height": 900},
+                {"width": 1536, "height": 864}
+            ]
+            selected_viewport = random.choice(viewports)
+            
             self.browser = await self.playwright.chromium.launch_persistent_context(
                 user_data_dir=self.user_data_dir,
                 headless=self.headless,
-                user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36",
-                viewport={"width": 1366, "height": 768},
+                user_agent=selected_user_agent,
+                viewport=selected_viewport,
                 ignore_https_errors=True,
                 locale="en-US",
+                timezone_id="America/New_York",  # Use US timezone since you're in US
                 accept_downloads=True,
                 proxy=None,
                 args=[
@@ -83,7 +105,24 @@ class FacebookSession:
                     "--disable-renderer-backgrounding",
                     "--disable-gpu-sandbox",
                     "--disable-software-rasterizer",
-                    "--force-single-process"  # Force single process to avoid ProcessSingleton issues
+                    "--force-single-process",  # Force single process to avoid ProcessSingleton issues
+                    # Enhanced stealth arguments
+                    "--disable-blink-features=AutomationControlled",
+                    "--exclude-switches=enable-automation", 
+                    "--use-fake-ui-for-media-stream",
+                    "--disable-default-apps",
+                    "--disable-component-extensions-with-background-pages",
+                    "--disable-ipc-flooding-protection",
+                    "--enable-features=NetworkService,NetworkServiceLogging",
+                    "--force-webrtc-ip-handling-policy=default_public_interface_only",
+                    "--disable-features=TranslateUI",
+                    "--disable-background-networking",
+                    "--disable-sync",
+                    "--metrics-recording-only",
+                    "--disable-default-apps",
+                    "--mute-audio",
+                    "--no-reporting",
+                    "--no-crash-upload"
                 ]
             )
         except Exception as e:
@@ -111,14 +150,91 @@ class FacebookSession:
         
         # Configure request interception to avoid being detected as bot
         await self.browser.add_init_script("""
+            // Advanced stealth - Remove all automation indicators
             Object.defineProperty(navigator, 'webdriver', {
                 get: () => false,
             });
             
-            // Disable fingerprinting
+            // Hide automation-specific properties
+            delete navigator.__proto__.webdriver;
+            
+            // Fake realistic navigator properties
+            Object.defineProperty(navigator, 'languages', {
+                get: () => ['en-US', 'en', 'ar', 'fr'],
+            });
+            
+            Object.defineProperty(navigator, 'plugins', {
+                get: () => [
+                    {name: 'Chrome PDF Plugin', filename: 'internal-pdf-viewer'},
+                    {name: 'Chrome PDF Viewer', filename: 'mhjfbmdgcfjbbpaeojofohoefgiehjai'},
+                    {name: 'Native Client', filename: 'internal-nacl-plugin'}
+                ],
+            });
+            
+            // Realistic screen properties
+            Object.defineProperty(screen, 'colorDepth', {
+                get: () => 24,
+            });
+            
+            Object.defineProperty(screen, 'pixelDepth', {
+                get: () => 24,
+            });
+            
+            // Hide automation-specific console messages
+            const originalLog = console.log;
+            console.log = (...args) => {
+                if (!args.join(' ').includes('automation')) {
+                    originalLog.apply(console, args);
+                }
+            };
+            
+            // Realistic permissions
             navigator.permissions.query = (query) => {
                 return Promise.resolve({state: 'granted'});
             };
+            
+            // Fake canvas fingerprint to avoid detection
+            const getImageData = HTMLCanvasElement.prototype.toDataURL;
+            HTMLCanvasElement.prototype.toDataURL = function(a) {
+                if (a === 'image/webp') {
+                    // Return randomized but consistent fake data
+                    const fakeData = 'UklGRiIAAABXRUJQVlA4IBYAAAAwAQCdASoBAAEADsD+JaQAA3AAAAAA';
+                    return 'data:image/webp;base64,' + fakeData + Math.random().toString(36).substr(2, 5);
+                }
+                return getImageData.apply(this, arguments);
+            };
+            
+            // Override WebGL fingerprinting
+            const getParameter = WebGLRenderingContext.prototype.getParameter;
+            WebGLRenderingContext.prototype.getParameter = function(parameter) {
+                if (parameter === 37445) {
+                    return 'Intel Inc.'; // Fake but common GPU vendor
+                }
+                if (parameter === 37446) {
+                    return 'Intel(R) HD Graphics'; // Fake but common GPU
+                }
+                return getParameter.call(this, parameter);
+            };
+            
+            // Hide Playwright-specific properties
+            delete window.playwright;
+            delete window.__playwright;
+            delete window._$playwright;
+            
+            // Randomize timezone (but keep consistent for session)
+            const originalTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+            
+            // Add realistic mouse and touch events
+            window.addEventListener('load', () => {
+                // Simulate some mouse movement after page load
+                setTimeout(() => {
+                    const event = new MouseEvent('mousemove', {
+                        clientX: Math.random() * window.innerWidth,
+                        clientY: Math.random() * window.innerHeight
+                    });
+                    document.dispatchEvent(event);
+                }, Math.random() * 3000 + 1000);
+            });
         """)
         
         # Use existing pages or create a new one
@@ -151,64 +267,107 @@ class FacebookSession:
         """Check if the user is logged in, and wait for manual login if needed"""
         try:
             print("Checking if logged in to Facebook...")
-            # Use longer timeout and less strict wait condition
-            await self.page.goto("https://www.facebook.com", wait_until="domcontentloaded", timeout=60000)
-            await asyncio.sleep(3)  # Extra wait for dynamic content
             
-            # Various login detection methods - remove timeout argument for compatibility
-            try:
-                is_logged_in = await self.page.is_visible("[data-testid='royal_name']") or \
-                               await self.page.is_visible("[aria-label='Home']") or \
-                               await self.page.is_visible("[data-testid='blue_bar']") or \
-                               await self.page.is_visible("div[role='banner']")
-            except Exception as e:
-                print(f"Error checking login visibility: {e}")
-                is_logged_in = False
+            # For international accounts, try different Facebook domains first
+            print("Attempting international login flow...")
+            
+            # Try Morocco-specific Facebook domain first, then international
+            facebook_urls = [
+                "https://m.facebook.com",  # Mobile version is less restricted
+                "https://www.facebook.com", 
+                "https://ar-ar.facebook.com",  # Arabic version
+                "https://fr-fr.facebook.com"   # French version (common in Morocco)
+            ]
+            
+            login_successful = False
+            
+            for url in facebook_urls:
+                try:
+                    print(f"Trying login via: {url}")
+                    await self.page.goto(url, wait_until="domcontentloaded", timeout=30000)
+                    await asyncio.sleep(5)  # Wait for page to load
+                    
+                    # Check if account is accessible on this domain
+                    page_content = await self.page.content()
+                    
+                    # Look for account not found indicators
+                    if any(phrase in page_content.lower() for phrase in [
+                        "account disabled", "account not found", "user not found",
+                        "this content isn't available", "page not found"
+                    ]):
+                        print(f"Account not accessible via {url}, trying next...")
+                        continue
+                    
+                    # Check if already logged in
+                    is_logged_in = await self.page.is_visible("[data-testid='royal_name']") or \
+                                   await self.page.is_visible("[aria-label='Home']") or \
+                                   await self.page.is_visible("[data-testid='blue_bar']") or \
+                                   await self.page.is_visible("div[role='banner']")
+                    
+                    if is_logged_in:
+                        print(f"Already logged in via {url}!")
+                        return True
+                    
+                    # Check if login form is available
+                    email_field = await self.page.query_selector('input[name="email"]')
+                    if email_field:
+                        print(f"Login form found on {url}")
+                        login_successful = True
+                        break
+                        
+                except Exception as e:
+                    print(f"Error with {url}: {e}")
+                    continue
+            
+            if not login_successful:
+                print("Could not access login form on any Facebook domain")
+                return False
             
             utils = ScraperUtils(self.page)
             
-            if not is_logged_in:
-                print("\n" + "="*80)
-                print("NOT LOGGED IN - MANUAL ACTION REQUIRED")
-                print("Please log in or create an account in the browser window.")
-                print("The browser will remain open until you press Enter in this terminal.")
-                print("Take your time to complete any security challenges or account creation.")
-                print("="*80 + "\n")
-                
-                # Pre-fill the login form with email if available
-                await self.prefill_login()
-                
-                # Wait indefinitely for user to press Enter
-                input("Press Enter when you have finished logging in...")
-                
-                # After user presses Enter, verify login success
-                await asyncio.sleep(2)  # Give a moment to ensure the page updates
-                
-                # Check login status again - remove timeout argument for compatibility
+            print("\n" + "="*80)
+            print("INTERNATIONAL ACCOUNT LOGIN - MANUAL ACTION REQUIRED")
+            print("For Moroccan accounts logging in from US:")
+            print("1. Facebook may ask for additional verification")
+            print("2. You may need to verify your identity with ID or phone")
+            print("3. Choose 'This was me' for location verification prompts")
+            print("4. Complete any security challenges that appear")
+            print("5. Consider logging in via mobile.facebook.com first")
+            print("="*80 + "\n")
+            
+            # Pre-fill the login form with email if available
+            await self.prefill_login()
+            
+            # Wait indefinitely for user to press Enter
+            input("Press Enter when you have finished logging in and completed any security steps...")
+            
+            # After user presses Enter, verify login success
+            await asyncio.sleep(3)  # Give a moment to ensure the page updates
+            
+            # Check login status again across all domains
+            for url in facebook_urls:
                 try:
+                    await self.page.goto(url, wait_until="domcontentloaded", timeout=30000)
+                    await asyncio.sleep(2)
+                    
                     is_logged_in = await self.page.is_visible("[data-testid='royal_name']") or \
                                    await self.page.is_visible("[aria-label='Home']") or \
                                    await self.page.is_visible("[data-testid='blue_bar']")
+                    
+                    if is_logged_in:
+                        print(f"Login successful via {url}! Session will be saved for future use.")
+                        # Save cookies for session persistence
+                        await self.save_session_cookies()
+                        return True
+                        
                 except Exception as e:
-                    print(f"Error checking login after user input: {e}")
-                    is_logged_in = False
-                
-                if is_logged_in:
-                    print("Login successful! Session will be saved for future use.")
-                    # Save cookies for session persistence
-                    await self.save_session_cookies()
-                    return True
-                else:
-                    print("Still not logged in. Please try again.")
-                    return False
-            else:
-                print("Already logged in!")
-                # Try to load any saved cookies to maintain session
-                await self.load_session_cookies()
-                return True
-                
+                    continue
+            
+            print("Login verification failed. Please try again.")
+            return False
+            
         except Exception as e:
-            print(f"Error checking login: {e}")
+            print(f"Error during login check: {e}")
             return False
     
     async def close(self):
