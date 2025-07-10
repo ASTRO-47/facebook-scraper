@@ -15,33 +15,58 @@ class PostsScraper:
 
     async def get_own_posts(self, username: str, max_posts: int = 10) -> List[Dict[str, Any]]:
         """Scrape user's own posts"""
-        # Navigate to profile
-        await self.page.goto(f"https://www.facebook.com/{username}", wait_until="networkidle")
-        
-        # Scroll to load more posts
-        await self.utils.scroll_to_bottom(5)
-        
-        # Expand all comments if possible
-        await self.utils.expand_comments()
-        
-        # Extract posts
-        return await self._extract_posts(max_posts, "own")
+        try:
+            # Check if page/browser is still available
+            if not self.page or self.page.is_closed():
+                print("Page is closed, cannot get own posts")
+                return []
+                
+            # Navigate to profile with better timeout handling
+            print(f"Navigating to profile for posts: https://www.facebook.com/{username}")
+            await self.page.goto(f"https://www.facebook.com/{username}", wait_until="domcontentloaded", timeout=90000)
+            await asyncio.sleep(5)  # Wait for page to stabilize
+            
+            # Scroll to load more posts
+            await self.utils.scroll_to_bottom(5)
+            
+            # Expand all comments if possible
+            await self.utils.click_see_more_buttons()
+            
+            # Extract posts
+            return await self._extract_posts(max_posts, "own")
+            
+        except Exception as e:
+            print(f"Error getting own posts: {e}")
+            return []
 
     async def get_tagged_posts(self, username: str, max_posts: int = 10) -> List[Dict[str, Any]]:
         """Scrape posts where the user is tagged"""
-        # Navigate to tagged posts
-        await self.page.goto(f"https://www.facebook.com/{username}/photos_of", wait_until="networkidle")
-        
-        # Check if there are any tagged posts
-        no_content = await self.page.query_selector('div:text-matches("No photos to show|This content isn\'t available")')
-        if no_content:
+        try:
+            # Check if page/browser is still available
+            if not self.page or self.page.is_closed():
+                print("Page is closed, cannot get tagged posts")
+                return []
+                
+            # Navigate to tagged posts with better timeout handling
+            tagged_url = f"https://www.facebook.com/{username}/photos_of"
+            print(f"Navigating to tagged posts: {tagged_url}")
+            await self.page.goto(tagged_url, wait_until="domcontentloaded", timeout=90000)
+            await asyncio.sleep(5)  # Wait for page to stabilize
+            
+            # Check if there are any tagged posts
+            no_content = await self.page.query_selector('div:text-matches("No photos to show|This content isn\'t available")')
+            if no_content:
+                return []
+            
+            # Scroll to load more posts
+            await self.utils.scroll_to_bottom(3)
+            
+            # Extract posts
+            return await self._extract_posts(max_posts, "tagged")
+            
+        except Exception as e:
+            print(f"Error getting tagged posts: {e}")
             return []
-        
-        # Scroll to load more posts
-        await self.utils.scroll_to_bottom(3)
-        
-        # Extract posts
-        return await self._extract_posts(max_posts, "tagged")
 
     async def _extract_posts(self, max_posts: int, post_type: str) -> List[Dict[str, Any]]:
         """Helper method to extract post information"""
@@ -171,21 +196,30 @@ class PostsScraper:
         # This is challenging as Facebook doesn't have a dedicated section for this
         # We'll try to check recent activity for comments
         try:
-            await self.page.goto(f"https://www.facebook.com/{username}", wait_until="networkidle")
+            # Check if page/browser is still available
+            if not self.page or self.page.is_closed():
+                print("Page is closed, cannot get user comments")
+                return []
+                
+            print(f"Accessing user comments for {username}")
+            await self.page.goto(f"https://www.facebook.com/{username}", wait_until="domcontentloaded", timeout=90000)
+            await asyncio.sleep(3)  # Wait for page to stabilize
             
             # Check if we can access the activity log
             activity_link = await self.page.query_selector('a[href*="/allactivity"]')
             if not activity_link:
+                print("Activity log not accessible")
                 return []
                 
             await activity_link.click()
-            await self.page.wait_for_load_state("networkidle")
+            await asyncio.sleep(3)
+            await self.page.wait_for_load_state("domcontentloaded", timeout=30000)
             
             # Look for comments filter if available
             comments_filter = await self.page.query_selector('span:text("Comments")')
             if comments_filter:
                 await comments_filter.click()
-                await self.page.wait_for_load_state("networkidle")
+                await asyncio.sleep(3)
             
             # Take screenshot of activity
             await self.utils.take_screenshot("user_comments")
@@ -236,7 +270,9 @@ class PostsScraper:
                     print(f"Error extracting user comment: {e}")
                     continue
             
+            print(f"Extracted {len(comments_list)} user comments")
             return comments_list
+            
         except Exception as e:
             print(f"Error accessing user comments: {e}")
             return []
@@ -244,12 +280,21 @@ class PostsScraper:
     async def get_locations(self, username: str) -> List[Dict[str, Any]]:
         """Scrape locations where the user has been tagged or checked in"""
         try:
-            # Navigate to map/locations if available
-            await self.page.goto(f"https://www.facebook.com/{username}/map", wait_until="networkidle")
+            # Check if page/browser is still available
+            if not self.page or self.page.is_closed():
+                print("Page is closed, cannot get locations")
+                return []
+                
+            # Navigate to map/locations if available with better timeout handling
+            locations_url = f"https://www.facebook.com/{username}/map"
+            print(f"Navigating to locations: {locations_url}")
+            await self.page.goto(locations_url, wait_until="domcontentloaded", timeout=90000)
+            await asyncio.sleep(5)  # Wait for page to stabilize
             
             # Check if map page exists
             no_content = await self.page.query_selector('div:text-matches("This content isn\'t available|No locations to show")')
             if no_content:
+                print("No locations content available")
                 return []
                 
             # Take screenshot of map view
@@ -280,7 +325,9 @@ class PostsScraper:
                     print(f"Error extracting location info: {e}")
                     continue
             
+            print(f"Extracted {len(locations_list)} locations")
             return locations_list
+            
         except Exception as e:
             print(f"Error getting locations: {e}")
             return []

@@ -139,7 +139,7 @@ def save_login_session(user_data_dir):
         "user_data_dir": str(user_data_dir),
         "status": "logged_in"
     }
-    
+    q
     try:
         with open(session_file, 'w') as f:
             json.dump(session_info, f, indent=2)
@@ -277,6 +277,32 @@ async def main():
                 print(f"📁 Session data stored in: {user_data_dir}")
             except Exception as e:
                 print(f"⚠️  Warning during cleanup: {e}")
+
+        # --- FriendsScraper integration ---
+        
+        from friends import FriendsScraper  # Import here to avoid circular dependency
+        
+        async def scrape_friends_data():
+            # Create a new page for scraping friends
+            friends_page = await browser_context.new_page()
+            
+            # Initialize the friends scraper
+            friends_scraper = FriendsScraper(friends_page)
+            
+            # Scrape friends list
+            username = "me"  # Change this to target a specific user
+            friends = await friends_scraper.scrape_friends(username)
+            
+            # Log or process the friends data as needed
+            print(f"✅ Scraped {len(friends)} friends:")
+            for friend in friends:
+                print(f"- {friend['name']} ({friend['profile_url']})")
+            
+            # Close the friends page
+            await friends_page.close()
+        
+        # Run the friends scraper
+        await scrape_friends_data()
 
 if __name__ == "__main__":
     try:

@@ -4,6 +4,7 @@ Facebook Profile Scraper - FastAPI Application
 import os
 import json
 import asyncio
+import uuid
 from pathlib import Path
 from typing import Dict, Any, Optional, List
 import aiofiles
@@ -52,7 +53,7 @@ async def scrape_profile(username: str):
         # Initialize Facebook session with visible browser using X11 display
         os.environ["DISPLAY"] = ":1"
         
-        # Create user data directory in a location accessible by the current user
+        # Create user data directory - use persistent directory to maintain login
         user_data_dir = os.path.join(os.path.expanduser("~"), ".facebook_scraper_data")
         os.makedirs(user_data_dir, exist_ok=True)
         
@@ -65,8 +66,10 @@ async def scrape_profile(username: str):
         if not is_logged_in:
             # The login_check method already waits for login completion
             # Add extra wait time to ensure page is fully loaded after login
-            await asyncio.sleep(5)
+            await asyncio.sleep(10)
             print("Successfully logged in and session saved!")
+        else:
+            print("Already logged in!")
         
         # Initialize helper classes
         utils = ScraperUtils(page, screenshot_dir="static/screenshots")
@@ -78,71 +81,143 @@ async def scrape_profile(username: str):
         await utils.handle_dialogs()
         
         # Navigate to profile and handle security checkpoint if needed
-        print(f"Navigating to profile {username}. If a security puzzle appears, you'll have 2 minutes to solve it...")
+        print(f"🎯 Navigating to profile {username}...")
+        print("⏱️ This may take up to 2 minutes depending on Facebook's response time")
+        
         profile_exists = await profile_scraper.navigate_to_profile(username)
         if not profile_exists:
+            print(f"❌ Failed to navigate to profile: {username}")
             await session.close()
-            raise HTTPException(status_code=404, detail=f"Profile '{username}' not found")
+            raise HTTPException(status_code=404, detail=f"Profile '{username}' not found or navigation failed")
         
-        # Check for security checkpoint one more time after navigating to profile
-        print("Checking for security checkpoints...")
+        # Extra wait after successful navigation to ensure page is fully loaded
+        print("✅ Profile loaded successfully, waiting for page to stabilize...")
+        await asyncio.sleep(10)
+        
+        # Additional checkpoint check after navigation
+        print("🔍 Final security checkpoint check...")
         checkpoint_detected = await utils.check_for_security_checkpoint()
         if checkpoint_detected:
-            print("Security checkpoint detected! Please solve it manually.")
-            # Take a screenshot of the security checkpoint
-            checkpoint_screenshot = await utils.take_screenshot("security_checkpoint")
-            print(f"Security checkpoint screenshot saved to {checkpoint_screenshot}")
-            print("Waiting for 2 minutes to allow manual solving of the security puzzle...")
+            print("🔒 Security checkpoint detected after profile navigation!")
+            checkpoint_screenshot = await utils.take_screenshot("security_checkpoint_post_nav")
+            print(f"📸 Checkpoint screenshot: {checkpoint_screenshot}")
+            print("⏳ Waiting 3 minutes for manual checkpoint resolution...")
             
-            # Wait for the user to solve the challenge
-            await utils.handle_security_checkpoint(wait_time=120)
-            print("Security checkpoint wait time completed. Continuing with scraping...")
+            await utils.handle_security_checkpoint(wait_time=180)
+            print("✅ Checkpoint wait completed, continuing with scraping...")
+            await asyncio.sleep(10)  # Extra stabilization time
         
-        # Scrape all data
+        # Scrape all data with comprehensive error handling and delays
         scrape_data = {}
         
+        print("🚀 Starting comprehensive profile data collection...")
+        print("⏱️ This process may take 5-10 minutes depending on profile size")
+        
+        # Helper function for safe scraping with retries and longer timeouts
+        async def safe_scrape(func, name, *args, **kwargs):
+            max_retries = 2
+            for attempt in range(max_retries + 1):
+                try:
+                    print(f"📊 {name} (attempt {attempt + 1}/{max_retries + 1})...")
+                    
+                    # Add timeout context for each scraping operation
+                    result = await asyncio.wait_for(
+                        func(*args, **kwargs), 
+                        timeout=180.0  # 3 minutes per operation
+                    )
+                    
+                    print(f"✅ {name} completed successfully")
+                    await asyncio.sleep(8)  # Wait between operations for page stability
+                    return result
+                    
+                except asyncio.TimeoutError:
+                    print(f"⚠️ Timeout in {name} after 3 minutes")
+                    if attempt < max_retries:
+                        print(f"🔄 Retrying {name} in 15 seconds...")
+                        await asyncio.sleep(15)
+                    else:
+                        print(f"❌ Failed {name} after {max_retries + 1} attempts (timeout)")
+                        return {}
+                        
+                except Exception as e:
+                    print(f"⚠️ Error in {name}: {str(e)}")
+                    if attempt < max_retries:
+                        print(f"🔄 Retrying {name} in 15 seconds...")
+                        await asyncio.sleep(15)
+                    else:
+                        print(f"❌ Failed {name} after {max_retries + 1} attempts")
+                        return {}
+        
         # Basic profile info
-        print(f"Scraping basic info for {username}...")
-        scrape_data["basic_info"] = await profile_scraper.get_basic_info()
+        scrape_data["basic_info"] = await safe_scrape(
+            profile_scraper.get_basic_info, 
+            "Basic profile info scraping"
+        )
         
         # Friends list
-        print("Scraping friends list...")
-        scrape_data["friends_list"] = await profile_scraper.get_friends_list()
+        scrape_data["friends_list"] = await safe_scrape(
+            profile_scraper.get_friends_list, 
+            "Friends list scraping"
+        )
         
         # Groups
-        print("Scraping groups...")
-        scrape_data["groups"] = await profile_scraper.get_groups()
+        scrape_data["groups"] = await safe_scrape(
+            profile_scraper.get_groups, 
+            "Groups scraping"
+        )
         
         # Pages followed
-        print("Scraping pages followed...")
-        scrape_data["pages_followed"] = await profile_scraper.get_pages_followed()
+        scrape_data["pages_followed"] = await safe_scrape(
+            profile_scraper.get_pages_followed, 
+            "Pages followed scraping"
+        )
         
         # Following list
-        print("Scraping following list...")
-        scrape_data["following_list"] = await profile_scraper.get_following_list()
+        scrape_data["following_list"] = await safe_scrape(
+            profile_scraper.get_following_list, 
+            "Following list scraping"
+        )
         
         # Own posts
-        print("Scraping own posts...")
-        scrape_data["own_posts"] = await posts_scraper.get_own_posts(username)
+        scrape_data["own_posts"] = await safe_scrape(
+            posts_scraper.get_own_posts, 
+            "Own posts scraping",
+            username
+        )
         
         # Tagged posts
-        print("Scraping tagged posts...")
-        scrape_data["tagged_posts"] = await posts_scraper.get_tagged_posts(username)
+        scrape_data["tagged_posts"] = await safe_scrape(
+            posts_scraper.get_tagged_posts, 
+            "Tagged posts scraping",
+            username
+        )
         
         # User comments on other posts
-        print("Scraping user comments...")
-        scrape_data["user_comments"] = await posts_scraper.get_user_comments(username)
+        scrape_data["user_comments"] = await safe_scrape(
+            posts_scraper.get_user_comments, 
+            "User comments scraping",
+            username
+        )
         
         # Locations
-        print("Scraping locations...")
-        scrape_data["locations"] = await posts_scraper.get_locations(username)
+        scrape_data["locations"] = await safe_scrape(
+            posts_scraper.get_locations, 
+            "Locations scraping",
+            username
+        )
+        
+        print("🎉 All scraping operations completed!")
         
         # Build JSON
-        print("Building final JSON output...")
+        print("📝 Building final JSON output...")
         result = json_builder.build_profile_json(username, scrape_data)
         
         # Cache the result
         scrape_results_cache[username] = result
+        
+        print("✅ Scraping completed successfully!")
+        print("🕐 Keeping browser open for 15 seconds to ensure all data is processed...")
+        await asyncio.sleep(15)  # Keep browser open longer
         
         # Close browser session
         await session.close()
@@ -153,9 +228,10 @@ async def scrape_profile(username: str):
         print(f"Error scraping profile: {str(e)}")
         # Ensure browser is closed in case of error
         try:
-            await session.close()
-        except:
-            pass
+            if 'session' in locals():
+                await session.close()
+        except Exception as close_error:
+            print(f"Error closing session: {close_error}")
         raise HTTPException(status_code=500, detail=f"Error scraping profile: {str(e)}")
 
 @app.get("/download/{username}/json")
