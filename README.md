@@ -1,6 +1,6 @@
 # Facebook Profile Scraper
 
-A tool to scrape Facebook profiles using Playwright and FastAPI. This scraper extracts structured data from Facebook profiles including personal information, posts, friends, groups, and more.
+A tool to scrape Facebook profiles using Playwright and FastAPI with SSH X11 forwarding for secure remote browser access.
 
 ## Features
 
@@ -13,13 +13,16 @@ A tool to scrape Facebook profiles using Playwright and FastAPI. This scraper ex
 - **Web Interface**: Simple UI for entering usernames and viewing results
 - **API Access**: FastAPI endpoints for programmatic access
 - **Session Persistence**: Maintains login sessions between runs to avoid repeated logins
+- **SSH X11 Forwarding**: Display browser on local machine through secure SSH connection
+- **International Account Support**: Enhanced support for accounts from different countries
 
 ## Prerequisites
 
 - Python 3.8+
 - Playwright
 - FastAPI
-- Other dependencies as listed in requirements.txt
+- SSH access with X11 forwarding enabled
+- X11 server on local machine (Linux native, macOS with XQuartz, Windows with VcXsrv)
 
 ## Installation
 
@@ -36,12 +39,64 @@ pip install -r requirements.txt
 
 3. Install Playwright browsers:
 ```bash
-playwright install
+playwright install chromium
+```
+
+4. Enable X11 forwarding on your server:
+```bash
+sudo nano /etc/ssh/sshd_config
+# Ensure: X11Forwarding yes
+sudo systemctl restart sshd
 ```
 
 ## Usage
 
-### Web Interface
+### Method 1: SSH X11 Forwarding (Recommended)
+
+This method displays the browser directly on your local machine through SSH.
+
+#### Step 1: Connect with X11 Forwarding
+
+```bash
+# Basic X11 forwarding
+ssh -X user@your-server-ip
+
+# For better performance (trusted)
+ssh -Y user@your-server-ip
+
+# With compression for slow connections
+ssh -XC user@your-server-ip
+```
+
+#### Step 2: Test X11 Forwarding
+
+```bash
+# Test that X11 forwarding works
+xclock
+# A clock should appear on your local machine
+```
+
+#### Step 3: Manual Facebook Login
+
+```bash
+python3 login_manual.py
+```
+
+This will:
+- Open Facebook in a browser **on your local machine**
+- Allow you to login manually and complete security verifications
+- Save your session for future automated scraping
+- Press Ctrl+C when login is complete
+
+#### Step 4: Start the Scraper
+
+```bash
+python3 main.py
+```
+
+Navigate to `http://localhost:8080` in your local browser to use the web interface.
+
+### Method 2: Web Interface
 
 1. Start the FastAPI server:
 ```bash
@@ -52,29 +107,40 @@ python main.py
 
 3. Enter a Facebook username to scrape
 
-4. The first time you run the scraper, it will open a browser window where you need to manually log in to Facebook. The login session will be saved for future use.
+4. If this is your first time, the browser will open for manual login (via X11 forwarding)
 
 5. View and download the scraped data in JSON format or as a PDF report
 
-### Command Line Interface
+### Method 3: Command Line Interface
 
-A command-line interface is available for direct scraping without starting the web server:
+A command-line interface is available for direct scraping:
 
 ```bash
 # Basic usage
-./fb_scraper_cli.py zuck
+./fb_scraper_cli.py username
 
 # With options
-./fb_scraper_cli.py zuck --wait 120 --output ./my_results
+./fb_scraper_cli.py username --wait 120 --output ./my_results
 
-# Run in headless mode (no visible browser)
-./fb_scraper_cli.py zuck --headless
+# Run in headless mode (requires existing login session)
+./fb_scraper_cli.py username --headless
 ```
 
-Command-line options:
-- `--headless`: Run without showing the browser window
-- `--wait`: Time to wait (in seconds) if a security checkpoint is detected
-- `--output`: Directory to save results
+## International Account Support
+
+The scraper includes enhanced support for international accounts (e.g., Moroccan accounts accessing from US servers):
+
+### Features:
+- **Multi-domain login attempts**: Tries different Facebook regional domains
+- **Extended security timeouts**: More time for location verification
+- **Language support**: Handles Arabic and French security prompts
+- **Location verification guidance**: Helps with "This Was Me" prompts
+
+### Tips for International Accounts:
+- Choose "This Was Me" for location verification prompts
+- Complete phone/email verification when requested
+- Use real information for any ID verification
+- Be patient with the verification process (can take 5-10 minutes)
 
 ## API Endpoints
 
@@ -89,138 +155,128 @@ Command-line options:
 ```
 /facebook_scraper
 ├── main.py              # FastAPI app with endpoints
+├── login_manual.py      # Manual login setup with X11 forwarding
+├── fb_scraper_cli.py    # Command-line interface
 ├── scraper/
 │   ├── __init__.py
-│   ├── session.py       # Loads and saves Playwright session
-│   ├── profile.py       # Functions to scrape bio, about, etc.
-│   ├── posts.py         # Functions to scrape own/tagged posts
-│   ├── utils.py         # Screenshot, scroll, helpers
-│   └── json_builder.py  # Formats final output JSON
+│   ├── session.py       # Browser session management with X11 support
+│   ├── profile.py       # Profile data extraction
+│   ├── posts.py         # Posts and content extraction
+│   ├── utils.py         # Utilities and human-like behavior
+│   └── json_builder.py  # Output formatting
 ├── static/
 │   ├── screenshots/     # Stored screenshots
 │   └── output/          # JSON and PDF outputs
 ├── templates/
-│   └── index.html       # Minimal UI for input + preview
+│   └── index.html       # Web interface
 ├── requirements.txt
-└── README.md
+├── README.md
+└── README_SSH_X11.md    # Detailed X11 forwarding setup guide
+```
+
+## Platform-Specific Setup
+
+### Linux
+X11 should work out of the box. Just connect with `ssh -X`.
+
+### macOS
+Install XQuartz:
+```bash
+brew install --cask xquartz
+# Log out and log back in after installation
+```
+
+### Windows
+Install an X11 server like VcXsrv:
+1. Download from https://sourceforge.net/projects/vcxsrv/
+2. Start VcXsrv with default settings
+3. Enable "Disable access control"
+4. Use SSH client with X11 forwarding support
+
+## Troubleshooting
+
+### X11 Forwarding Issues
+
+```bash
+# Check DISPLAY variable
+echo $DISPLAY
+# Should show something like: localhost:10.0
+
+# Test X11 connection
+xset q
+
+# Install X11 tools if missing
+sudo apt install x11-utils xauth
+```
+
+### Browser Launch Issues
+
+```bash
+# Install Playwright browsers
+playwright install chromium
+
+# Check Playwright installation
+python -c "from playwright.sync_api import sync_playwright; print('OK')"
+```
+
+### Session Persistence Issues
+
+```bash
+# Clear session data to start fresh
+rm -rf ~/.facebook_scraper_data
+
+# Check permissions
+ls -la ~/.facebook_scraper_data/
 ```
 
 ## Privacy and Ethical Considerations
 
-- This tool should only be used to scrape profiles of friends or those who have given permission.
-- Respect Facebook's terms of service and rate limits.
-- Do not use for mass scraping or spamming.
-- Be mindful of privacy concerns when handling scraped data.
+- This tool should only be used to scrape profiles of friends or those who have given permission
+- Respect Facebook's terms of service and rate limits
+- Do not use for mass scraping or spamming
+- Be mindful of privacy concerns when handling scraped data
 
 ## Limitations
 
-- Facebook's anti-scraping measures may affect functionality.
-- Changes to Facebook's HTML structure may require updates to selectors.
-- Some content may not be accessible depending on privacy settings.
-- Requires manual login to Facebook.
-
-## Running on a Headless Server (like Digital Ocean)
-
-If you're running on a server without a display:
-
-### Option 1: Use Headless Mode (Default)
-The application now runs in headless mode by default, so it should work on any server.
-
-### Option 2: Use xvfb (for visible browser debugging)
-If you need to see the browser for debugging purposes:
-
-1. Install xvfb:
-```bash
-apt-get update && apt-get install -y xvfb
-```
-
-2. Install PyVirtualDisplay:
-```bash
-pip install PyVirtualDisplay
-```
-
-3. Run the application with xvfb:
-```bash
-xvfb-run python3 main.py
-```
+- Facebook's anti-scraping measures may affect functionality
+- Changes to Facebook's HTML structure may require updates to selectors
+- Some content may not be accessible depending on privacy settings
+- Requires manual login to Facebook via X11 forwarding
 
 ## Session Management
 
-The scraper now includes improved session persistence to avoid repeated logins. Here's how it works:
+The scraper includes improved session persistence to avoid repeated logins:
 
 ### Security Checkpoint Handling
 
-The scraper automatically detects Facebook security checkpoints and CAPTCHAs and pauses for 2 minutes to allow you to solve them manually. Security checkpoints typically appear:
+The scraper automatically detects Facebook security checkpoints and provides guidance for international accounts. Security checkpoints typically appear:
 
 1. When accessing Facebook from a new device/location
 2. After suspicious activity
 3. When automation is detected
 
-Once you solve a checkpoint manually, Facebook usually remembers your browser for future sessions, and you won't need to solve it again.
-
-#### Adjusting Checkpoint Wait Time
-
-After you've successfully solved a security checkpoint once, Facebook typically won't show it again. You can adjust or disable the wait time using the provided script:
-
-```bash
-# To reduce wait time to 30 seconds
-python adjust_wait_time.py 30
-
-# To disable wait time completely (once you're confident checkpoints won't appear)
-python adjust_wait_time.py 0
-```
-
-#### Testing Security Checkpoint Detection
-
-You can test the security checkpoint detection feature using the test script:
-
-```bash
-python test_security.py <username>
-# Example: python test_security.py zuck
-```
-
-This will:
-1. Open Facebook in a browser
-2. Navigate to the specified profile
-3. Check for security checkpoints
-4. If a checkpoint is found, wait for you to solve it manually
-5. Take a screenshot of the profile page
-
 ### How Session Persistence Works
 
-1. **Persistent Browser Context**: The scraper uses Playwright's persistent context feature to maintain cookies, local storage, and other session data between runs.
-
-2. **User Data Directory**: Session data is stored in a dedicated directory (`~/.facebook_scraper_data` by default) that persists between application runs.
-
-3. **Improved Login Detection**: The scraper uses multiple methods to detect whether a user is logged in or not, making the login process more reliable.
+1. **Persistent Browser Context**: Uses Playwright's persistent context to maintain cookies and session data
+2. **User Data Directory**: Session data stored in `~/.facebook_scraper_data`
+3. **X11 Integration**: Browser displays on local machine for natural interaction
 
 ### Testing Session Persistence
 
-To test that session persistence is working correctly, you can run the test script:
-
 ```bash
-python test_session.py
+# Test the setup
+python3 test_session.py
+
+# Test international login features
+python3 test_international_login.py
 ```
 
-This script will:
-1. Initialize a browser session
-2. Check if you're already logged in
-3. If not, prompt for manual login
-4. Close the browser
-5. Open a new browser session to verify that the login persisted
+## Performance Tips
 
-### Troubleshooting Session Issues
-
-If you experience issues with session persistence:
-
-1. **Clear Session Data**: Remove the user data directory to start fresh
-   ```bash
-   rm -rf ~/.facebook_scraper_data
-   ```
-
-2. **Verify Permissions**: Ensure the application has write permissions to the user data directory
-
-3. **Check for Facebook Security Challenges**: Sometimes Facebook may require additional verification, which can interrupt automated sessions
+- Use trusted X11 forwarding for better performance: `ssh -Y`
+- Enable SSH compression for slow connections: `ssh -XC`
+- Use screen/tmux for long-running scrapers
+- Monitor resource usage during scraping
 
 ## License
 

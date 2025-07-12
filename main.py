@@ -23,7 +23,7 @@ from scraper.json_builder import JSONBuilder
 # Initialize FastAPI app
 app = FastAPI(
     title="Facebook Profile Scraper",
-    description="API for scraping Facebook profiles using Playwright",
+    description="API for scraping Facebook profiles using Playwright with SSH X11 forwarding",
     version="1.0.0"
 )
 
@@ -45,31 +45,30 @@ async def read_root(request: Request):
 
 @app.get("/scrape/{username}")
 async def scrape_profile(username: str):
-    """API endpoint to scrape a Facebook profile"""
+    """API endpoint to scrape a Facebook profile using SSH X11 forwarding"""
     if not username or len(username) < 3:
         raise HTTPException(status_code=400, detail="Invalid username")
     
     try:
-        # Initialize Facebook session with visible browser using X11 display
-        os.environ["DISPLAY"] = ":1"
+        print(f"🎯 Starting scrape for username: {username}")
+        print("📺 Browser will open using SSH X11 forwarding")
         
         # Create user data directory - use persistent directory to maintain login
         user_data_dir = os.path.join(os.path.expanduser("~"), ".facebook_scraper_data")
         os.makedirs(user_data_dir, exist_ok=True)
         
-        # Initialize session with persistent storage
+        # Initialize session with X11 forwarding (non-headless by default)
         session = FacebookSession(headless=False, user_data_dir=user_data_dir)
         page = await session.initialize()
         
         # Check if logged in with improved login detection
         is_logged_in = await session.login_check()
         if not is_logged_in:
-            # The login_check method already waits for login completion
-            # Add extra wait time to ensure page is fully loaded after login
-            await asyncio.sleep(10)
-            print("Successfully logged in and session saved!")
+            # The login_check method handles the login process
+            print("✅ Login process completed!")
         else:
-            print("Already logged in!")
+            print("✅ Already logged in!")
+        
         # Initialize helper classes
         utils = ScraperUtils(page, screenshot_dir="static/screenshots")
         profile_scraper = ProfileScraper(page, utils)
@@ -290,16 +289,6 @@ async def generate_pdf(username: str):
         # Generate the PDF
         pdf = FPDF()
         pdf.add_page()
-        
-        # Set title
-        pdf.set_font("Arial", "B", 16)
-        pdf.cell(0, 10, f"Facebook Profile Report: {data['profile']['basic_info']['name']}", ln=True, align="C")
-        
-        # Basic information
-        pdf.set_font("Arial", "B", 14)
-        pdf.cell(0, 10, "Basic Information", ln=True)
-        pdf.set_font("Arial", "", 12)
-        
         basic_info = data["profile"]["basic_info"]
         pdf.cell(0, 10, f"Name: {basic_info['name']}", ln=True)
         if basic_info["bio"]:
@@ -388,7 +377,7 @@ async def generate_pdf(username: str):
 @app.get("/health")
 async def health_check():
     """Health check endpoint"""
-    return {"status": "ok"}
+    return {"status": "ok", "mode": "SSH X11 forwarding"}
 
 # Run the app with uvicorn
 if __name__ == "__main__":
