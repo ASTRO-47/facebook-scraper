@@ -141,13 +141,33 @@ class FacebookSession:
                 })
             });
             
-            // Override permissions
+            // Override permissions - handle null/undefined permissions
+            if (window.navigator.permissions) {
             const originalQuery = window.navigator.permissions.query;
-            window.navigator.permissions.query = (parameters) => (
-                parameters.name === 'notifications' ?
+                window.navigator.permissions.query = (parameters) => {
+                    if (!parameters || typeof parameters !== 'object') {
+                        return Promise.resolve({ state: 'granted' });
+                    }
+                    return parameters.name === 'notifications' ?
                 Promise.resolve({ state: Notification.permission }) :
-                originalQuery(parameters)
-            );
+                        originalQuery(parameters);
+                };
+            } else {
+                // Create permissions object if it doesn't exist
+                Object.defineProperty(navigator, 'permissions', {
+                    get: () => ({
+                        query: (parameters) => {
+                            if (!parameters || typeof parameters !== 'object') {
+                                return Promise.resolve({ state: 'granted' });
+                            }
+                            if (parameters.name === 'notifications') {
+                                return Promise.resolve({ state: 'granted' });
+                            }
+                            return Promise.resolve({ state: 'granted' });
+                        }
+                    })
+                });
+            }
         """)
         
         # Set extra headers for Morocco

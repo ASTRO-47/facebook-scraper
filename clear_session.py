@@ -14,7 +14,7 @@ logging.basicConfig(level=logging.INFO,
 logger = logging.getLogger('clear_session')
 
 def clear_session_data(force=False):
-    """Clear the Facebook session data directory"""
+    """Clear the Facebook session data directory to reset detection flags"""
     # Default user data directory path
     user_data_dir = os.path.join(os.path.expanduser("~"), ".facebook_scraper_data")
     
@@ -31,6 +31,9 @@ def clear_session_data(force=False):
     try:
         shutil.rmtree(user_data_dir)
         logger.info(f"Successfully cleared session data from {user_data_dir}")
+        logger.info("🔄 Session cleared! This may help if Facebook restricted access.")
+        logger.info("💡 Wait 10-15 minutes before trying to scrape again.")
+        logger.info("🚨 Consider using VPN or different network if restrictions persist.")
     except Exception as e:
         logger.error(f"Error clearing session data: {str(e)}")
 

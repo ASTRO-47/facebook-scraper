@@ -1,0 +1,71 @@
+{
+  "profile": {
+    "name": "Notifications",
+    "bio": "107 friends • 2 mutual",
+    "about": {
+      "work": "",
+      "education": "",
+      "location": "",
+      "birthday": "",
+      "contact": {
+        "email": "",
+        "phone": ""
+      }
+    },
+    "pages_followed": [],
+    "following": [
+      {
+        "name": "Mōhāmēd Ël",
+        "profile_url": "https://www.facebook.com/scra.test",
+        "bio": ""
+      },
+      {
+        "name": "Photos",
+        "profile_url": "https://www.facebook.com/scra.test/photos",
+        "bio": ""
+      },
+      {
+        "name": "See all",
+        "profile_url": "https://www.facebook.com/scra.test/photos_by",
+        "bio": ""
+      }
+    ],
+    "friends": [],
+    "groups": []
+  },
+  "posts": {
+    "own_posts": [],
+    "tagged_posts": [],
+    "comments_by_user": []
+  },
+  "locations_visited": [
+    {
+      "place": "Mōhāmēd Ël",
+      "timestamp": ""
+    },
+    {
+      "place": "More",
+      "timestamp": ""
+    },
+    {
+      "place": "Check-ins",
+      "timestamp": ""
+    }
+  ],
+  "extraction_metadata": {
+    "username": "scra.test",
+    "timestamp": 1752508601.5112255,
+    "date": "2025-07-14 15:56:41",
+    "total_items": {
+      "friends": 0,
+      "pages_followed": 0,
+      "following": 3,
+      "groups": 0,
+      "own_posts": 0,
+      "tagged_posts": 0,
+      "comments_by_user": 0,
+      "locations_visited": 3,
+      "total": 6
+    }
+  }
+}

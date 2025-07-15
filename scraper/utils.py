@@ -210,14 +210,21 @@ class ScraperUtils:
                     pass
 
     def clean_text(self, text: str) -> str:
-        """Clean up text content"""
+        """Clean up text content with better Unicode support"""
         if not text:
             return ""
+        
         # Remove excessive whitespace
         text = re.sub(r'\s+', ' ', text).strip()
-        # Remove emojis (basic implementation)
-        text = re.sub(r'[^\x00-\x7F]+', '', text)
-        return text
+        
+        # Remove control characters but keep international characters
+        text = re.sub(r'[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]', '', text)
+        
+        # Remove some specific problematic characters but keep international text
+        text = re.sub(r'[\u200B-\u200D\uFEFF]', '', text)  # Zero-width characters
+        
+        # Keep all other Unicode characters (including Arabic, Chinese, etc.)
+        return text.strip()
 
     def generate_unique_filename(self, base: str, username: str) -> str:
         """Generate unique filename for screenshots and outputs"""
