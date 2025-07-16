@@ -16,7 +16,7 @@ async def test_international_login():
     
     # Initialize session with enhanced stealth
     print("1. Initializing enhanced browser session...")
-    session = FacebookSession(headless=False, user_data_dir="./test_user_data")
+    session = FacebookSession(headless=True, user_data_dir="./test_user_data")
     
     try:
         # Start browser
@@ -66,12 +66,11 @@ async def test_international_login():
         await session.close()
         print("✅ Test completed")
 
-async def test_stealth_features():
-    """Test that stealth features are working"""
+async def test_stealth_features():    """Test that stealth features are working"""
     print("\n🥷 Testing Stealth Features")
     print("="*30)
-    
-    session = FacebookSession(headless=False, user_data_dir="./test_user_data")
+
+    session = FacebookSession(headless=True, user_data_dir="./test_user_data")
     
     try:
         page = await session.initialize()

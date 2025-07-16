@@ -27,7 +27,7 @@ async def test_session_persistence():
     
     # Step 1: First session initialization
     logger.info("STEP 1: Initializing first session")
-    session1 = FacebookSession(headless=False, user_data_dir=user_data_dir)
+    session1 = FacebookSession(headless=True, user_data_dir=user_data_dir)
     page = await session1.initialize()
     
     # Step 2: Check login status
@@ -53,7 +53,7 @@ async def test_session_persistence():
     
     # Step 4: Create a new session to verify persistence
     logger.info("STEP 4: Creating second session to verify persistence")
-    session2 = FacebookSession(headless=False, user_data_dir=user_data_dir)
+    session2 = FacebookSession(headless=True, user_data_dir=user_data_dir)
     page2 = await session2.initialize()
     
     # Step 5: Verify login persisted

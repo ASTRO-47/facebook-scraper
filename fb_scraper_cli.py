@@ -151,7 +151,7 @@ def setup_vnc_server():
         cleanup_vnc()
         return False
 
-async def scrape_profile(username, headless=False, checkpoint_wait=60, output_dir="./output", use_vnc=False):
+async def scrape_profile(username, headless=True, checkpoint_wait=60, output_dir="./output", use_vnc=False):
     """
     Scrape a Facebook profile using the command line
     

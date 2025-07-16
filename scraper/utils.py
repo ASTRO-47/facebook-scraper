@@ -24,20 +24,9 @@ class ScraperUtils:
         os.makedirs(self.screenshot_dir, exist_ok=True)
         
     async def take_screenshot(self, filename: str, element_selector: Optional[str] = None) -> str:
-        """Take a screenshot of the page or a specific element"""
-        filepath = os.path.join(self.screenshot_dir, f"{filename}.png")
-        
-        if element_selector:
-            element = await self.page.query_selector(element_selector)
-            if element:
-                await element.screenshot(path=filepath)
-            else:
-                print(f"Element {element_selector} not found for screenshot")
-                return ""
-        else:
-            await self.page.screenshot(path=filepath)
-        
-        return filepath
+        """Take a screenshot of the page or a specific element - DISABLED"""
+        # Screenshots disabled
+        return ""
 
     async def scroll_to_bottom(self, max_scrolls: int = 5, scroll_delay: float = 1.5):
         """Scroll to the bottom of the page gradually"""

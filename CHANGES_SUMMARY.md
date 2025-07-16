@@ -30,6 +30,14 @@
 - ✅ **`README_INTERNATIONAL_ACCOUNTS.md`**: Complete guide for international accounts
 - ✅ **`test_international_login.py`**: Test script to verify improvements
 
+## Morocco Proxy Removal
+- Removed Morocco proxy fetching functionality
+- Deleted `get_morocco_proxy.py` and `morocco_proxy_setup.py`
+- Removed Morocco-specific browser settings from session management
+- Updated API endpoints to remove proxy parameters
+- Cleaned up API documentation
+- Removed Morocco-related logging messages
+
 ## 🎯 **Key Improvements:**
 
 | **Before** | **After** |
@@ -146,4 +154,4 @@ Your **Moroccan Facebook account** should now work reliably from **US servers** 
 
 **Total time to implement**: ✅ **Already done!**
 **Total cost**: ✅ **$0.00**
-**Success rate improvement**: ✅ **+60-70%** 
+**Success rate improvement**: ✅ **+60-70%**

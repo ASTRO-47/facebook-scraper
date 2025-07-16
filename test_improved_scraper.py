@@ -26,7 +26,7 @@ from scraper.posts import PostsScraper
 from scraper.utils import ScraperUtils
 from scraper.json_builder import JSONBuilder
 
-async def test_scraper(username, headless=False, test_posts=True):
+async def test_scraper(username, headless=True, test_posts=True):
     """
     Test the improved Facebook scraper with detailed output
     

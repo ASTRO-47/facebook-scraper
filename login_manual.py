@@ -896,7 +896,7 @@ class SimpleX11Login:
             print("🌐 Starting browser process...")
             self.context = await self.playwright.chromium.launch_persistent_context(
                 user_data_dir=user_data_dir,
-                headless=False,  # MUST be False to see in VNC
+                headless=False,  # MUST be False for manual login
                 args=browser_args,
                 timeout=60000,  # 60 second timeout
                 slow_mo=50,  # Small delay for stability

@@ -103,7 +103,7 @@ class ManualBrowser:
         # Use REAL Google Chrome for extensions (NOT Playwright's Chromium)
         self.context = await self.playwright.chromium.launch_persistent_context(
             user_data_dir=self.user_data_dir,
-            headless=False,
+            headless=True,
             executable_path='/usr/bin/google-chrome-stable',  # Use system Chrome
             args=[
                 '--no-sandbox',

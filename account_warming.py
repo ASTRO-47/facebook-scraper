@@ -27,7 +27,7 @@ class FacebookAccountWarming:
         async with async_playwright() as p:
             context = await p.chromium.launch_persistent_context(
                 user_data_dir=self.user_data_dir,
-                headless=False,
+                headless=True,
                 args=[
                     '--disable-automation',
                     '--disable-blink-features=AutomationControlled',
@@ -140,7 +140,7 @@ class FacebookAccountWarming:
         
         print("\n🔄 AFTER WAITING PERIOD:")
         print("="*40)
-        print("1. Try mobile.facebook.com first")
+        print("1. Try mobile.facebook.com first") 
         print("2. Use different browser/device if possible")
         print("3. Login during US business hours")
         print("4. Be ready for ID verification")

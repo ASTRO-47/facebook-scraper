@@ -22,7 +22,6 @@ from scraper.profile import ProfileScraper
 from scraper.posts import PostsScraper
 from scraper.utils import ScraperUtils
 from scraper.json_builder import JSONBuilder
-from scraper.proxy_manager import proxy_manager
 
 # Global variables for VNC cleanup
 vnc_processes = []
@@ -158,13 +157,230 @@ os.makedirs("static/output", exist_ok=True)
 # Cache for scraping results
 scrape_results_cache = {}
 
-@app.get("/", response_class=HTMLResponse)
-async def read_root(request: Request):
-    """Render the main page with scraping interface"""
-    return templates.TemplateResponse("index.html", {"request": request})
+async def load_saved_cookies(session, page):
+    """Load saved cookies from facebook_cookies.json if available"""
+    cookies_file = "facebook_cookies.json"
+    
+    try:
+        if not os.path.exists(cookies_file):
+            print("ℹ️ No saved cookies found - will proceed with fresh login")
+            return False
+        
+        print(f"🍪 Loading saved cookies from {cookies_file}...")
+        
+        # Load cookie data
+        with open(cookies_file, 'r') as f:
+            cookie_data = json.load(f)
+        
+        if 'cookies' not in cookie_data:
+            print("❌ Invalid cookie file format")
+            return False
+        
+        # Add cookies to browser context
+        await session.context.add_cookies(cookie_data['cookies'])
+        print(f"✅ Loaded {len(cookie_data['cookies'])} cookies from Morocco session")
+        
+        # Set user agent to match the saved session
+        if 'user_agent' in cookie_data:
+            print(f"🔧 Using saved user agent: {cookie_data['user_agent'][:50]}...")
+        
+        # Load localStorage if available
+        if 'local_storage' in cookie_data and cookie_data['local_storage']:
+            try:
+                await page.goto("https://www.facebook.com", wait_until="domcontentloaded", timeout=30000)
+                await page.evaluate("""
+                    (storage) => {
+                        for (const [key, value] of Object.entries(storage)) {
+                            try {
+                                localStorage.setItem(key, value);
+                            } catch (e) {
+                                console.log('Could not set localStorage item:', key, e);
+                            }
+                        }
+                    }
+                """, cookie_data['local_storage'])
+                print(f"✅ Loaded {len(cookie_data['local_storage'])} localStorage items")
+            except Exception as e:
+                print(f"⚠️ localStorage loading warning: {e}")
+        
+        print("🎉 Cookie loading completed - should be logged in from Morocco session!")
+        return True
+        
+    except Exception as e:
+        print(f"❌ Error loading cookies: {e}")
+        return False
+
+@app.get("/")
+async def root():
+    """Return API documentation"""
+    server_ip = get_server_ip()
+    
+    return {
+        "endpoints": {
+            "/": "This documentation",
+            "/api/scrape/{username}": {
+                "description": "Scrape a Facebook profile",
+                "parameters": {
+                    "username": "string - Facebook username to scrape",
+                    "headless": "boolean - Run in headless mode (default: true)"
+                },
+                "example": {
+                    "basic": f"curl 'http://{server_ip}:8080/api/scrape/username' -o profile_data.json",
+                },
+                "returns": "Profile data in JSON format"
+            },
+            "/api/status": {
+                "description": "Get server status",
+                "parameters": {},
+                "example": f"curl 'http://{server_ip}:8080/api/status'",
+                "returns": "Server status information"
+            }
+        }
+    }
+
+@app.get("/api/scrape/{username:path}")
+async def api_scrape_profile(username: str, headless: bool = True):
+    """
+    Clean API endpoint for external clients - optimized for curl usage
+    Returns pure JSON data that can be directly saved to file
+    
+    Usage: curl http://your-server-ip:8080/api/scrape/username -o output.json
+    """
+    try:
+        # Call the main scraping function with API-optimized settings
+        result = await scrape_profile(
+            username=username, 
+            use_vnc=False,  # Never use VNC for API calls
+            headless=headless
+        )
+        
+        # Return clean JSON data structure
+        return {
+            "success": True,
+            "username": username,
+            "scraped_at": time.strftime("%Y-%m-%d %H:%M:%S UTC", time.gmtime()),
+            "data": result
+        }
+        
+    except HTTPException as he:
+        return {
+            "success": False,
+            "error": {
+                "code": he.status_code,
+                "message": he.detail
+            },
+            "username": username,
+            "scraped_at": time.strftime("%Y-%m-%d %H:%M:%S UTC", time.gmtime())
+        }
+    except Exception as e:
+        return {
+            "success": False,
+            "error": {
+                "code": 500,
+                "message": str(e)
+            },
+            "username": username,
+            "scraped_at": time.strftime("%Y-%m-%d %H:%M:%S UTC", time.gmtime())
+        }
+
+@app.get("/api/quick/{username:path}")
+async def api_quick_scrape(username: str):
+    """
+    DEPRECATED - Quick API endpoint removed 
+    Use /api/scrape/{username} for full profile scraping
+    """
+    return {
+        "success": False,
+        "error": {
+            "code": 410,
+            "message": "Quick friends-only scraping has been removed. Use /api/scrape/{username} for complete profile data."
+        },
+        "username": username,
+        "scraped_at": time.strftime("%Y-%m-%d %H:%M:%S UTC", time.gmtime())
+    }
+
+@app.get("/api/docs")
+async def api_documentation():
+    """API endpoint documentation for client testing"""
+    # Get server IP for examples
+    try:
+        result = subprocess.run("curl -s ifconfig.me", shell=True, capture_output=True, text=True)
+        server_ip = result.stdout.strip()
+    except:
+        server_ip = "YOUR_SERVER_IP"
+    
+    return {
+        "facebook_scraper_api": {
+            "version": "2.0.0",
+            "description": "Facebook Profile Scraper API with optimized performance",
+            "base_url": f"http://{server_ip}:8080",
+            "authentication": "Uses saved Morocco cookies automatically",
+            "curl_examples": {
+                "full_scrape": f"curl http://{server_ip}:8080/api/scrape/username -o profile_data.json",
+                "health_check": f"curl http://{server_ip}:8080/health",
+                "with_proxy": f"curl 'http://{server_ip}:8080/api/scrape/username?use_morocco_proxy=true' -o profile_data.json"
+            },
+            "endpoints": {
+                "api_scrape": {
+                    "url": "/api/scrape/{username}",
+                    "method": "GET", 
+                    "description": "Complete profile scraping - optimized for curl",
+                    "parameters": {
+                        "username": "Facebook username or profile URL",
+                        "headless": "boolean - Run headless (default: true)", 
+                        "use_morocco_proxy": "boolean - Use Morocco proxy (default: false)"
+                    },
+                    "estimated_time": "10-15 minutes",
+                    "response": "Clean JSON with success flag and scraped data"
+                },
+                "api_quick": {
+                    "url": "/api/quick/{username}",
+                    "method": "GET",
+                    "description": "DEPRECATED - Quick scrape functionality removed",
+                    "estimated_time": "N/A",
+                    "response": "Error message indicating deprecation"
+                },
+                "health_check": {
+                    "url": "/health",
+                    "method": "GET",
+                    "description": "Check server status and available features",
+                    "response": "Server status, cookies availability, proxy status"
+                }
+            },
+            "response_format": {
+                "success_response": {
+                    "success": True,
+                    "username": "string",
+                    "scraped_at": "timestamp",
+                    "data": {
+                        "profile": {"name": "...", "bio": "..."},
+                        "groups": [],
+                        "posts": {}
+                    }
+                },
+                "error_response": {
+                    "success": False,
+                    "error": {"code": 404, "message": "Profile not found"},
+                    "username": "string",
+                    "scraped_at": "timestamp"
+                }
+            },
+            "client_workflow": [
+                "1. Check server health: curl http://ip:8080/health",
+                "2. Full scrape: curl http://ip:8080/api/scrape/username -o profile.json",
+                "3. Check output: cat profile.json | jq '.success'"
+            ],
+            "notes": {
+                "authentication": "facebook_cookies.json must be present on server",
+                "rate_limiting": "Built-in delays to prevent Facebook detection", 
+                "concurrent_requests": "Only one scraping operation at a time recommended",
+                "output_format": "All responses are valid JSON suitable for direct file saving"
+            }
+        }
+    }
 
 @app.get("/scrape/{username:path}")
-async def scrape_profile(username: str, use_vnc: bool = False, headless: bool = False, use_morocco_proxy: bool = True):
+async def scrape_profile(username: str, use_vnc: bool = False, headless: bool = True):
     """API endpoint to scrape a Facebook profile with optional VNC support"""
     
     # URL decode the username in case it's a full URL that was encoded
@@ -223,24 +439,8 @@ async def scrape_profile(username: str, use_vnc: bool = False, headless: bool = 
         user_data_dir = os.path.join(os.path.expanduser("~"), ".facebook_scraper_data")
         os.makedirs(user_data_dir, exist_ok=True)
         
-        # Get Morocco proxy if requested
+        # Initialize without proxy
         proxy_url = None
-        if use_morocco_proxy:
-            print("🌍 Fetching working Morocco proxy...")
-            try:
-                proxy_url = await proxy_manager.get_working_proxy()
-                if proxy_url:
-                    # Verify proxy location
-                    ip_info = await proxy_manager.get_ip_info(proxy_url)
-                    print(f"🇲🇦 Using proxy from: {ip_info.get('country', 'Unknown')}, {ip_info.get('city', 'Unknown')}")
-                    print(f"📍 Proxy IP: {proxy_url}")
-                else:
-                    print("⚠️ No working Morocco proxies found, continuing without proxy")
-                    print("💡 This may trigger more security checkpoints from Facebook")
-            except Exception as e:
-                print(f"❌ Proxy setup failed: {e}")
-                print("📄 Continuing without proxy...")
-                proxy_url = None
         
         # Create username-specific output directory using clean identifier
         username_output_dir = os.path.join("static/output", clean_username)
@@ -252,13 +452,23 @@ async def scrape_profile(username: str, use_vnc: bool = False, headless: bool = 
         session = FacebookSession(headless=headless, user_data_dir=user_data_dir, proxy=proxy_url)
         page = await session.initialize()
         
+        # Load saved cookies if available
+        cookies_loaded = await load_saved_cookies(session, page)
+        if cookies_loaded:
+            print("🍪 Cookies loaded from Morocco session - should be logged in!")
+        else:
+            print("ℹ️ No saved cookies found - will need to login manually")
+        
         # Check if logged in with improved login detection
         is_logged_in = await session.login_check()
         if not is_logged_in:
             # The login_check method handles the login process
             print("✅ Login process completed!")
         else:
-            print("✅ Already logged in!")
+            if cookies_loaded:
+                print("✅ Successfully logged in using saved Morocco cookies!")
+            else:
+                print("✅ Already logged in!")
         
         # Initialize helper classes with username-specific directories
         utils = ScraperUtils(page, screenshot_dir=username_screenshots_dir)
@@ -286,56 +496,55 @@ async def scrape_profile(username: str, use_vnc: bool = False, headless: bool = 
             await session.close()
             raise HTTPException(status_code=404, detail=f"Profile '{username}' not found or navigation failed")
         
-        # Extra wait after successful navigation to ensure page is fully loaded
+        # Quick wait after successful navigation
         print("✅ Profile loaded successfully, waiting for page to stabilize...")
-        await utils.human_like_delay(15, 25)  # Realistic human page reading time
+        await utils.human_like_delay(5, 8)  # Reduced from 15-25 seconds
         
-        # Additional checkpoint check after navigation using enhanced detection
+        # Quick checkpoint check
         print("🔍 Enhanced security checkpoint check for international accounts...")
         checkpoint_detected = await utils.facebook_security_check()
         if checkpoint_detected:
             print("🔒 Security checkpoint detected after profile navigation!")
             print("⏳ This is normal for international accounts (Moroccan account in US)")
             
-            await utils.handle_security_checkpoint(wait_time=120)  # 2 minutes
+            await utils.handle_security_checkpoint(wait_time=60)  # Reduced from 2 minutes to 1 minute
             print("✅ Checkpoint handling completed, continuing with scraping...")
-            await utils.human_like_delay(3, 6)  # Faster stabilization time
+            await utils.human_like_delay(2, 4)  # Reduced delay
         
         # Scrape all data with comprehensive error handling and delays
         scrape_data = {}
         
-        print("🚀 Starting comprehensive profile data collection...")
-        print("⏱️ This process may take 15-25 minutes with human-like delays to avoid detection")
-        print("🤖 Using realistic human behavior patterns to prevent Facebook restrictions")
+        print("🚀 Starting profile data collection...")
+        print("⏱️ This process should take 5-10 minutes with optimized timing")
+        print("🤖 Using minimal delays for faster extraction")
         
-        # Helper function for safe scraping with realistic human behavior delays
+        # Helper function for safe scraping with minimal delays
         async def safe_scrape(func, name, *args, **kwargs):
             max_retries = 2
             for attempt in range(max_retries + 1):
                 try:
                     print(f"📊 [{name}] (attempt {attempt + 1}/{max_retries + 1})...")
                     
-                    # Realistic human behavior simulation to avoid detection
-                    await utils.random_mouse_movement()
-                    await utils.human_like_delay(8, 15)  # Longer pre-operation thinking time
-                    await utils.human_scroll()  # Random scrolling like a human
+                    # Minimal delays to speed up process
+                    await utils.human_like_delay(2, 4)  # Short pre-operation delay
                     
-                    # Add timeout context for each scraping operation
+                    # Standard timeout for all operations
+                    timeout_seconds = 180.0  # 3 minutes for all operations
                     result = await asyncio.wait_for(
                         func(*args, **kwargs), 
-                        timeout=300.0  # 5 minutes per operation to accommodate delays
+                        timeout=timeout_seconds
                     )
                     
                     print(f"✅ [{name}] completed successfully")
-                    # Realistic wait between operations (human reading/processing time)
-                    await utils.human_like_delay(20, 35)  # 20-35 seconds between operations
+                    # Minimal wait between operations
+                    await utils.human_like_delay(3, 6)  # 3-6 seconds between operations
                     return result
                     
                 except asyncio.TimeoutError:
-                    print(f"⚠️ Timeout in [{name}] after 5 minutes")
+                    print(f"⚠️ Timeout in [{name}] after {timeout_seconds//60} minutes")
                     if attempt < max_retries:
-                        print(f"🔄 Retrying [{name}] in 30 seconds...")
-                        await asyncio.sleep(30)  # Longer retry delay
+                        print(f"🔄 Retrying [{name}] in 10 seconds...")
+                        await asyncio.sleep(10)  # Reduced retry delay
                     else:
                         print(f"❌ Failed [{name}] after {max_retries + 1} attempts (timeout)")
                         return {}
@@ -343,8 +552,8 @@ async def scrape_profile(username: str, use_vnc: bool = False, headless: bool = 
                 except Exception as e:
                     print(f"⚠️ Error in [{name}]: {str(e)}")
                     if attempt < max_retries:
-                        print(f"🔄 Retrying [{name}] in 30 seconds...")
-                        await asyncio.sleep(30)
+                        print(f"🔄 Retrying [{name}] in 10 seconds...")
+                        await asyncio.sleep(10)  # Reduced retry delay
                     else:
                         print(f"❌ Failed [{name}] after {max_retries + 1} attempts")
                         return {}
@@ -353,12 +562,6 @@ async def scrape_profile(username: str, use_vnc: bool = False, headless: bool = 
         scrape_data["basic_info"] = await safe_scrape(
             profile_scraper.get_basic_info, 
             "Basic profile info"
-        )
-        
-        # Friends list
-        scrape_data["friends_list"] = await safe_scrape(
-            profile_scraper.get_friends_list, 
-            "Friends list"
         )
         
         # Groups
@@ -416,10 +619,9 @@ async def scrape_profile(username: str, use_vnc: bool = False, headless: bool = 
         # Print extraction statistics
         print("📊 Extraction Statistics:")
         print(f"   👤 Profile name: {scrape_data.get('basic_info', {}).get('name', 'Unknown')}")
-        print(f"   👥 Friends: {len(scrape_data.get('friends_list', []))}")
+        print(f"   🏢 Groups: {len(scrape_data.get('groups', []))}")
         print(f"   📄 Pages followed: {len(scrape_data.get('pages_followed', []))}")
         print(f"   👥 Following: {len(scrape_data.get('following_list', []))}")
-        print(f"   🏢 Groups: {len(scrape_data.get('groups', []))}")
         print(f"   📝 Own posts: {len(scrape_data.get('own_posts', []))}")
         print(f"   🏷️  Tagged posts: {len(scrape_data.get('tagged_posts', []))}")
         print(f"   💬 User comments: {len(scrape_data.get('user_comments', []))}")
@@ -433,11 +635,11 @@ async def scrape_profile(username: str, use_vnc: bool = False, headless: bool = 
         # print(f"📸 Screenshots saved to: {username_screenshots_dir}")
         
         if use_vnc:
-            print("⏳ Keeping browser open for 10 seconds for final review...")
-            await asyncio.sleep(10)  # Reduced VNC review time
+            print("⏳ Keeping browser open for 3 seconds for final review...")
+            await asyncio.sleep(3)  # Minimal VNC review time
         else:
-            print("🕐 Keeping browser open for 5 seconds to ensure all data is processed...")
-            await asyncio.sleep(5)  # Reduced processing time
+            print("🕐 Keeping browser open for 2 seconds to ensure all data is processed...")
+            await asyncio.sleep(2)  # Minimal processing time
         
         # Close browser session
         await session.close()
@@ -561,12 +763,10 @@ async def generate_pdf(username: str):
         pdf.cell(0, 10, "Profile Statistics", ln=True)
         pdf.set_font("Arial", "", 12)
         
-        friends_count = len(profile_info.get("friends", []))
         groups_count = len(profile_info.get("groups", []))
         pages_count = len(profile_info.get("pages_followed", []))
-        posts_count = len(data.get("posts", {}).get("own_posts", []))
+        posts_count = len(data.get("posts", {}).get("own_posts", []));
         
-        pdf.cell(0, 10, f"Friends: {friends_count}", ln=True)
         pdf.cell(0, 10, f"Groups: {groups_count}", ln=True)
         pdf.cell(0, 10, f"Pages Followed: {pages_count}", ln=True)
         pdf.cell(0, 10, f"Posts: {posts_count}", ln=True)
@@ -618,11 +818,37 @@ async def health_check():
         "last_refresh": proxy_manager.last_fetch_time
     }
     
+    # Check cookies status
+    cookies_available = os.path.exists("facebook_cookies.json")
+    
+    # Get server IP for client examples
+    try:
+        result = subprocess.run("curl -s ifconfig.me", shell=True, capture_output=True, text=True)
+        server_ip = result.stdout.strip()
+    except:
+        server_ip = "YOUR_SERVER_IP"
+    
     return {
         "status": "ok", 
         "mode": "VNC + X11 forwarding support", 
         "vnc_active": len(vnc_processes) > 0,
-        "proxy_status": proxy_status
+        "cookies_available": cookies_available,
+        "proxy_status": proxy_status,
+        "server_ip": server_ip,
+        "api_endpoints": {
+            "curl_ready": {
+                "full_scrape": f"curl http://{server_ip}:8080/api/scrape/username -o profile.json",
+                "health_check": f"curl http://{server_ip}:8080/health"
+            },
+            "web_interface": {
+                "scrape_full": "/scrape/{username}",
+                "test_scraper": "/test/{username}",  
+                "quick_test": "/quick-test/{username}",
+                "download_json": "/download/{username}/json",
+                "download_pdf": "/pdf/{username}"
+            }
+        },
+        "documentation": f"http://{server_ip}:8080/api/docs"
     }
 
 @app.get("/vnc/status")
@@ -769,6 +995,26 @@ async def get_current_proxy():
         return proxy_info
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to get proxy info: {str(e)}")
+
+@app.get("/test/{username:path}")
+async def test_scraper(username: str):
+    """DEPRECATED - Test scraper endpoint removed"""
+    return {
+        "status": "deprecated",
+        "username": username,
+        "message": "Test scraper functionality has been removed. Use /api/scrape/{username} for profile scraping.",
+        "error": "Endpoint deprecated and disabled"
+    }
+
+@app.get("/quick-test/{username:path}")
+async def quick_test_friends_only(username: str):
+    """DEPRECATED - Quick test endpoint removed"""
+    return {
+        "status": "deprecated",
+        "username": username,
+        "message": "Quick friends-only test has been removed. Use /api/scrape/{username} for complete profile scraping.",
+        "error": "Friends-only scraping feature disabled"
+    }
 
 # Run the app with uvicorn
 if __name__ == "__main__":

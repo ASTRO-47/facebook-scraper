@@ -50,7 +50,7 @@ async def test_checkpoint_detection(url="https://www.facebook.com/checkpoint/"):
     
     # Initialize session
     logger.info("Initializing Facebook session...")
-    session = FacebookSession(headless=False, user_data_dir=user_data_dir)
+    session = FacebookSession(headless=True, user_data_dir=user_data_dir)
     page = await session.initialize()
     
     # Create utility instance

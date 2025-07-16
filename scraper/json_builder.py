@@ -35,7 +35,6 @@ class JSONBuilder:
                 },
                 "pages_followed": self._format_pages(data.get("pages_followed", [])),
                 "following": self._format_following(data.get("following_list", [])),
-                "friends": self._format_friends(data.get("friends_list", [])),
                 "groups": self._format_groups(data.get("groups", []))
             },
             "posts": {
@@ -108,17 +107,6 @@ class JSONBuilder:
                 "bio": follow.get("bio", follow.get("description", ""))
             })
         return formatted_following
-
-    def _format_friends(self, friends: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
-        """Format friends list to match requested structure"""
-        formatted_friends = []
-        for friend in friends:
-            formatted_friends.append({
-                "name": friend.get("name", ""),
-                "profile_url": friend.get("profile_url", friend.get("url", "")),
-                "bio": friend.get("bio", friend.get("description", ""))
-            })
-        return formatted_friends
 
     def _format_groups(self, groups: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
         """Format groups to match requested structure"""
@@ -203,7 +191,6 @@ class JSONBuilder:
     def _count_total_items(self, profile_data: Dict[str, Any]) -> Dict[str, int]:
         """Count total items extracted for statistics"""
         counts = {
-            "friends": len(profile_data.get("profile", {}).get("friends", [])),
             "pages_followed": len(profile_data.get("profile", {}).get("pages_followed", [])),
             "following": len(profile_data.get("profile", {}).get("following", [])),
             "groups": len(profile_data.get("profile", {}).get("groups", [])),

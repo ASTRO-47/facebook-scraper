@@ -78,20 +78,28 @@
                             <h5 class="card-title">Scrape a Facebook Profile</h5>
                             <p class="card-text">Enter a Facebook username to begin scraping (make sure you're logged in to Facebook in the browser window that will open)</p>
                             
+                            <div class="alert alert-info" role="alert">
+                                <strong>Available Options:</strong><br>
+                                • <strong>Full Scrape:</strong> Complete profile extraction (10-15 min) - All data<br>
+                                View API docs at <a href="/api/docs" target="_blank">/api/docs</a>
+                            </div>
+                            
                             <div class="alert alert-warning" role="alert">
-                                <strong>Security Checkpoint Note:</strong> If Facebook asks you to prove you're human, the browser will pause for 2 minutes 
+                                <strong>Security Checkpoint Note:</strong> If Facebook asks you to prove you're human, the browser will pause for 1 minute 
                                 to allow you to solve the puzzle manually. After solving once, Facebook typically won't ask again for future sessions.
                             </div>
                             
                             <form id="scrapeForm" class="row g-3">
-                                <div class="col-md-8">
+                                <div class="col-md-12">
                                     <input type="text" class="form-control" id="username" placeholder="Facebook Username (e.g., zuck)" required>
                                 </div>
-                                <div class="col-md-4 d-grid">
-                                    <button type="submit" class="btn btn-primary" id="scrapeBtn">
-                                        <span id="scrapeSpinner" class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
-                                        Scrape Profile
-                                    </button>
+                                <div class="col-md-12">
+                                    <div class="btn-group w-100" role="group">
+                                        <button type="submit" class="btn btn-primary" id="scrapeBtn">
+                                            <span id="scrapeSpinner" class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
+                                            Full Scrape
+                                        </button>
+                                    </div>
                                 </div>
                             </form>
                         </div>
@@ -214,6 +222,74 @@
                     // Reset UI
                     scrapeBtn.disabled = false;
                     scrapeSpinner.classList.add('d-none');
+                }
+            });
+            
+            // Test Scraper button handler
+            document.getElementById('testBtn').addEventListener('click', async function() {
+                const username = document.getElementById('username').value.trim();
+                if (!username) return;
+                
+                const testBtn = this;
+                const testSpinner = document.getElementById('testSpinner');
+                
+                testBtn.disabled = true;
+                testSpinner.classList.remove('d-none');
+                setStatus('running');
+                resultJson.innerText = 'Running test scraper... This may take 5-10 minutes.';
+                downloadLinks.classList.add('d-none');
+                
+                try {
+                    const response = await fetch(`/test/${username}`);
+                    const data = await response.json();
+                    
+                    resultJson.innerText = JSON.stringify(data, null, 2);
+                    setStatus(data.status === 'success' ? 'complete' : 'error');
+                    
+                    if (data.status === 'success') {
+                        downloadLinks.classList.remove('d-none');
+                        downloadJson.href = `/download/${username}/json`;
+                        downloadPdf.href = `/pdf/${username}`;
+                    }
+                    
+                } catch (error) {
+                    console.error('Error:', error);
+                    resultJson.innerText = `Error: ${error.message}`;
+                    setStatus('error');
+                } finally {
+                    testBtn.disabled = false;
+                    testSpinner.classList.add('d-none');
+                }
+            });
+            
+            // Quick Test button handler
+            document.getElementById('quickTestBtn').addEventListener('click', async function() {
+                const username = document.getElementById('username').value.trim();
+                if (!username) return;
+                
+                const quickTestBtn = this;
+                const quickTestSpinner = document.getElementById('quickTestSpinner');
+                
+                quickTestBtn.disabled = true;
+                quickTestSpinner.classList.remove('d-none');
+                setStatus('running');
+                resultJson.innerText = 'Running quick test (friends only)... This should take 2-3 minutes.';
+                downloadLinks.classList.add('d-none');
+                
+                try {
+                    const response = await fetch(`/quick-test/${username}`);
+                    const data = await response.json();
+                    
+                    resultJson.innerText = JSON.stringify(data, null, 2);
+                    setStatus(data.status === 'success' ? 'complete' : 'error');
+                    
+                } catch (error) {
+                    console.error('Error:', error);
+                    resultJson.innerText = `Error: ${error.message}`;
+                    setStatus('error');
+                } finally {
+                    quickTestBtn.disabled = false;
+                    quickTestSpinner.classList.add('d-none');
                 }
             });
         });

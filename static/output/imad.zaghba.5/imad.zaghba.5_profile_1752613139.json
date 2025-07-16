@@ -132,46 +132,6 @@
         "page_name": "GjaMaroc",
         "page_url": "https://facebook.com/Gjamaroc",
         "bio": ""
-      },
-      {
-        "page_name": "جمعية باب العلم Association Bab Alilm",
-        "page_url": "https://facebook.com/bab.alilm",
-        "bio": ""
-      },
-      {
-        "page_name": "Troll Politics - طرولات سياسية",
-        "page_url": "https://facebook.com/trollpoliticsmorocco",
-        "bio": ""
-      },
-      {
-        "page_name": "تعلم البرمجة",
-        "page_url": "https://facebook.com/barmej.dz",
-        "bio": ""
-      },
-      {
-        "page_name": "Zenatanews",
-        "page_url": "https://facebook.com/zenatanews",
-        "bio": ""
-      },
-      {
-        "page_name": "Monir",
-        "page_url": "https://facebook.com/100068367423336",
-        "bio": ""
-      },
-      {
-        "page_name": "1337",
-        "page_url": "https://facebook.com/1337FutureIsLoading",
-        "bio": ""
-      },
-      {
-        "page_name": "Littest",
-        "page_url": "https://facebook.com/littestsociety",
-        "bio": ""
-      },
-      {
-        "page_name": "العربي الجديد",
-        "page_url": "https://facebook.com/AlAraby.ar",
-        "bio": ""
       }
     ],
     "following": [
@@ -294,48 +254,9 @@
         "name": "سامى قابيل",
         "profile_url": "https://www.facebook.com/samy.qabyl.2025",
         "bio": ""
-      },
-      {
-        "name": "Najat El Wafy",
-        "profile_url": "https://www.facebook.com/najat.elwafyprofessionnel",
-        "bio": ""
-      },
-      {
-        "name": "The Archbishop of Banterbury",
-        "profile_url": "https://www.facebook.com/TheArchbish0pBanterbury",
-        "bio": ""
-      },
-      {
-        "name": "Abdo Abdo",
-        "profile_url": "https://www.facebook.com/abdo.elhammoumi",
-        "bio": ""
-      },
-      {
-        "name": "C̳u̳l̳i̳i̳ț̳ă̳_̳S̳t̳e̳r̳r̳p̳ᴸ̳ⁱ̳ᵛ̳ᵉ̳",
-        "profile_url": "https://www.facebook.com/profile.php?id=100091576772638",
-        "bio": ""
-      },
-      {
-        "name": "1337",
-        "profile_url": "https://www.facebook.com/1337FutureIsLoading",
-        "bio": ""
-      },
-      {
-        "name": "Series Mix",
-        "profile_url": "https://www.facebook.com/SeriesMixx",
-        "bio": ""
-      },
-      {
-        "name": "UEFA Champions League",
-        "profile_url": "https://www.facebook.com/ChampionsLeague",
-        "bio": ""
-      },
-      {
-        "name": "بيع بالجملة الأولى لجميع أنحاء المغرب",
-        "profile_url": "https://www.facebook.com/profile.php?id=100083355374162",
-        "bio": ""
       }
     ],
+    "friends": [],
     "groups": []
   },
   "posts": {
@@ -354,9 +275,22 @@
         "media_urls": []
       },
       {
-        "id": "post_95381b5a",
+        "id": "post_9a8fb0dd",
         "timestamp": "",
-        "content": "Alah yshel 3lik khoya imad",
+        "content": "أحمد العمراني",
+        "caption": "",
+        "media_screenshot_url": "",
+        "original_url": "",
+        "tagged_accounts": [],
+        "location_tagged": "",
+        "comments": [],
+        "reactions_count": 0,
+        "media_urls": []
+      },
+      {
+        "id": "post_f1894cba",
+        "timestamp": "",
+        "content": "أحمد العمراني allah y7fdeek",
         "caption": "",
         "media_screenshot_url": "",
         "original_url": "",
@@ -380,9 +314,9 @@
         "media_urls": []
       },
       {
-        "id": "post_28adcdec",
+        "id": "post_c89535cf",
         "timestamp": "",
-        "content": "وحشومة اخاي عماد طلعها على فرقة عندها 14 منها والمخير في الفرق مزال موصل حتى للنص ديالها.",
+        "content": "والجاهل إدا رأها تخلع تيابها ونشر هادا",
         "caption": "",
         "media_screenshot_url": "",
         "original_url": "",
@@ -412,17 +346,18 @@
   "locations_visited": [],
   "extraction_metadata": {
     "username": "imad.zaghba.5",
-    "timestamp": 1752701059.0000744,
-    "date": "2025-07-16 21:24:18",
+    "timestamp": 1752613139.0653343,
+    "date": "2025-07-15 20:58:59",
     "total_items": {
-      "pages_followed": 32,
-      "following": 32,
+      "friends": 0,
+      "pages_followed": 24,
+      "following": 24,
       "groups": 0,
-      "own_posts": 5,
+      "own_posts": 6,
       "tagged_posts": 0,
       "comments_by_user": 0,
       "locations_visited": 0,
-      "total": 69
+      "total": 54
     }
   }
 }

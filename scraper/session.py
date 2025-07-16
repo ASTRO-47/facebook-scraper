@@ -8,7 +8,7 @@ from typing import Dict, Any, Optional, List
 from playwright.async_api import async_playwright, Browser, BrowserContext, Page
 
 class FacebookSession:
-    def __init__(self, headless=False, user_data_dir="./user_data", proxy=None):
+    def __init__(self, headless=True, user_data_dir="./user_data", proxy=None):
         self.headless = headless
         self.user_data_dir = user_data_dir
         self.proxy = proxy  # Add proxy support
@@ -73,7 +73,6 @@ class FacebookSession:
                 f'--proxy-server={self.proxy}',
                 '--proxy-bypass-list=<-loopback>'
             ])
-            print(f"🌍 Using proxy: {self.proxy}")
         
         if not self.headless:
             # For SSH X11 forwarding, we need to ensure proper display
@@ -88,8 +87,6 @@ class FacebookSession:
             'args': browser_args,
             'viewport': {'width': 1366, 'height': 768},
             'user_agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-            'locale': 'fr-FR',  # French for Morocco
-            'timezone_id': 'Africa/Casablanca',  # Morocco timezone
             'ignore_default_args': ['--enable-automation'],
             'ignore_https_errors': True,
             'accept_downloads': True,
@@ -230,7 +227,35 @@ class FacebookSession:
         """Check if user is logged in and handle login process"""
         print("🔍 Checking login status...")
         
-        # Navigate to Facebook with international account support
+        # First check if we're already on Facebook and logged in (e.g., after loading cookies)
+        current_url = self.page.url
+        if "facebook.com" in current_url:
+            print("🌐 Already on Facebook, checking login status...")
+            
+            # Check for multiple login indicators
+            login_indicators = [
+                'div[role="navigation"]',  # Main navigation
+                'div[role="main"]',        # Main content area
+                'a[href*="/logout"]',      # Logout link
+                'div[data-pagelet="LeftRail"]',  # Left sidebar
+                'div[aria-label*="Facebook"]'    # Facebook branding
+            ]
+            
+            # Check if already logged in
+            for indicator in login_indicators:
+                try:
+                    element = await self.page.query_selector(indicator)
+                    if element:
+                        # Additional check - make sure we're not on login page
+                        login_form = await self.page.query_selector('form[data-testid="royal_login_form"]')
+                        if not login_form:
+                            print("✅ Already logged in with loaded cookies!")
+                            return True
+                except Exception:
+                    continue
+        
+        # If not logged in or not on Facebook, navigate to Facebook with international account support
+        print("🔑 Not logged in, navigating to Facebook...")
         await self.prefill_login()
         
         # Wait for page to stabilize
@@ -245,7 +270,7 @@ class FacebookSession:
             'div[aria-label*="Facebook"]'    # Facebook branding
         ]
         
-        # Check if already logged in
+        # Check if already logged in after navigation
         for indicator in login_indicators:
             try:
                 element = await self.page.query_selector(indicator)

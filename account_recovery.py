@@ -29,7 +29,7 @@ class FacebookAccountRecovery:
             # Launch with maximum stealth
             context = await p.chromium.launch_persistent_context(
                 user_data_dir=self.user_data_dir,
-                headless=False,
+                headless=True,
                 args=[
                     '--disable-web-security',
                     '--disable-blink-features=AutomationControlled',
@@ -135,7 +135,7 @@ class FacebookAccountRecovery:
         async with async_playwright() as p:
             context = await p.chromium.launch_persistent_context(
                 user_data_dir=self.user_data_dir,
-                headless=False
+                headless=True
             )
             
             page = await context.new_page()

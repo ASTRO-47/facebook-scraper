@@ -32,7 +32,7 @@ async def test_checkpoint(username):
     os.makedirs(user_data_dir, exist_ok=True)
     
     # Initialize browser
-    session = FacebookSession(headless=False, user_data_dir=user_data_dir)
+    session = FacebookSession(headless=True, user_data_dir=user_data_dir)
     page = await session.initialize()
     
     try:
