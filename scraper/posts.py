@@ -400,35 +400,425 @@ class PostsScraper:
 
     async def _extract_single_post(self, element, post_type: str) -> Optional[Dict[str, Any]]:
         try:
+            # Detect if this is a shared post
+            is_shared = False
+            shared_content = ""
+            try:
+                shared_marker_selectors = [
+                    'span:has-text("shared")',
+                    'span:has-text("shared a post")',
+                    'span:has-text("shared a memory")',
+                    'span:has-text("shared a link")',
+                    'span:has-text("shared a photo")',
+                    'span:has-text("shared a video")',
+                    'span[role="button"]:has-text("shared")',
+                ]
+                for selector in shared_marker_selectors:
+                    marker = await element.query_selector(selector)
+                    if marker:
+                        is_shared = True
+                        break
+                if is_shared:
+                    shared_content_selectors = [
+                        'div[role="article"]',
+                        'div[data-ad-preview="message"]',
+                        'div[data-ad-comet-preview="message"]',
+                        '[data-testid="post_message"]',
+                        'div[dir="auto"]',
+                        'span[dir="auto"]',
+                    ]
+                    for sc_selector in shared_content_selectors:
+                        try:
+                            shared_elem = await element.query_selector(sc_selector)
+                            if shared_elem:
+                                shared_content = await shared_elem.text_content()
+                                if shared_content and len(shared_content.strip()) > 1:
+                                    shared_content = self.utils.clean_text(shared_content.strip())
+                                    break
+                        except Exception:
+                            continue
+            except Exception as e:
+                logger.warning(f"[DEBUG] Error detecting shared post: {e}")
+
+            # Extract main content
+            content = await self._extract_post_content(element)
+            timestamp = await self._extract_post_timestamp(element)
+            metrics = await self._extract_post_metrics(element)
+            media = await self._extract_post_media(element)
+            post_id = self._generate_post_id(content, timestamp)
+
+            # Extract caption (try to find a subtitle or secondary text)
+            caption = ""
+            try:
+                caption_selectors = [
+                    'div[data-ad-comet-preview="message"] span',
+                    'div[data-ad-preview="message"] span',
+                    'span[dir="auto"]',
+                    'div[dir="auto"] span',
+                ]
+                for selector in caption_selectors:
+                    cap_elem = await element.query_selector(selector)
+                    if cap_elem:
+                        cap_text = await cap_elem.text_content()
+                        if cap_text and cap_text.strip() != content:
+                            caption = self.utils.clean_text(cap_text.strip())
+                            break
+            except Exception:
+                pass
+
+            # Media screenshot URL (improved with error handling)
+            media_screenshot_url = ""
+            try:
+                if hasattr(self.utils, 'take_screenshot'):
+                    # Try to screenshot the main post content area
+                    screenshot_selector = 'div[data-ad-preview="message"]' or 'div[role="article"]'
+                    screenshot_path = await self.utils.take_screenshot(f"post_{post_id}", screenshot_selector)
+                    if screenshot_path:
+                        # Convert local path to URL path
+                        media_screenshot_url = screenshot_path.replace("static/", "/static/").replace("../static/", "/static/")
+            except Exception as e:
+                logger.warning(f"Failed to take post screenshot: {e}")
+
+            # Extract reaction counts (likes, loves, etc.)
+            reactions = await self._extract_post_reactions(element)
+            
+            # Extract additional metrics
+            metrics = await self._extract_post_metrics(element)
+            shares_count = metrics.get("shares", 0)
+            
+            # Initialize comments list (moved from below to fix variable reference error)
+            comments = []
+            
+            # This will be updated after comments are extracted
+            comments_count = metrics.get("comments", 0)
+
+            # Original URL (improved extraction for permalinks)
+            original_url = ""
+            try:
+                link_selectors = [
+                    'a[href*="/posts/"]',
+                    'a[href*="/permalink/"]',
+                    'a[href*="/story_fbid="]',
+                    'a[href*="/photo.php"]',
+                    'a[href*="/video.php"]',
+                    'a[aria-label*="permalink"]',
+                    'time[datetime] parent::a',
+                    'a[role="link"][href*="facebook.com"]',
+                ]
+                
+                for selector in link_selectors:
+                    link_elems = await element.query_selector_all(selector)
+                    for link_elem in link_elems:
+                        href = await link_elem.get_attribute('href')
+                        if href and "facebook.com" in href:
+                            # Clean the URL - remove tracking parameters
+                            if "?" in href and any(param in href for param in ["/posts/", "/permalink/", "story_fbid="]):
+                                # Keep the essential part of the URL
+                                original_url = href.split("?")[0] if "/posts/" in href else href
+                                break
+                            elif any(path in href for path in ["/posts/", "/permalink/", "story_fbid=", "/photo.php", "/video.php"]):
+                                original_url = href
+                                break
+            except Exception:
+                pass
+
+            # Tagged accounts (improved extraction for tagged people/pages)
+            tagged_accounts = []
+            try:
+                # Enhanced selectors for tagged accounts
+                tagged_selectors = [
+                    'a[role="link"][href*="facebook.com"]',
+                    'a[aria-label*="Tagged"]',
+                    'a[href*="/profile.php?id="]',
+                    'a[href*="/pages/"]',
+                    'a[href*="/people/"]',
+                    'a[data-testid*="tagged"]',
+                    'span[data-testid*="tagged"] a',
+                    'div[aria-label*="tagged"] a',
+                    'a[href*="/groups/"][role="link"]',
+                ]
+                
+                seen_profiles = set()  # Avoid duplicates
+                
+                for selector in tagged_selectors:
+                    tag_elems = await element.query_selector_all(selector)
+                    for tag_elem in tag_elems:
+                        try:
+                            name = await tag_elem.text_content()
+                            profile_url = await tag_elem.get_attribute('href')
+                            
+                            if name and profile_url and "facebook.com" in profile_url:
+                                name = self.utils.clean_text(name.strip())
+                                
+                                # Clean the profile URL
+                                if "?" in profile_url and not "profile.php" in profile_url:
+                                    profile_url = profile_url.split("?")[0]
+                                
+                                # Skip if we've already seen this profile
+                                if profile_url in seen_profiles or len(name) < 2:
+                                    continue
+                                    
+                                seen_profiles.add(profile_url)
+                                
+                                # Try to extract bio from aria-label or title
+                                bio = ""
+                                try:
+                                    aria_label = await tag_elem.get_attribute('aria-label')
+                                    title = await tag_elem.get_attribute('title')
+                                    if aria_label and len(aria_label) > len(name):
+                                        bio = aria_label.replace(name, "").strip()
+                                    elif title and len(title) > len(name):
+                                        bio = title.replace(name, "").strip()
+                                except Exception:
+                                    pass
+                                
+                                tagged_accounts.append({
+                                    "name": name,
+                                    "profile_url": profile_url,
+                                    "bio": bio
+                                })
+                                
+                        except Exception:
+                            continue
+            except Exception:
+                pass
+
+            # Location tagged (improved extraction for location info)
+            location_tagged = ""
+            try:
+                location_selectors = [
+                    'a[href*="/places/"]',
+                    'a[href*="/maps/place/"]',
+                    'span[aria-label*="Location"]',
+                    'div[aria-label*="Location"]',
+                    'a[aria-label*="location"]',
+                    'div[data-testid*="location"]',
+                    'span[data-testid*="location"]',
+                    'a[href*="maps.google.com"]',
+                    'a[href*="/checkin/"]',
+                ]
+                
+                for selector in location_selectors:
+                    loc_elem = await element.query_selector(selector)
+                    if loc_elem:
+                        loc_text = await loc_elem.text_content()
+                        if loc_text and len(loc_text.strip()) > 2:
+                            location_tagged = self.utils.clean_text(loc_text.strip())
+                            break
+                        
+                        # Also try aria-label for location info
+                        aria_label = await loc_elem.get_attribute('aria-label')
+                        if aria_label and "location" in aria_label.lower():
+                            location_tagged = self.utils.clean_text(aria_label.strip())
+                            break
+            except Exception:
+                pass
+
+            # Comments (improved extraction with better parsing)
+            try:
+                # Enhanced comment selectors
+                comment_selectors = [
+                    'div[role="article"] ul > li',
+                    'div[data-testid*="comment"]',
+                    'div[aria-label*="Comment"]',
+                    'ul[role="list"] > li',
+                    'div[data-testid="UFI2Comment/root"]',
+                    'div[data-testid="comment_text"]',
+                    'div[data-testid="UFI2CommentsList/root"] > div',
+                    'div[aria-label*="commented"]',
+                ]
+                
+                seen_comments = set()  # Avoid duplicates
+                
+                for selector in comment_selectors:
+                    comment_elems = await element.query_selector_all(selector)
+                    for comment_elem in comment_elems:
+                        try:
+                            # Extract commenter info with better selectors
+                            commenter_name = ""
+                            commenter_url = ""
+                            commenter_bio = ""
+                            
+                            # Try multiple selectors for commenter
+                            commenter_selectors = [
+                                'a[role="link"][href*="facebook.com"]',
+                                'span[dir="auto"] a',
+                                'h3 a',
+                                'strong a',
+                            ]
+                            
+                            for comm_selector in commenter_selectors:
+                                commenter_elem = await comment_elem.query_selector(comm_selector)
+                                if commenter_elem:
+                                    commenter_name = await commenter_elem.text_content()
+                                    commenter_url = await commenter_elem.get_attribute('href')
+                                    
+                                    # Try to get bio from aria-label
+                                    aria_label = await commenter_elem.get_attribute('aria-label')
+                                    if aria_label and len(aria_label) > len(commenter_name or ""):
+                                        commenter_bio = aria_label.replace(commenter_name or "", "").strip()
+                                    
+                                    if commenter_name:
+                                        break
+                            
+                            # Extract comment text with better filtering
+                            comment_text = ""
+                            full_text = await comment_elem.text_content()
+                            
+                            if full_text:
+                                # Clean comment text by removing commenter name and timestamps
+                                lines = full_text.split('\n')
+                                text_lines = []
+                                
+                                for line in lines:
+                                    line = line.strip()
+                                    # Skip lines that are just navigation text, timestamps, or names
+                                    if (len(line) > 2 and 
+                                        not self._is_comment_metadata(line) and
+                                        line != commenter_name):
+                                        text_lines.append(line)
+                                
+                                comment_text = ' '.join(text_lines).strip()
+                            
+                            # Extract timestamp with improved selectors
+                            comment_timestamp = ""
+                            timestamp_selectors = [
+                                'time',
+                                'a[aria-label*="ago"]',
+                                'span[aria-label*="ago"]',
+                                'a[href*="comment_id"]',
+                            ]
+                            
+                            for ts_selector in timestamp_selectors:
+                                timestamp_elem = await comment_elem.query_selector(ts_selector)
+                                if timestamp_elem:
+                                    datetime_attr = await timestamp_elem.get_attribute('datetime')
+                                    if datetime_attr:
+                                        comment_timestamp = datetime_attr
+                                        break
+                                    
+                                    time_text = await timestamp_elem.text_content()
+                                    if time_text and 'ago' in time_text.lower():
+                                        comment_timestamp = self.utils.clean_text(time_text.strip())
+                                        break
+                            
+                            # Only add if we have meaningful content and haven't seen it before
+                            if (comment_text and len(comment_text) > 3 and 
+                                comment_text not in seen_comments):
+                                
+                                seen_comments.add(comment_text)
+                                
+                                comments.append({
+                                    "commenter": {
+                                        "name": self.utils.clean_text(commenter_name.strip()) if commenter_name else "",
+                                        "profile_url": commenter_url or "",
+                                        "bio": commenter_bio
+                                    },
+                                    "comment_text": self.utils.clean_text(comment_text),
+                                    "timestamp": comment_timestamp or ""
+                                })
+                                
+                        except Exception:
+                            continue
+            except Exception:
+                pass
+
+            # Update comments count after extraction
+            comments_count = len(comments) if comments else metrics.get("comments", 0)
+
             post_data = {
-                "id": "",
-                "content": "",
-                "timestamp": "",
-                "likes": 0,
-                "comments": [],
-                "shares": 0,
-                "media": [],
+                "id": post_id,
+                "timestamp": timestamp,
+                "content": content,
+                "caption": caption,
+                "media_screenshot_url": media_screenshot_url,
+                "original_url": original_url,
+                "tagged_accounts": tagged_accounts,
+                "location_tagged": location_tagged,
+                "comments": comments,
+                "reactions": reactions,
+                "reactions_count": reactions.get("total", metrics.get("likes", 0)),
+                "shares_count": shares_count,
+                "comments_count": comments_count,
+                "media_urls": [m["url"] for m in media if "url" in m],
+                "shared": is_shared,
+                "shared_content": shared_content,
                 "type": post_type
             }
-            content = await self._extract_post_content(element)
-            post_data["content"] = content
-            timestamp = await self._extract_post_timestamp(element)
-            post_data["timestamp"] = timestamp
-            metrics = await self._extract_post_metrics(element)
-            post_data.update(metrics)
-            media = await self._extract_post_media(element)
-            post_data["media"] = media
-            post_data["id"] = self._generate_post_id(content, timestamp)
-            # PATCH: Always include the post for debugging
-            logger.info(f"[DEBUG] Including post with content length {len(content)}, timestamp: {timestamp}, likes: {metrics.get('likes', 0)}, media: {len(media)}")
+            
+            logger.info(f"[DEBUG] Extracted post: ID={post_id}, content_len={len(content)}, "
+                       f"timestamp={timestamp}, reactions={reactions.get('total', 0)}, "
+                       f"comments={len(comments)}, tagged={len(tagged_accounts)}, "
+                       f"location={location_tagged}, shared={is_shared}")
             return post_data
         except Exception as e:
             logger.warning(f"Error extracting single post: {e}")
             return None
 
+    async def _extract_post_reactions(self, element) -> Dict[str, Any]:
+        """Extract detailed reaction counts (likes, loves, etc.)"""
+        reactions = {"total": 0, "like": 0, "love": 0, "haha": 0, "wow": 0, "sad": 0, "angry": 0}
+        
+        try:
+            # Try to find reaction elements
+            reaction_selectors = [
+                'span[aria-label*="reactions"]',
+                'div[aria-label*="reactions"]',
+                'span[aria-label*="people reacted"]',
+                'div[data-testid*="reaction"]',
+                'a[aria-label*="See who reacted"]',
+            ]
+            
+            for selector in reaction_selectors:
+                reaction_elem = await element.query_selector(selector)
+                if reaction_elem:
+                    aria_label = await reaction_elem.get_attribute('aria-label')
+                    text_content = await reaction_elem.text_content()
+                    
+                    # Parse reaction counts from aria-label or text
+                    if aria_label:
+                        reactions["total"] = self._parse_reaction_count(aria_label)
+                        break
+                    elif text_content and any(char.isdigit() for char in text_content):
+                        reactions["total"] = self._parse_reaction_count(text_content)
+                        break
+            
+            # Try to find specific reaction types
+            reaction_icons = await element.query_selector_all('img[alt*="Like"], img[alt*="Love"], img[alt*="Haha"], img[alt*="Wow"], img[alt*="Sad"], img[alt*="Angry"]')
+            for icon in reaction_icons:
+                alt_text = await icon.get_attribute('alt')
+                if alt_text:
+                    reaction_type = alt_text.lower()
+                    if reaction_type in reactions:
+                        reactions[reaction_type] = 1  # At least one of this type exists
+                        
+        except Exception as e:
+            logger.warning(f"Error extracting reactions: {e}")
+            
+        return reactions
+    
+    def _parse_reaction_count(self, text: str) -> int:
+        """Parse reaction count from text"""
+        try:
+            # Look for numbers in the text
+            numbers = re.findall(r'\d+(?:,\d+)*(?:\.\d+)?[KkMm]?', text)
+            if numbers:
+                count_str = numbers[0].replace(',', '')
+                
+                # Handle K/M suffixes
+                if count_str.endswith(('K', 'k')):
+                    return int(float(count_str[:-1]) * 1000)
+                elif count_str.endswith(('M', 'm')):
+                    return int(float(count_str[:-1]) * 1000000)
+                else:
+                    return int(float(count_str))
+        except Exception:
+            pass
+        return 0
+
     async def _extract_post_content(self, element) -> str:
         try:
-            # Click all visible 'See more' buttons inside the post element before extracting content
+            # Enhanced "See more" button clicking with multiple selectors
             see_more_selectors = [
                 'span:has-text("See more")',
                 'a:has-text("See more")',
@@ -437,7 +827,12 @@ class PostsScraper:
                 'div[role="button"]:has-text("See more")',
                 '[role="button"]:has-text("See more")',
                 '[aria-label="See more"]',
+                'span:has-text("Show more")',
+                'div:has-text("Show more")',
+                '[aria-expanded="false"]:has-text("more")',
             ]
+            
+            # Click all "See more" buttons found
             for see_more_selector in see_more_selectors:
                 try:
                     see_more_buttons = await element.query_selector_all(see_more_selector)
@@ -451,40 +846,73 @@ class PostsScraper:
                                 logger.warning(f"[DEBUG] Failed to click 'See more': {e}")
                 except Exception:
                     continue
+            
+            # Enhanced content extraction with better selectors
             content_selectors = [
                 'div[data-ad-preview="message"]',
                 'div[data-ad-comet-preview="message"]',
                 '[data-testid="post_message"]',
-                'div[dir="auto"]',
-                'span[dir="auto"]',
-                'div[data-testid="post_message"]',
-                'div[data-testid="post_message_container"]'
+                'div[data-testid="post_message_container"]',
+                'span[data-testid="post_message"] span',
+                'div[dir="auto"][role="main"]',
+                'div[dir="auto"]:not([aria-hidden="true"])',
+                'span[dir="auto"]:not([aria-hidden="true"])',
             ]
+            
             for selector in content_selectors:
                 try:
                     content_elem = await element.query_selector(selector)
                     if content_elem:
                         text = await content_elem.text_content()
                         if text and len(text.strip()) > 1:
-                            return self.utils.clean_text(text.strip())
+                            cleaned_text = self.utils.clean_text(text.strip())
+                            # Ensure we got meaningful content, not just metadata
+                            if len(cleaned_text) > 10 and not self._is_unwanted_text(cleaned_text):
+                                return cleaned_text
                 except Exception:
                     continue
+            
+            # Fallback: extract all text and filter intelligently
             all_text = await element.text_content()
             if all_text:
                 lines = all_text.split('\n')
                 content_lines = []
+                
                 for line in lines:
                     line = line.strip()
-                    if len(line) > 1 and not self._is_unwanted_text(line):
+                    # More intelligent filtering
+                    if (len(line) > 1 and 
+                        not self._is_unwanted_text(line) and
+                        not self._is_comment_metadata(line)):
                         content_lines.append(line)
+                
                 if content_lines:
-                    return self.utils.clean_text('\n'.join(content_lines[:5]))
-                # PATCH: Log the full text content for debugging if no content found
-                logger.info(f"[DEBUG] No content found by selectors, full text: {all_text[:500]}")
+                    # Join the most relevant lines
+                    content = '\n'.join(content_lines[:10])  # Take up to 10 meaningful lines
+                    return self.utils.clean_text(content)
+                
+                # Last resort: log for debugging
+                logger.info(f"[DEBUG] No content found by selectors, full text preview: {all_text[:500]}")
+            
             return ""
         except Exception as e:
             logger.warning(f"Error extracting post content: {e}")
             return ""
+    
+    def _is_comment_metadata(self, text: str) -> bool:
+        """Check if text is comment metadata (timestamps, actions, etc.)"""
+        metadata_patterns = [
+            "like", "reply", "react", "ago", "minutes", "hours", "days",
+            "weeks", "months", "years", "edited", "translate", "see translation",
+            "view", "show", "hide", "more replies", "view more comments",
+            "see more", "see less", "report", "delete", "share"
+        ]
+        
+        text_lower = text.lower().strip()
+        return (any(pattern in text_lower for pattern in metadata_patterns) or 
+                len(text) < 3 or
+                text.isdigit() or
+                re.match(r'^\d+[smhdwmy]$', text_lower))  # Match patterns like "5m", "2h", "1d"
     
     def _is_unwanted_text(self, text: str) -> bool:
         """Check if text should be filtered out"""
@@ -499,35 +927,56 @@ class PostsScraper:
         return any(pattern in text_lower for pattern in unwanted_patterns) or len(text) < 3  # Reduced from 10 to 3
     
     async def _extract_post_timestamp(self, element) -> str:
-        """Extract timestamp from post"""
+        """Extract timestamp from post with improved selectors"""
         try:
             timestamp_selectors = [
-                'time',
+                'time[datetime]',
+                'a[href*="story_fbid"] time',
+                'a[href*="posts"] time',
+                'a[aria-label*="ago"]',
+                'span[aria-label*="ago"]',
                 '[data-testid="story-subtitle"] a',
-                'a[role="link"][tabindex="0"]'
+                '[data-testid="story-subtitle"] time',
+                'a[role="link"][tabindex="0"]:has(time)',
+                'a[href*="permalink"]',
             ]
             
             for selector in timestamp_selectors:
                 try:
                     time_elem = await element.query_selector(selector)
                     if time_elem:
-                        # Try datetime attribute first
+                        # First try datetime attribute (most reliable)
                         datetime_attr = await time_elem.get_attribute('datetime')
                         if datetime_attr:
                             return datetime_attr
                         
+                        # Try aria-label for relative time
+                        aria_label = await time_elem.get_attribute('aria-label')
+                        if aria_label and ('ago' in aria_label.lower() or 'at' in aria_label.lower()):
+                            return self.utils.clean_text(aria_label.strip())
+                        
                         # Try text content
                         time_text = await time_elem.text_content()
-                        if time_text and ('ago' in time_text.lower() or 'at' in time_text.lower()):
+                        if time_text and ('ago' in time_text.lower() or 'at' in time_text.lower() or self._is_valid_timestamp(time_text)):
                             return self.utils.clean_text(time_text.strip())
                 except Exception:
                     continue
             
             return ""
-            
         except Exception as e:
             logger.warning(f"Error extracting timestamp: {e}")
             return ""
+    
+    def _is_valid_timestamp(self, text: str) -> bool:
+        """Check if text looks like a valid timestamp"""
+        timestamp_patterns = [
+            r'\d+[smhdwmy]',  # 5m, 2h, 1d, etc.
+            r'\d{1,2}:\d{2}',  # 14:32
+            r'\d{4}-\d{2}-\d{2}',  # 2025-07-01
+            r'(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)',  # Month names
+            r'(Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday)',  # Day names
+        ]
+        return any(re.search(pattern, text, re.IGNORECASE) for pattern in timestamp_patterns)
     
     async def _extract_post_metrics(self, element) -> Dict[str, Any]:
         """Extract likes, comments, shares counts"""

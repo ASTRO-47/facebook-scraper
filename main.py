@@ -215,9 +215,74 @@ async def load_saved_cookies(session, page):
         return False
 
 @app.get("/")
-async def root(request: Request):
-    """Return the web interface"""
+async def root():
+    """Return API documentation"""
+    # Get server IP for examples
+    try:
+        result = subprocess.run("curl -s ifconfig.me", shell=True, capture_output=True, text=True)
+        server_ip = result.stdout.strip()
+    except:
+        server_ip = "YOUR_SERVER_IP"
+    
+    return {
+        "endpoints": {
+            "/": "This documentation",
+            "/api/scrape/{username}": {
+                "description": "Scrape a Facebook profile",
+                "parameters": {
+                    "username": "string - Facebook username to scrape",
+                    "headless": "boolean - Run in headless mode (default: true)"
+                },
+                "example": {
+                    "basic": f"curl 'http://{server_ip}:8080/api/scrape/username' -o profile_data.json",
+                },
+                "returns": "Profile data in JSON format"
+            },
+            "/api/status": {
+                "description": "Get server status",
+                "parameters": {},
+                "example": f"curl 'http://{server_ip}:8080/api/status'",
+                "returns": "Server status information"
+            }
+        }
+    }
+
+@app.get("/web")
+async def web_interface(request: Request):
+    """Serve the web interface for interactive scraping"""
     return templates.TemplateResponse("index.html", {"request": request})
+
+@app.get("/scrape/{username:path}")
+async def web_scrape_profile(username: str):
+    """Web interface endpoint for profile scraping"""
+    try:
+        # Call the main scraping function
+        result = await scrape_profile(
+            username=username, 
+            use_vnc=False,
+            headless=True
+        )
+        
+        # Cache the result for downloads
+        scrape_results_cache[username] = result
+        
+        response_data = {
+            "success": True,
+            "username": username,
+            "scraped_at": time.strftime("%Y-%m-%d %H:%M:%S UTC", time.gmtime()),
+            "data": result
+        }
+        
+        return response_data
+        
+    except Exception as e:
+        error_response = {
+            "success": False,
+            "error": str(e),
+            "username": username,
+            "scraped_at": time.strftime("%Y-%m-%d %H:%M:%S UTC", time.gmtime())
+        }
+        return error_response
 
 @app.get("/api/scrape/{username:path}")
 async def api_scrape_profile(username: str, headless: bool = True):
@@ -280,9 +345,9 @@ async def api_quick_scrape(username: str):
         "scraped_at": time.strftime("%Y-%m-%d %H:%M:%S UTC", time.gmtime())
     }
 
-@app.get("/api")
+@app.get("/api/docs")
 async def api_documentation():
-    """Return API documentation"""
+    """API endpoint documentation for client testing"""
     # Get server IP for examples
     try:
         result = subprocess.run("curl -s ifconfig.me", shell=True, capture_output=True, text=True)
@@ -360,49 +425,6 @@ async def api_documentation():
         }
     }
 
-@app.get("/docs")
-async def api_docs():
-    """Return API documentation (alternative endpoint)"""
-    # Get server IP for examples
-    try:
-        result = subprocess.run("curl -s ifconfig.me", shell=True, capture_output=True, text=True)
-        server_ip = result.stdout.strip()
-    except:
-        server_ip = "YOUR_SERVER_IP"
-    
-    return {
-        "endpoints": {
-            "/": "Web interface for scraping",
-            "/api": "API documentation",
-            "/docs": "This API documentation",
-            "/api/scrape/{username}": {
-                "description": "Scrape a Facebook profile",
-                "parameters": {
-                    "username": "string - Facebook username to scrape",
-                    "headless": "boolean - Run in headless mode (default: true)"
-                },
-                "example": {
-                    "basic": f"curl 'http://{server_ip}:8080/api/scrape/username' -o profile_data.json",
-                },
-                "returns": "Profile data in JSON format"
-            },
-            "/health": {
-                "description": "Get server status",
-                "parameters": {},
-                "example": f"curl 'http://{server_ip}:8080/health'",
-                "returns": "Server status information"
-            },
-            "/quick-test/{username}": {
-                "description": "Test friends list scraping only",
-                "parameters": {
-                    "username": "string - Facebook username to test"
-                },
-                "example": f"curl 'http://{server_ip}:8080/quick-test/username'",
-                "returns": "Friends list test results"
-            }
-        }
-    }
-
 @app.get("/scrape/{username:path}")
 async def scrape_profile(username: str, use_vnc: bool = False, headless: bool = True):
     """API endpoint to scrape a Facebook profile with optional VNC support"""
@@ -434,8 +456,8 @@ async def scrape_profile(username: str, use_vnc: bool = False, headless: bool = 
             pass
         class MockUtils:
             pass
-        # Type ignore for mock usage in detection only
-        temp_scraper = ProfileScraper(MockPage(), MockUtils())  # type: ignore
+        
+        temp_scraper = ProfileScraper(MockPage(), MockUtils())
         profile_type, profile_identifier = temp_scraper._detect_profile_type(username)
         constructed_url = temp_scraper._construct_profile_url(username)
         
@@ -473,7 +495,7 @@ async def scrape_profile(username: str, use_vnc: bool = False, headless: bool = 
         os.makedirs(username_screenshots_dir, exist_ok=True)
         
         # Initialize session with appropriate display settings
-        session = FacebookSession(headless=False, user_data_dir=user_data_dir, proxy=proxy_url)
+        session = FacebookSession(headless=headless, user_data_dir=user_data_dir, proxy=proxy_url)
         page = await session.initialize()
         
         # Load saved cookies if available
@@ -525,9 +547,14 @@ async def scrape_profile(username: str, use_vnc: bool = False, headless: bool = 
         await utils.human_like_delay(5, 8)  # Reduced from 15-25 seconds
         
         # Quick checkpoint check
+        print("🔍 Enhanced security checkpoint check for international accounts...")
         checkpoint_detected = await utils.facebook_security_check()
         if checkpoint_detected:
+            print("🔒 Security checkpoint detected after profile navigation!")
+            print("⏳ This is normal for international accounts (Moroccan account in US)")
+            
             await utils.handle_security_checkpoint(wait_time=60)  # Reduced from 2 minutes to 1 minute
+            print("✅ Checkpoint handling completed, continuing with scraping...")
             await utils.human_like_delay(2, 4)  # Reduced delay
         
         # Scrape all data with comprehensive error handling and delays
@@ -578,63 +605,62 @@ async def scrape_profile(username: str, use_vnc: bool = False, headless: bool = 
                         return {}
         
         # Basic profile info
-        # scrape_data["basic_info"] = await safe_scrape(
-        #     profile_scraper.get_basic_info, 
-        #     "Basic profile info"
-        # )
+        scrape_data["basic_info"] = await safe_scrape(
+            profile_scraper.get_basic_info, 
+            "Basic profile info"
+        )
         
         # Groups
-        # scrape_data["groups"] = await safe_scrape(
-        #     profile_scraper.get_groups, 
-        #     "Groups"
-        # )
+        scrape_data["groups"] = await safe_scrape(
+            profile_scraper.get_groups, 
+            "Groups"
+        )
         
         # Pages followed
-        # scrape_data["pages_followed"] = await safe_scrape(
-        #     profile_scraper.get_pages_followed, 
-        #     "Pages followed"
-        # )
+        scrape_data["pages_followed"] = await safe_scrape(
+            profile_scraper.get_pages_followed, 
+            "Pages followed"
+        )
         
         # Following list
-        # scrape_data["following_list"] = await safe_scrape(
-        #     profile_scraper.get_following_list, 
-        #     "Following list"
-        # )
+        scrape_data["following_list"] = await safe_scrape(
+            profile_scraper.get_following_list, 
+            "Following list"
+        )
         
         # Friends list
-        # scrape_data["friends_list"] = await safe_scrape(
-        #     profile_scraper.get_friends_list, 
-        #     "Friends list"
-        # )
+        scrape_data["friends_list"] = await safe_scrape(
+            profile_scraper.get_friends_list, 
+            "Friends list"
+        )
         
-        # Own posts (limit to 10)
+        # Own posts
         scrape_data["own_posts"] = await safe_scrape(
             posts_scraper.get_own_posts, 
             "Own posts",
-            username,  # Keep original username for navigation
-            max_posts=10
+            username  # Keep original username for navigation
         )
         
         # Tagged posts
-        # scrape_data["tagged_posts"] = await safe_scrape(
-        #     posts_scraper.get_tagged_posts, 
-        #     "Tagged posts",
-        #     username  # Keep original username for navigation
-        # )
+        scrape_data["tagged_posts"] = await safe_scrape(
+            posts_scraper.get_tagged_posts, 
+            "Tagged posts",
+            username  # Keep original username for navigation
+        )
         
         # User comments on other posts
-        # scrape_data["user_comments"] = await safe_scrape(
-        #     posts_scraper.get_user_comments, 
-        #     "User comments",
-        #     username  # Keep original username for navigation
-        # )
+        scrape_data["user_comments"] = await safe_scrape(
+            posts_scraper.get_user_comments, 
+            "User comments",
+            username  # Keep original username for navigation
+        )
         
         # Locations
-        # scrape_data["locations"] = await safe_scrape(
-        #     posts_scraper.get_locations, 
-        #     "Locations",
-        #     username  # Keep original username for navigation
-        # )
+        scrape_data["locations"] = await safe_scrape(
+            posts_scraper.get_locations, 
+            "Locations",
+            username  # Keep original username for navigation
+        )
         
         print("🎉 All scraping operations completed!")
         
@@ -690,7 +716,7 @@ async def download_json(username: str):
     username = urllib.parse.unquote(username).strip().rstrip('/').lstrip('@')
     
     # Extract clean identifier for file lookup
-    temp_scraper = ProfileScraper(type('MockPage', (), {})(), type('MockUtils', (), {})())  # type: ignore
+    temp_scraper = ProfileScraper(type('MockPage', (), {})(), type('MockUtils', (), {})())
     profile_type, clean_identifier = temp_scraper._detect_profile_type(username)
     
     # Check if we have cached results or find the latest file
@@ -726,7 +752,7 @@ async def generate_pdf(username: str):
         username = urllib.parse.unquote(username).strip().rstrip('/').lstrip('@')
         
         # Extract clean identifier for file lookup
-        temp_scraper = ProfileScraper(type('MockPage', (), {})(), type('MockUtils', (), {})())  # type: ignore
+        temp_scraper = ProfileScraper(type('MockPage', (), {})(), type('MockUtils', (), {})())
         profile_type, clean_identifier = temp_scraper._detect_profile_type(username)
         
         # Check if we have cached results
@@ -879,6 +905,58 @@ async def health_check():
         },
         "documentation": f"http://{server_ip}:8080/api/docs"
     }
+
+@app.get("/status")
+async def get_status():
+    """Get server status for web interface"""
+    return {
+        "status": "running",
+        "timestamp": time.strftime("%Y-%m-%d %H:%M:%S UTC", time.gmtime()),
+        "version": "2.0.0"
+    }
+
+@app.get("/download/{username}/json")
+async def download_json(username: str):
+    """Download scraped data as JSON file"""
+    try:
+        if username in scrape_results_cache:
+            filename = f"{username}_profile_data.json"
+            # Create a temporary file
+            import tempfile
+            with tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False) as f:
+                json.dump(scrape_results_cache[username], f, indent=2, ensure_ascii=False)
+                temp_path = f.name
+            
+            return FileResponse(
+                temp_path,
+                filename=filename,
+                media_type='application/json'
+            )
+        else:
+            raise HTTPException(status_code=404, detail="Data not found")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/pdf/{username}")
+async def download_pdf(username: str):
+    """Download scraped data as PDF file"""
+    try:
+        if username in scrape_results_cache:
+            from scraper.json_builder import FacebookDataProcessor
+            processor = FacebookDataProcessor()
+            
+            # Generate PDF
+            pdf_path = await processor.generate_pdf(scrape_results_cache[username], username)
+            
+            return FileResponse(
+                pdf_path,
+                filename=f"{username}_profile.pdf",
+                media_type='application/pdf'
+            )
+        else:
+            raise HTTPException(status_code=404, detail="Data not found")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/vnc/status")
 async def vnc_status():
@@ -1053,7 +1131,7 @@ async def quick_test_friends_only(username: str):
         os.makedirs(user_data_dir, exist_ok=True)
         
         # Initialize session
-        session = FacebookSession(headless=False, user_data_dir=user_data_dir)
+        session = FacebookSession(headless=True, user_data_dir=user_data_dir)
         page = await session.initialize()
         
         # Load saved cookies

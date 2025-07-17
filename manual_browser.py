@@ -87,24 +87,12 @@ class ManualBrowser:
         print("✅ User data directory prepared")
         
     async def initialize_browser(self):
-        """Initialize browser with Playwright's Chromium (not Google Chrome)"""
-        print("🚀 Starting browser with Playwright's Chromium...")
+        """Initialize browser with REAL Google Chrome for extensions"""
+        print("🚀 Starting browser with real Google Chrome...")
         
         # Set up display for X11 forwarding
         if not os.environ.get("DISPLAY"):
             os.environ["DISPLAY"] = ":1"
-        
-        print(f"📺 Using display: {os.environ.get('DISPLAY')}")
-        
-        # Test if display is working
-        try:
-            result = subprocess.run(['xset', 'q'], capture_output=True, text=True, timeout=5)
-            if result.returncode == 0:
-                print("✅ Display is working properly")
-            else:
-                print("⚠️ Display might have issues")
-        except Exception as e:
-            print(f"⚠️ Could not test display: {e}")
         
         # Prepare user data directory
         self.prepare_user_data_dir()
@@ -112,105 +100,84 @@ class ManualBrowser:
         # Start Playwright
         self.playwright = await async_playwright().start()
         
-        # Use Playwright's Chromium (no executable_path)
+        # Use REAL Google Chrome for extensions (NOT Playwright's Chromium)
         self.context = await self.playwright.chromium.launch_persistent_context(
             user_data_dir=self.user_data_dir,
-            headless=False,
-            # executable_path='/usr/bin/google-chrome-stable',  # Removed to use Chromium
+            headless=True,
+            executable_path='/usr/bin/google-chrome-stable',  # Use system Chrome
             args=[
                 '--no-sandbox',
                 '--disable-dev-shm-usage',
                 '--no-first-run',
                 '--disable-default-browser-check',
-                '--start-maximized',
-                '--window-size=1920,1080',
-                '--window-position=0,0',
-                '--disable-web-security',
-                '--disable-features=VizDisplayCompositor',
-                '--disable-background-mode',
-                '--disable-background-networking',
                 '--disable-background-timer-throttling',
                 '--disable-backgrounding-occluded-windows',
-                '--disable-renderer-backgrounding',
-                '--disable-features=TranslateUI',
-                '--disable-ipc-flooding-protection',
-                '--disable-popup-blocking',
-                '--disable-prompt-on-repost',
-                '--disable-sync',
-                '--force-color-profile=srgb',
-                '--metrics-recording-only',
-                '--no-crash-upload',
-                '--safebrowsing-disable-auto-update',
-                '--enable-automation',
-                '--password-store=basic',
-                '--use-mock-keychain',
-                '--hide-scrollbars',
-                '--mute-audio',
-                '--disable-setuid-sandbox'
+                '--disable-renderer-backgrounding'
             ],
-            viewport=None  # Remove viewport to allow full screen
+            viewport={'width': 1366, 'height': 768}
         )
         
         self.page = await self.context.new_page()
         
-        # Wait a moment for browser to stabilize
-        await asyncio.sleep(2)
-        
-        # Bring the page to the front and set viewport size to maximize
-        try:
-            await self.page.bring_to_front()
-            await self.page.set_viewport_size({"width": 1920, "height": 1080})
-            print("✅ Viewport set to 1920x1080")
-        except Exception as e:
-            print(f"⚠️ Could not set viewport size: {e}")
-        
-        # Force full screen using JavaScript after navigation
-        # (Call this after navigation for best results)
-        # You may also want to call this in navigate_to_facebook
-        print("✅ Browser initialized with Playwright's Chromium - FULL SCREEN MODE!")
+        print("✅ Browser initialized with REAL Google Chrome - extensions fully supported!")
         return self.page
         
     async def navigate_to_facebook(self):
-        """Navigate to Facebook and request fullscreen"""
+        """Navigate to Facebook"""
         print("🔗 Navigating to Facebook...")
         try:
-            if self.page:
-                await self.page.goto('https://www.facebook.com', wait_until='domcontentloaded', timeout=30000)
-                print("✅ Successfully navigated to Facebook in KIOSK FULL SCREEN MODE!")
-                # Request fullscreen after navigation
-                try:
-                    await self.page.evaluate("""
-                        if (document.documentElement.requestFullscreen) {
-                            document.documentElement.requestFullscreen();
-                        } else if (document.documentElement.webkitRequestFullscreen) {
-                            document.documentElement.webkitRequestFullscreen();
-                        } else if (document.documentElement.msRequestFullscreen) {
-                            document.documentElement.msRequestFullscreen();
-                        }
-                        window.focus();
-                        window.moveTo(0, 0);
-                        window.resizeTo(screen.width, screen.height);
-                    """)
-                    print("✅ Fullscreen requested via JavaScript after navigation")
-                except Exception as e:
-                    print(f"⚠️ Full screen request failed after navigation: {e}")
-            else:
-                print("⚠️ Page not initialized")
+            await self.page.goto('https://www.facebook.com', wait_until='domcontentloaded', timeout=30000)
+            print("✅ Successfully navigated to Facebook!")
         except Exception as e:
             print(f"⚠️ Navigation failed: {e}")
             print("🔄 You can manually navigate to any site in the browser")
       
-
+    async def install_required_extensions(self):
+        """Install UrbanVPN and Friend SSH/Proxy extensions"""
+        extensions = [
+            {
+                "name": "Urban VPN", 
+                "url": "https://chrome.google.com/webstore/detail/urban-vpn/eppiocemhmnlbhjplcgkofciiegomcon"
+            },
+            {
+                "name": "Friend SSH/Proxy",
+                "url": "https://chrome.google.com/webstore/detail/friend-ssh-proxy/jbahhdpabocfnddgnbhkldpacdlpgana"
+            }
+        ]
+        
+        for ext in extensions:
+            try:
+                print(f"🔗 Opening {ext['name']} extension page...")
+                ext_page = await self.context.new_page()
+                await ext_page.goto(ext['url'])
+                await ext_page.wait_for_load_state('domcontentloaded')
+                print(f"✅ {ext['name']} page loaded - Click 'Add to Chrome' to install")
+                await asyncio.sleep(2)
+            except Exception as e:
+                print(f"❌ Could not open {ext['name']}: {e}")
+                
+    async def open_extensions_page(self):
+        """Helper function to open Chrome extensions page in a new tab"""
+        try:
+            extensions_page = await self.context.new_page()
+            await extensions_page.goto('chrome://extensions/')
+            print("🧩 Extensions management page opened")
+        except Exception as e:
+            print(f"⚠️ Could not open extensions page: {e}")
             
     async def keep_alive(self):
         """Keep the browser alive until user closes it"""
         print("\n" + "="*60)
-        print("🌐 BROWSER READY!")
+        print("🌐 REAL GOOGLE CHROME READY - EXTENSIONS FULLY SUPPORTED!")
         print("="*60)
-        print("📋 WHAT YOU CAN DO:")
-        print("   • Navigate to any website")
-        print("   • Login to Facebook manually")
-        print("   • Test the browser functionality")
+        print("🧩 REQUIRED EXTENSIONS OPENED:")
+        print("   • UrbanVPN - Click 'Add to Chrome' to install")
+        print("   • Friend SSH/Proxy - Click 'Add to Chrome' to install")
+        print("="*60)
+        print("📋 TO INSTALL:")
+        print("   1. Click 'Add to Chrome' on each extension tab")
+        print("   2. Confirm installation when prompted")
+        print("   3. Extensions will be ready immediately")
         print("="*60)
         print("🛑 Press Ctrl+C to close browser")
         print("="*60)
@@ -218,21 +185,7 @@ class ManualBrowser:
         # Keep the script running until interrupted
         try:
             while self.running:
-                # Periodically ensure window stays focused and maximized
-                try:
-                    if self.page:
-                        await self.page.evaluate("""
-                            // Keep window focused and maximized
-                            window.focus();
-                            if (window.screen && window.screen.width) {
-                                window.moveTo(0, 0);
-                                window.resizeTo(screen.width, screen.height);
-                            }
-                        """)
-                except Exception:
-                    pass  # Ignore errors if page is closed
-                
-                await asyncio.sleep(5)  # Check every 5 seconds
+                await asyncio.sleep(1)
         except KeyboardInterrupt:
             pass
         finally:
@@ -264,6 +217,12 @@ class ManualBrowser:
             
             # Navigate to Facebook
             await self.navigate_to_facebook()
+            
+            # Open extensions page 
+            await self.open_extensions_page()
+            
+            # Open required extensions for installation
+            await self.install_required_extensions()
             
             # Keep browser alive
             await self.keep_alive()

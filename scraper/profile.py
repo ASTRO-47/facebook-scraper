@@ -1061,10 +1061,35 @@ class ProfileScraper:
                     if not self._is_valid_friend_name(name):
                         continue
                     
+                    # Try to extract bio from nearby element
+                    bio = ""
+                    try:
+                        # Look for bio in nearby elements
+                        parent = await element.evaluate('el => el.closest("div[role=\'listitem\']")') 
+                        if parent:
+                            bio_element = await self.page.evaluate('''
+                                (parent) => {
+                                    // Look for elements that might contain bio text (span, div with small text)
+                                    const bioElements = parent.querySelectorAll('span[dir="auto"], div[dir="auto"]');
+                                    for (const el of bioElements) {
+                                        const text = el.innerText;
+                                        // Skip if it's the name or very short text
+                                        if (text && text.length > 3 && !text.includes("Mutual") && !text.includes("Friends")) {
+                                            return text;
+                                        }
+                                    }
+                                    return "";
+                                }
+                            ''', parent)
+                            if bio_element:
+                                bio = self.utils.clean_text(bio_element)
+                    except Exception:
+                        pass
+                    
                     friend_data = {
                         "name": self.utils.clean_text(name),
                         "profile_url": href,
-                        "bio": ""
+                        "bio": bio
                     }
                     
                     current_batch.append(friend_data)

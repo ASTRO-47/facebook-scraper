@@ -262,34 +262,35 @@
                 }
             });
             
-            // Quick Test button handler
+            // Quick Test button handler (deprecated but keeping for compatibility)
             document.getElementById('quickTestBtn').addEventListener('click', async function() {
                 const username = document.getElementById('username').value.trim();
                 if (!username) return;
-                
+
                 const quickTestBtn = this;
                 const quickTestSpinner = document.getElementById('quickTestSpinner');
-                
+
                 quickTestBtn.disabled = true;
                 quickTestSpinner.classList.remove('d-none');
                 setStatus('running');
-                resultJson.innerText = 'Running quick test (friends only)... This should take 2-3 minutes.';
+                resultJson.innerText = 'Quick test functionality has been removed. Use Full Scrape instead.';
                 downloadLinks.classList.add('d-none');
-                
+
                 try {
-                    const response = await fetch(`/quick-test/${username}`);
-                    const data = await response.json();
-                    
-                    resultJson.innerText = JSON.stringify(data, null, 2);
-                    setStatus(data.status === 'success' ? 'complete' : 'error');
+                    // Show deprecation message
+                    setTimeout(() => {
+                        resultJson.innerText = 'Quick test functionality has been deprecated. Please use "Full Scrape" for complete profile data.';
+                        setStatus('error');
+                        quickTestBtn.disabled = false;
+                        quickTestSpinner.classList.add('d-none');
+                    }, 2000);
                     
                 } catch (error) {
                     console.error('Error:', error);
                     resultJson.innerText = `Error: ${error.message}`;
                     setStatus('error');
                 } finally {
-                    quickTestBtn.disabled = false;
-                    quickTestSpinner.classList.add('d-none');
+                    // Will be handled by setTimeout
                 }
             });
         });
