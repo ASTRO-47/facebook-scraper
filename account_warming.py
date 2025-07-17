@@ -152,6 +152,7 @@ class FacebookAccountWarming:
         print("❌ Don't create new accounts")
         print("❌ Don't try to login repeatedly")
         print("❌ Don't use fake information")
+        
         print("❌ Don't contact Facebook multiple times")
 
 if __name__ == "__main__":

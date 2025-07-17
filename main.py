@@ -22,6 +22,7 @@ from scraper.profile import ProfileScraper
 from scraper.posts import PostsScraper
 from scraper.utils import ScraperUtils
 from scraper.json_builder import JSONBuilder
+from scraper.proxy_manager import ProxyManager
 
 # Global variables for VNC cleanup
 vnc_processes = []
@@ -157,6 +158,9 @@ os.makedirs("static/output", exist_ok=True)
 # Cache for scraping results
 scrape_results_cache = {}
 
+# Initialize proxy manager
+proxy_manager = ProxyManager()
+
 async def load_saved_cookies(session, page):
     """Load saved cookies from facebook_cookies.json if available"""
     cookies_file = "facebook_cookies.json"
@@ -211,35 +215,12 @@ async def load_saved_cookies(session, page):
         return False
 
 @app.get("/")
-async def root():
-    """Return API documentation"""
-    server_ip = get_server_ip()
-    
-    return {
-        "endpoints": {
-            "/": "This documentation",
-            "/api/scrape/{username}": {
-                "description": "Scrape a Facebook profile",
-                "parameters": {
-                    "username": "string - Facebook username to scrape",
-                    "headless": "boolean - Run in headless mode (default: true)"
-                },
-                "example": {
-                    "basic": f"curl 'http://{server_ip}:8080/api/scrape/username' -o profile_data.json",
-                },
-                "returns": "Profile data in JSON format"
-            },
-            "/api/status": {
-                "description": "Get server status",
-                "parameters": {},
-                "example": f"curl 'http://{server_ip}:8080/api/status'",
-                "returns": "Server status information"
-            }
-        }
-    }
+async def root(request: Request):
+    """Return the web interface"""
+    return templates.TemplateResponse("index.html", {"request": request})
 
 @app.get("/api/scrape/{username:path}")
-async def api_scrape_profile(username: str, headless: bool = True):
+async def api_scrape_profile(username: str, headless: bool = False):
     """
     Clean API endpoint for external clients - optimized for curl usage
     Returns pure JSON data that can be directly saved to file
@@ -299,9 +280,9 @@ async def api_quick_scrape(username: str):
         "scraped_at": time.strftime("%Y-%m-%d %H:%M:%S UTC", time.gmtime())
     }
 
-@app.get("/api/docs")
+@app.get("/api")
 async def api_documentation():
-    """API endpoint documentation for client testing"""
+    """Return API documentation"""
     # Get server IP for examples
     try:
         result = subprocess.run("curl -s ifconfig.me", shell=True, capture_output=True, text=True)
@@ -327,7 +308,7 @@ async def api_documentation():
                     "description": "Complete profile scraping - optimized for curl",
                     "parameters": {
                         "username": "Facebook username or profile URL",
-                        "headless": "boolean - Run headless (default: true)", 
+                        "headless": "boolean - Run headless (default: false)", 
                         "use_morocco_proxy": "boolean - Use Morocco proxy (default: false)"
                     },
                     "estimated_time": "10-15 minutes",
@@ -379,8 +360,51 @@ async def api_documentation():
         }
     }
 
+@app.get("/docs")
+async def api_docs():
+    """Return API documentation (alternative endpoint)"""
+    # Get server IP for examples
+    try:
+        result = subprocess.run("curl -s ifconfig.me", shell=True, capture_output=True, text=True)
+        server_ip = result.stdout.strip()
+    except:
+        server_ip = "YOUR_SERVER_IP"
+    
+    return {
+        "endpoints": {
+            "/": "Web interface for scraping",
+            "/api": "API documentation",
+            "/docs": "This API documentation",
+            "/api/scrape/{username}": {
+                "description": "Scrape a Facebook profile",
+                "parameters": {
+                    "username": "string - Facebook username to scrape",
+                    "headless": "boolean - Run in headless mode (default: false)"
+                },
+                "example": {
+                    "basic": f"curl 'http://{server_ip}:8080/api/scrape/username' -o profile_data.json",
+                },
+                "returns": "Profile data in JSON format"
+            },
+            "/health": {
+                "description": "Get server status",
+                "parameters": {},
+                "example": f"curl 'http://{server_ip}:8080/health'",
+                "returns": "Server status information"
+            },
+            "/quick-test/{username}": {
+                "description": "Test friends list scraping only",
+                "parameters": {
+                    "username": "string - Facebook username to test"
+                },
+                "example": f"curl 'http://{server_ip}:8080/quick-test/username'",
+                "returns": "Friends list test results"
+            }
+        }
+    }
+
 @app.get("/scrape/{username:path}")
-async def scrape_profile(username: str, use_vnc: bool = False, headless: bool = True):
+async def scrape_profile(username: str, use_vnc: bool = False, headless: bool = False):
     """API endpoint to scrape a Facebook profile with optional VNC support"""
     
     # URL decode the username in case it's a full URL that was encoded
@@ -582,6 +606,12 @@ async def scrape_profile(username: str, use_vnc: bool = False, headless: bool = 
             "Following list"
         )
         
+        # Friends list
+        scrape_data["friends_list"] = await safe_scrape(
+            profile_scraper.get_friends_list, 
+            "Friends list"
+        )
+        
         # Own posts
         scrape_data["own_posts"] = await safe_scrape(
             posts_scraper.get_own_posts, 
@@ -619,6 +649,7 @@ async def scrape_profile(username: str, use_vnc: bool = False, headless: bool = 
         # Print extraction statistics
         print("📊 Extraction Statistics:")
         print(f"   👤 Profile name: {scrape_data.get('basic_info', {}).get('name', 'Unknown')}")
+        print(f"   👥 Friends: {len(scrape_data.get('friends_list', []))}")
         print(f"   🏢 Groups: {len(scrape_data.get('groups', []))}")
         print(f"   📄 Pages followed: {len(scrape_data.get('pages_followed', []))}")
         print(f"   👥 Following: {len(scrape_data.get('following_list', []))}")
@@ -763,10 +794,12 @@ async def generate_pdf(username: str):
         pdf.cell(0, 10, "Profile Statistics", ln=True)
         pdf.set_font("Arial", "", 12)
         
+        friends_count = len(profile_info.get("friends", []))
         groups_count = len(profile_info.get("groups", []))
         pages_count = len(profile_info.get("pages_followed", []))
         posts_count = len(data.get("posts", {}).get("own_posts", []));
         
+        pdf.cell(0, 10, f"Friends: {friends_count}", ln=True)
         pdf.cell(0, 10, f"Groups: {groups_count}", ln=True)
         pdf.cell(0, 10, f"Pages Followed: {pages_count}", ln=True)
         pdf.cell(0, 10, f"Posts: {posts_count}", ln=True)
@@ -1008,13 +1041,68 @@ async def test_scraper(username: str):
 
 @app.get("/quick-test/{username:path}")
 async def quick_test_friends_only(username: str):
-    """DEPRECATED - Quick test endpoint removed"""
-    return {
-        "status": "deprecated",
-        "username": username,
-        "message": "Quick friends-only test has been removed. Use /api/scrape/{username} for complete profile scraping.",
-        "error": "Friends-only scraping feature disabled"
-    }
+    """Test friends list scraping only"""
+    try:
+        # URL decode the username
+        import urllib.parse
+        username = urllib.parse.unquote(username).strip().rstrip('/').lstrip('@')
+        
+        if not username or len(username) < 3:
+            raise HTTPException(status_code=400, detail="Invalid username")
+        
+        print(f"🧪 Quick friends test for: {username}")
+        
+        # Create user data directory
+        user_data_dir = os.path.join(os.path.expanduser("~"), ".facebook_scraper_data")
+        os.makedirs(user_data_dir, exist_ok=True)
+        
+        # Initialize session
+        session = FacebookSession(headless=True, user_data_dir=user_data_dir)
+        page = await session.initialize()
+        
+        # Load saved cookies
+        cookies_loaded = await load_saved_cookies(session, page)
+        
+        # Check login
+        is_logged_in = await session.login_check()
+        if not is_logged_in:
+            await session.close()
+            raise HTTPException(status_code=401, detail="Not logged in to Facebook")
+        
+        # Initialize scraper
+        utils = ScraperUtils(page)
+        profile_scraper = ProfileScraper(page, utils)
+        
+        # Navigate to profile
+        profile_exists = await profile_scraper.navigate_to_profile(username)
+        if not profile_exists:
+            await session.close()
+            raise HTTPException(status_code=404, detail=f"Profile '{username}' not found")
+        
+        # Scrape friends only
+        print("👥 Scraping friends list...")
+        friends = await profile_scraper.get_friends_list(max_scrolls=10)
+        
+        await session.close()
+        
+        return {
+            "status": "success",
+            "username": username,
+            "friends_count": len(friends),
+            "friends": friends[:10],  # Return first 10 friends as sample
+            "message": "Friends list scraped successfully"
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"❌ Error in friends test: {str(e)}")
+        try:
+            if 'session' in locals():
+                await session.close()
+        except:
+            pass
+        raise HTTPException(status_code=500, detail=f"Error testing friends scraping: {str(e)}")
 
 # Run the app with uvicorn
 if __name__ == "__main__":

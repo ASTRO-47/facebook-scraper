@@ -65,6 +65,9 @@ class FacebookSession:
             '--mute-audio',
             '--no-sandbox',
             '--disable-setuid-sandbox',
+            '--start-maximized',
+            '--window-size=1920,1080',
+            '--window-position=0,0'
         ]
         
         # Add proxy args if proxy is provided
@@ -85,7 +88,7 @@ class FacebookSession:
             'user_data_dir': self.user_data_dir,
             'headless': self.headless,
             'args': browser_args,
-            'viewport': {'width': 1366, 'height': 768},
+            'viewport': None,  # Remove viewport to allow full screen
             'user_agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
             'ignore_default_args': ['--enable-automation'],
             'ignore_https_errors': True,
@@ -105,6 +108,17 @@ class FacebookSession:
         
         # Create new page
         self.page = await self.context.new_page()
+        
+        # Wait a moment for browser to stabilize
+        await asyncio.sleep(2)
+        
+        # Force focus and ensure window stays maximized
+        await self.page.evaluate("""
+            // Ensure window stays focused and maximized
+            window.focus();
+            window.moveTo(0, 0);
+            window.resizeTo(screen.width, screen.height);
+        """)
         
         # Enhanced stealth measures for international accounts
         await self.page.evaluate("""
@@ -199,11 +213,12 @@ class FacebookSession:
             try:
                 print(f"🌐 Trying domain: {domain}")
                 await self.page.goto(domain, wait_until="domcontentloaded", timeout=30000)
+                
                 await asyncio.sleep(3)
                 
                 # Check if we successfully loaded Facebook
                 if "facebook" in self.page.url.lower():
-                    print(f"✅ Successfully loaded: {domain}")
+                    print(f"✅ Successfully loaded: {domain} in KIOSK FULL SCREEN MODE!")
                     break
                     
             except Exception as e:

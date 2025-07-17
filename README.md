@@ -5,6 +5,7 @@ A tool to scrape Facebook profiles using Playwright and FastAPI with SSH X11 for
 ## Features
 
 - **Profile Information**: Extract basic profile details (name, bio, work history, education, location, contact details)
+- **Friends List Scraping**: Comprehensive friends list extraction with intelligent scrolling and privacy detection
 - **Social Connections**: Scrape friends list, followed pages, groups, and following list
 - **Content Analysis**: Extract user posts, tagged posts, comments made, and locations visited
 - **Media Capture**: Take screenshots of profile elements and posts
@@ -116,7 +117,7 @@ python main.py
 A command-line interface is available for direct scraping:
 
 ```bash
-# Basic usage
+# Basic usage (includes friends list)
 ./fb_scraper_cli.py username
 
 # With options
@@ -124,6 +125,9 @@ A command-line interface is available for direct scraping:
 
 # Run in headless mode (requires existing login session)
 ./fb_scraper_cli.py username --headless
+
+# Test friends scraping only
+python test_friends_scraper.py username
 ```
 
 ## International Account Support
@@ -145,7 +149,9 @@ The scraper includes enhanced support for international accounts (e.g., Moroccan
 ## API Endpoints
 
 - `GET /`: Web interface for the scraper
-- `GET /scrape/{username}`: Scrape a Facebook profile and return JSON data
+- `GET /scrape/{username}`: Scrape a Facebook profile and return JSON data (includes friends)
+- `GET /api/scrape/{username}`: API version of full profile scraping
+- `GET /quick-test/{username}`: Test friends list scraping only
 - `GET /download/{username}/json`: Download scraped data as a JSON file
 - `GET /pdf/{username}`: Generate and download a PDF report
 - `GET /health`: Health check endpoint
