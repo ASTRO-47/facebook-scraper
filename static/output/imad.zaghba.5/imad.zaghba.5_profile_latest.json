@@ -5,13 +5,14 @@
     "about": {
       "work": "",
       "education": "",
-      "location": "",
+      "location": "Khouribga, Ville Nouvelle, Fès, Morocco",
       "birthday": "",
       "contact": {
         "email": "",
         "phone": ""
       }
     },
+    "friends": [],
     "pages_followed": [
       {
         "page_name": "Les athletics de tissa",
@@ -105,7 +106,7 @@
       },
       {
         "page_name": "Garena Free Fire",
-        "page_url": "https://facebook.com/GarenaFreeFireMENA",
+        "page_url": "https://facebook.com/freefireenn",
         "bio": ""
       },
       {
@@ -131,46 +132,6 @@
       {
         "page_name": "GjaMaroc",
         "page_url": "https://facebook.com/Gjamaroc",
-        "bio": ""
-      },
-      {
-        "page_name": "جمعية باب العلم Association Bab Alilm",
-        "page_url": "https://facebook.com/bab.alilm",
-        "bio": ""
-      },
-      {
-        "page_name": "Troll Politics - طرولات سياسية",
-        "page_url": "https://facebook.com/trollpoliticsmorocco",
-        "bio": ""
-      },
-      {
-        "page_name": "تعلم البرمجة",
-        "page_url": "https://facebook.com/barmej.dz",
-        "bio": ""
-      },
-      {
-        "page_name": "Zenatanews",
-        "page_url": "https://facebook.com/zenatanews",
-        "bio": ""
-      },
-      {
-        "page_name": "Monir",
-        "page_url": "https://facebook.com/100068367423336",
-        "bio": ""
-      },
-      {
-        "page_name": "1337",
-        "page_url": "https://facebook.com/1337FutureIsLoading",
-        "bio": ""
-      },
-      {
-        "page_name": "Littest",
-        "page_url": "https://facebook.com/littestsociety",
-        "bio": ""
-      },
-      {
-        "page_name": "العربي الجديد",
-        "page_url": "https://facebook.com/AlAraby.ar",
         "bio": ""
       }
     ],
@@ -198,6 +159,11 @@
       {
         "name": "Rachid Ach",
         "profile_url": "https://www.facebook.com/rachid.ach.374",
+        "bio": ""
+      },
+      {
+        "name": "ال متفائلة",
+        "profile_url": "https://www.facebook.com/profile.php?id=100073800313035",
         "bio": ""
       },
       {
@@ -289,140 +255,30 @@
         "name": "El Mghari Samiha",
         "profile_url": "https://www.facebook.com/jilnar.el.5",
         "bio": ""
-      },
-      {
-        "name": "سامى قابيل",
-        "profile_url": "https://www.facebook.com/samy.qabyl.2025",
-        "bio": ""
-      },
-      {
-        "name": "Najat El Wafy",
-        "profile_url": "https://www.facebook.com/najat.elwafyprofessionnel",
-        "bio": ""
-      },
-      {
-        "name": "The Archbishop of Banterbury",
-        "profile_url": "https://www.facebook.com/TheArchbish0pBanterbury",
-        "bio": ""
-      },
-      {
-        "name": "Abdo Abdo",
-        "profile_url": "https://www.facebook.com/abdo.elhammoumi",
-        "bio": ""
-      },
-      {
-        "name": "C̳u̳l̳i̳i̳ț̳ă̳_̳S̳t̳e̳r̳r̳p̳ᴸ̳ⁱ̳ᵛ̳ᵉ̳",
-        "profile_url": "https://www.facebook.com/profile.php?id=100091576772638",
-        "bio": ""
-      },
-      {
-        "name": "1337",
-        "profile_url": "https://www.facebook.com/1337FutureIsLoading",
-        "bio": ""
-      },
-      {
-        "name": "Series Mix",
-        "profile_url": "https://www.facebook.com/SeriesMixx",
-        "bio": ""
-      },
-      {
-        "name": "UEFA Champions League",
-        "profile_url": "https://www.facebook.com/ChampionsLeague",
-        "bio": ""
-      },
-      {
-        "name": "بيع بالجملة الأولى لجميع أنحاء المغرب",
-        "profile_url": "https://www.facebook.com/profile.php?id=100083355374162",
-        "bio": ""
       }
     ],
     "groups": []
   },
   "posts": {
-    "own_posts": [
-      {
-        "id": "post_c606b2b9",
-        "timestamp": "",
-        "content": "مات في القرية ساحرا ف استراحت القرية من أذاه خلف الساحر ساحرا فاق في السحر أباه ( الساحر الأب : السارق ميسي و الخليفة :السارق رودري )",
-        "caption": "",
-        "media_screenshot_url": "",
-        "original_url": "",
-        "tagged_accounts": [],
-        "location_tagged": "",
-        "comments": [],
-        "reactions_count": 0,
-        "media_urls": []
-      },
-      {
-        "id": "post_95381b5a",
-        "timestamp": "",
-        "content": "Alah yshel 3lik khoya imad",
-        "caption": "",
-        "media_screenshot_url": "",
-        "original_url": "",
-        "tagged_accounts": [],
-        "location_tagged": "",
-        "comments": [],
-        "reactions_count": 0,
-        "media_urls": []
-      },
-      {
-        "id": "post_696dcab8",
-        "timestamp": "",
-        "content": "Ah golhom rah kayb9a fina l7al 7it homa cv",
-        "caption": "",
-        "media_screenshot_url": "",
-        "original_url": "",
-        "tagged_accounts": [],
-        "location_tagged": "",
-        "comments": [],
-        "reactions_count": 0,
-        "media_urls": []
-      },
-      {
-        "id": "post_28adcdec",
-        "timestamp": "",
-        "content": "وحشومة اخاي عماد طلعها على فرقة عندها 14 منها والمخير في الفرق مزال موصل حتى للنص ديالها.",
-        "caption": "",
-        "media_screenshot_url": "",
-        "original_url": "",
-        "tagged_accounts": [],
-        "location_tagged": "",
-        "comments": [],
-        "reactions_count": 0,
-        "media_urls": []
-      },
-      {
-        "id": "post_639c08e8",
-        "timestamp": "",
-        "content": "مكرهتش بوسكيتس ديما يبقا معطوب كيسيه يلعب ف بلاصتوو مق ود برب",
-        "caption": "",
-        "media_screenshot_url": "",
-        "original_url": "",
-        "tagged_accounts": [],
-        "location_tagged": "",
-        "comments": [],
-        "reactions_count": 0,
-        "media_urls": []
-      }
-    ],
+    "own_posts": [],
     "tagged_posts": [],
     "comments_by_user": []
   },
   "locations_visited": [],
   "extraction_metadata": {
     "username": "imad.zaghba.5",
-    "timestamp": 1752701059.0000744,
-    "date": "2025-07-16 21:24:18",
+    "timestamp": 1752752383.907562,
+    "date": "2025-07-17 11:39:43",
     "total_items": {
-      "pages_followed": 32,
-      "following": 32,
+      "friends": 0,
+      "pages_followed": 24,
+      "following": 24,
       "groups": 0,
-      "own_posts": 5,
+      "own_posts": 0,
       "tagged_posts": 0,
       "comments_by_user": 0,
       "locations_visited": 0,
-      "total": 69
+      "total": 48
     }
   }
 }
