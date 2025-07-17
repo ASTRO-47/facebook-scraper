@@ -1,36 +1,12 @@
 [Unit]
 Description=Facebook Profile Scraper API
 After=network.target
-Wants=network.target
 
 [Service]
-Type=simple
 User=root
-Group=root
 WorkingDirectory=/root/facebook-scraper
-Environment=PATH=/root/facebook-scraper/venv/bin
-Environment=DISPLAY=:1
-Environment=PYTHONPATH=/root/facebook-scraper
 ExecStart=/root/facebook-scraper/venv/bin/python main.py
-ExecReload=/bin/kill -HUP $MAINPID
-KillMode=mixed
 Restart=always
-RestartSec=10
-StandardOutput=journal
-StandardError=journal
-SyslogIdentifier=facebook-scraper
-
-# Security settings
-NoNewPrivileges=yes
-PrivateTmp=yes
-ProtectSystem=strict
-ReadWritePaths=/root/facebook-scraper
-ProtectHome=no
-
-# Resource limits
-LimitNOFILE=65536
-MemoryMax=2G
-CPUQuota=200%
 
 [Install]
 WantedBy=multi-user.target 

@@ -87,8 +87,8 @@ class ManualBrowser:
         print("✅ User data directory prepared")
         
     async def initialize_browser(self):
-        """Initialize browser with REAL Google Chrome for extensions"""
-        print("🚀 Starting browser with real Google Chrome...")
+        """Initialize browser with Playwright's Chromium (not Google Chrome)"""
+        print("🚀 Starting browser with Playwright's Chromium...")
         
         # Set up display for X11 forwarding
         if not os.environ.get("DISPLAY"):
@@ -112,11 +112,11 @@ class ManualBrowser:
         # Start Playwright
         self.playwright = await async_playwright().start()
         
-        # Use REAL Google Chrome for extensions (NOT Playwright's Chromium)
+        # Use Playwright's Chromium (no executable_path)
         self.context = await self.playwright.chromium.launch_persistent_context(
             user_data_dir=self.user_data_dir,
             headless=False,
-            executable_path='/usr/bin/google-chrome-stable',  # Use system Chrome
+            # executable_path='/usr/bin/google-chrome-stable',  # Removed to use Chromium
             args=[
                 '--no-sandbox',
                 '--disable-dev-shm-usage',
@@ -156,37 +156,44 @@ class ManualBrowser:
         # Wait a moment for browser to stabilize
         await asyncio.sleep(2)
         
-        # Force full screen using JavaScript
-        if self.page:
-            try:
-                await self.page.evaluate("""
-                    // Request full screen
-                    if (document.documentElement.requestFullscreen) {
-                        document.documentElement.requestFullscreen();
-                    } else if (document.documentElement.webkitRequestFullscreen) {
-                        document.documentElement.webkitRequestFullscreen();
-                    } else if (document.documentElement.msRequestFullscreen) {
-                        document.documentElement.msRequestFullscreen();
-                    }
-                    
-                    // Also ensure window is maximized
-                    window.focus();
-                    window.moveTo(0, 0);
-                    window.resizeTo(screen.width, screen.height);
-                """)
-            except Exception as e:
-                print(f"⚠️ Full screen request failed: {e}")
+        # Bring the page to the front and set viewport size to maximize
+        try:
+            await self.page.bring_to_front()
+            await self.page.set_viewport_size({"width": 1920, "height": 1080})
+            print("✅ Viewport set to 1920x1080")
+        except Exception as e:
+            print(f"⚠️ Could not set viewport size: {e}")
         
-        print("✅ Browser initialized with REAL Google Chrome - FULL SCREEN MODE!")
+        # Force full screen using JavaScript after navigation
+        # (Call this after navigation for best results)
+        # You may also want to call this in navigate_to_facebook
+        print("✅ Browser initialized with Playwright's Chromium - FULL SCREEN MODE!")
         return self.page
         
     async def navigate_to_facebook(self):
-        """Navigate to Facebook"""
+        """Navigate to Facebook and request fullscreen"""
         print("🔗 Navigating to Facebook...")
         try:
             if self.page:
                 await self.page.goto('https://www.facebook.com', wait_until='domcontentloaded', timeout=30000)
                 print("✅ Successfully navigated to Facebook in KIOSK FULL SCREEN MODE!")
+                # Request fullscreen after navigation
+                try:
+                    await self.page.evaluate("""
+                        if (document.documentElement.requestFullscreen) {
+                            document.documentElement.requestFullscreen();
+                        } else if (document.documentElement.webkitRequestFullscreen) {
+                            document.documentElement.webkitRequestFullscreen();
+                        } else if (document.documentElement.msRequestFullscreen) {
+                            document.documentElement.msRequestFullscreen();
+                        }
+                        window.focus();
+                        window.moveTo(0, 0);
+                        window.resizeTo(screen.width, screen.height);
+                    """)
+                    print("✅ Fullscreen requested via JavaScript after navigation")
+                except Exception as e:
+                    print(f"⚠️ Full screen request failed after navigation: {e}")
             else:
                 print("⚠️ Page not initialized")
         except Exception as e:

@@ -94,7 +94,7 @@ class PostsScraper:
     
     async def get_own_posts(self, username: str, max_posts: int = None) -> List[Dict[str, Any]]:
         """
-        Extract user's own posts with improved error handling
+        Extract user's own posts with improved error handling and fallback
         
         Args:
             username: Username or profile URL
@@ -114,7 +114,8 @@ class PostsScraper:
             logger.info(f"Navigating to profile: {posts_url}")
             
             if not await self._navigate_with_retries(posts_url):
-                return []
+                logger.warning("Failed to navigate to profile, trying fallback...")
+                return await self._fallback_posts_extraction(username, max_posts)
             
             # Wait for page to load
             await self._wait_for_posts_to_load()
@@ -122,11 +123,51 @@ class PostsScraper:
             # Extract posts with scrolling
             posts = await self._extract_posts_with_scrolling("own_posts", max_posts)
             
+            # If no posts found, try fallback
+            if not posts:
+                logger.warning("No posts found with main method, trying fallback...")
+                posts = await self._fallback_posts_extraction(username, max_posts)
+            
             logger.info(f"Extracted {len(posts)} own posts")
             return posts
             
         except Exception as e:
             logger.error(f"Error getting own posts: {e}")
+            # Try fallback as last resort
+            try:
+                return await self._fallback_posts_extraction(username, max_posts)
+            except Exception as fallback_error:
+                logger.error(f"Fallback also failed: {fallback_error}")
+                return []
+    
+    async def _fallback_posts_extraction(self, username: str, max_posts: int) -> List[Dict[str, Any]]:
+        """Fallback method for posts extraction when main method fails"""
+        try:
+            logger.info("Using fallback posts extraction method...")
+            
+            # Try to navigate to profile again
+            posts_url = self._construct_profile_url(username)
+            await self.page.goto(posts_url, wait_until="domcontentloaded", timeout=30000)
+            await asyncio.sleep(5)
+            
+            # Simple extraction without scrolling
+            posts = []
+            post_elements = await self.page.query_selector_all('[role="article"]')
+            
+            for element in post_elements[:max_posts]:
+                try:
+                    post_data = await self._extract_single_post(element, "own_posts")
+                    if post_data:
+                        posts.append(post_data)
+                except Exception as e:
+                    logger.warning(f"Error in fallback post extraction: {e}")
+                    continue
+            
+            logger.info(f"Fallback extracted {len(posts)} posts")
+            return posts
+            
+        except Exception as e:
+            logger.error(f"Fallback posts extraction failed: {e}")
             return []
     
     async def get_tagged_posts(self, username: str, max_posts: int = None) -> List[Dict[str, Any]]:
@@ -196,12 +237,34 @@ class PostsScraper:
             return []
     
     async def _navigate_with_retries(self, url: str, retries: int = 3) -> bool:
-        """Navigate to URL with retries"""
+        """Navigate to URL with retries and crash recovery"""
         for attempt in range(retries):
             try:
+                # Check if page is still responsive
+                try:
+                    await self.page.evaluate("() => document.readyState")
+                except Exception:
+                    logger.warning("Page crashed, attempting to recover...")
+                    # Try to recover by going back to Facebook home
+                    try:
+                        await self.page.goto("https://www.facebook.com", wait_until="domcontentloaded", timeout=30000)
+                        await asyncio.sleep(5)
+                    except Exception:
+                        logger.error("Failed to recover from crash")
+                        return False
+                
+                # Navigate to target URL
                 await self.page.goto(url, wait_until="domcontentloaded", timeout=self.default_timeout)
                 await asyncio.sleep(8)  # Human-like delay
-                return True
+                
+                # Verify page loaded successfully
+                try:
+                    page_title = await self.page.title()
+                    if "facebook" in page_title.lower() or "error" not in page_title.lower():
+                        return True
+                except Exception:
+                    pass
+                    
             except Exception as e:
                 logger.warning(f"Navigation attempt {attempt + 1} failed: {e}")
                 if attempt == retries - 1:
@@ -212,11 +275,8 @@ class PostsScraper:
     async def _wait_for_posts_to_load(self) -> None:
         """Wait for posts content to load"""
         post_selectors = [
-            '[data-pagelet="FeedUnit"]',
-            '[role="article"]',
-            '[data-testid="post"]',
-            'div[data-pagelet*="FeedUnit"]',
-            'div[role="article"]'
+            'div[data-ad-preview="message"]',
+            'div[data-ad-comet-preview="message"]'
         ]
         
         content_loaded = False
@@ -236,81 +296,109 @@ class PostsScraper:
         await asyncio.sleep(8)
     
     async def _extract_posts_with_scrolling(self, post_type: str, max_posts: int) -> List[Dict[str, Any]]:
-        """Extract posts with intelligent scrolling"""
+        """Extract posts with intelligent scrolling and timeout handling"""
         posts = []
         last_count = 0
         stable_rounds = 0
         max_stable_rounds = 5
-        max_scrolls = min(50, max_posts // 5 + 10)  # Adaptive scrolling
+        max_scrolls = min(30, max_posts // 5 + 10)  # Reduced from 50 to 30
+        start_time = time.time()
+        max_time = 180  # 3 minutes max
         
         logger.info(f"Starting posts extraction (max {max_scrolls} scrolls)")
         
         for scroll_attempt in range(max_scrolls):
-            # Extract current batch of posts
-            current_batch = await self._extract_current_posts_batch(post_type)
-            
-            # Add new posts to list
-            for post in current_batch:
-                if not any(p.get("id") == post.get("id") for p in posts if post.get("id")):
-                    posts.append(post)
-                    if len(posts) >= max_posts:
-                        logger.info(f"Reached max posts limit: {max_posts}")
-                        return posts
-            
-            current_count = len(posts)
-            new_posts = current_count - last_count
-            logger.info(f"Scroll {scroll_attempt + 1}: Found {current_count} total (+{new_posts} new)")
-            
-            # Check for stability (no new posts found)
-            if current_count == last_count:
-                stable_rounds += 1
-                if stable_rounds >= max_stable_rounds:
-                    logger.info(f"No new posts found for {max_stable_rounds} rounds, stopping")
-                    break
-            else:
-                stable_rounds = 0
-            
-            last_count = current_count
-            
-            # Perform human-like scrolling
-            await self._perform_post_scrolling()
+            # Check timeout
+            if time.time() - start_time > max_time:
+                logger.warning(f"Timeout in posts extraction after {max_time} seconds")
+                break
+                
+            try:
+                # Extract current batch of posts
+                current_batch = await self._extract_current_posts_batch(post_type)
+                
+                # Add new posts to list
+                for post in current_batch:
+                    if not any(p.get("id") == post.get("id") for p in posts if post.get("id")):
+                        posts.append(post)
+                        if len(posts) >= max_posts:
+                            logger.info(f"Reached max posts limit: {max_posts}")
+                            return posts
+                
+                current_count = len(posts)
+                new_posts = current_count - last_count
+                logger.info(f"Scroll {scroll_attempt + 1}: Found {current_count} total (+{new_posts} new)")
+                
+                # Take debug screenshot after each scroll
+                if hasattr(self.utils, 'take_screenshot'):
+                    try:
+                        await self.utils.take_screenshot(f"posts_scroll_{scroll_attempt+1}")
+                        logger.info(f"[DEBUG] Screenshot taken: posts_scroll_{scroll_attempt+1}")
+                    except Exception as e:
+                        logger.warning(f"[DEBUG] Could not take screenshot after scroll {scroll_attempt+1}: {e}")
+                
+                # Check for stability (no new posts found)
+                if current_count == last_count:
+                    stable_rounds += 1
+                    if stable_rounds >= max_stable_rounds:
+                        logger.info(f"No new posts found for {max_stable_rounds} rounds, stopping")
+                        break
+                else:
+                    stable_rounds = 0
+                
+                last_count = current_count
+                
+                # Perform human-like scrolling
+                await self._perform_post_scrolling()
+                
+            except Exception as e:
+                logger.warning(f"Error during scroll {scroll_attempt + 1}: {e}")
+                # Continue with next scroll attempt
+                continue
         
         return posts
     
     async def _extract_current_posts_batch(self, post_type: str) -> List[Dict[str, Any]]:
-        """Extract posts from current page state"""
         posts_batch = []
-        
         try:
             post_selectors = [
-                '[data-pagelet="FeedUnit"]',
-                '[role="article"]',
-                '[data-testid="post"]',
-                'div[data-pagelet*="FeedUnit"]'
+                'div[data-ad-preview="message"]',
+                'div[data-ad-comet-preview="message"]'
             ]
-            
+            logger.info(f"Trying to extract posts with {len(post_selectors)} selectors...")
             for selector in post_selectors:
                 try:
                     post_elements = await self.page.query_selector_all(selector)
-                    for element in post_elements:
-                        post_data = await self._extract_single_post(element, post_type)
-                        if post_data:
-                            posts_batch.append(post_data)
-                    
+                    logger.info(f"[DEBUG] Selector: {selector} - Found {len(post_elements)} elements")
+                    # Log the text content of the first 2 elements for debugging
+                    for idx, elem in enumerate(post_elements[:2]):
+                        try:
+                            text = await elem.text_content()
+                            logger.info(f"[DEBUG] Selector: {selector} - Element {idx} text: {text[:200] if text else 'None'}")
+                        except Exception as e:
+                            logger.warning(f"[DEBUG] Could not get text for element {idx}: {e}")
+                    for i, element in enumerate(post_elements):
+                        try:
+                            post_data = await self._extract_single_post(element, post_type)
+                            if post_data:
+                                posts_batch.append(post_data)
+                                logger.info(f"Successfully extracted post {i+1} with selector {selector}")
+                            else:
+                                logger.debug(f"Post {i+1} with selector {selector} was filtered out")
+                        except Exception as e:
+                            logger.warning(f"Error extracting post {i+1} with selector {selector}: {e}")
                     if posts_batch:
-                        break  # Found posts with this selector
-                        
+                        logger.info(f"Successfully extracted {len(posts_batch)} posts with selector: {selector}")
+                        break
                 except Exception as e:
                     logger.warning(f"Error with selector {selector}: {e}")
                     continue
-                    
         except Exception as e:
             logger.warning(f"Error extracting posts batch: {e}")
-        
+        logger.info(f"Total posts extracted in this batch: {len(posts_batch)}")
         return posts_batch
-    
+
     async def _extract_single_post(self, element, post_type: str) -> Optional[Dict[str, Any]]:
-        """Extract data from a single post element"""
         try:
             post_data = {
                 "id": "",
@@ -322,69 +410,78 @@ class PostsScraper:
                 "media": [],
                 "type": post_type
             }
-            
-            # Extract post content
             content = await self._extract_post_content(element)
             post_data["content"] = content
-            
-            # Extract timestamp
             timestamp = await self._extract_post_timestamp(element)
             post_data["timestamp"] = timestamp
-            
-            # Extract engagement metrics
             metrics = await self._extract_post_metrics(element)
             post_data.update(metrics)
-            
-            # Extract media
             media = await self._extract_post_media(element)
             post_data["media"] = media
-            
-            # Generate a simple ID based on content and timestamp
             post_data["id"] = self._generate_post_id(content, timestamp)
-            
-            return post_data if content or media else None
-            
+            # PATCH: Always include the post for debugging
+            logger.info(f"[DEBUG] Including post with content length {len(content)}, timestamp: {timestamp}, likes: {metrics.get('likes', 0)}, media: {len(media)}")
+            return post_data
         except Exception as e:
             logger.warning(f"Error extracting single post: {e}")
             return None
-    
+
     async def _extract_post_content(self, element) -> str:
-        """Extract text content from post"""
         try:
-            # Try various content selectors
+            # Click all visible 'See more' buttons inside the post element before extracting content
+            see_more_selectors = [
+                'span:has-text("See more")',
+                'a:has-text("See more")',
+                'div:has-text("See more")',
+                'span[role="button"]:has-text("See more")',
+                'div[role="button"]:has-text("See more")',
+                '[role="button"]:has-text("See more")',
+                '[aria-label="See more"]',
+            ]
+            for see_more_selector in see_more_selectors:
+                try:
+                    see_more_buttons = await element.query_selector_all(see_more_selector)
+                    for btn in see_more_buttons:
+                        if await btn.is_visible():
+                            try:
+                                await btn.click()
+                                logger.info(f"[DEBUG] Clicked 'See more' button with selector: {see_more_selector}")
+                                await asyncio.sleep(0.7)  # Wait for content to expand
+                            except Exception as e:
+                                logger.warning(f"[DEBUG] Failed to click 'See more': {e}")
+                except Exception:
+                    continue
             content_selectors = [
+                'div[data-ad-preview="message"]',
+                'div[data-ad-comet-preview="message"]',
                 '[data-testid="post_message"]',
                 'div[dir="auto"]',
-                '[data-ad-preview="message"]',
-                'span[dir="auto"]'
+                'span[dir="auto"]',
+                'div[data-testid="post_message"]',
+                'div[data-testid="post_message_container"]'
             ]
-            
             for selector in content_selectors:
                 try:
                     content_elem = await element.query_selector(selector)
                     if content_elem:
                         text = await content_elem.text_content()
-                        if text and len(text.strip()) > 10:
+                        if text and len(text.strip()) > 1:
                             return self.utils.clean_text(text.strip())
                 except Exception:
                     continue
-            
-            # Fallback: get all text content
             all_text = await element.text_content()
             if all_text:
-                # Filter out unwanted text patterns
                 lines = all_text.split('\n')
                 content_lines = []
                 for line in lines:
                     line = line.strip()
-                    if len(line) > 10 and not self._is_unwanted_text(line):
+                    if len(line) > 1 and not self._is_unwanted_text(line):
                         content_lines.append(line)
-                
                 if content_lines:
-                    return self.utils.clean_text('\n'.join(content_lines[:3]))  # First 3 meaningful lines
-            
+                    return self.utils.clean_text('\n'.join(content_lines[:5]))
+                # PATCH: Log the full text content for debugging if no content found
+                logger.info(f"[DEBUG] No content found by selectors, full text: {all_text[:500]}")
             return ""
-            
         except Exception as e:
             logger.warning(f"Error extracting post content: {e}")
             return ""
@@ -399,7 +496,7 @@ class PostsScraper:
         ]
         
         text_lower = text.lower()
-        return any(pattern in text_lower for pattern in unwanted_patterns) or len(text) < 10
+        return any(pattern in text_lower for pattern in unwanted_patterns) or len(text) < 3  # Reduced from 10 to 3
     
     async def _extract_post_timestamp(self, element) -> str:
         """Extract timestamp from post"""
@@ -577,6 +674,12 @@ class PostsScraper:
             # Scroll to bottom
             await self.page.evaluate('window.scrollTo(0, document.body.scrollHeight)')
             await asyncio.sleep(5)
+            
+            # Explicit wait for post selector after scrolling
+            try:
+                await self.page.wait_for_selector('div[data-ad-preview="message"], div[data-ad-comet-preview="message"]', timeout=15000)
+            except Exception as e:
+                logger.warning(f"[DEBUG] No post selector found after scroll: {e}")
             
             # Try to click "See more posts" if available
             await self._click_see_more_posts()

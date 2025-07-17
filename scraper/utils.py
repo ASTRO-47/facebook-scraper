@@ -24,9 +24,21 @@ class ScraperUtils:
         os.makedirs(self.screenshot_dir, exist_ok=True)
         
     async def take_screenshot(self, filename: str, element_selector: Optional[str] = None) -> str:
-        """Take a screenshot of the page or a specific element - DISABLED"""
-        # Screenshots disabled
-        return ""
+        """Take a screenshot of the page or a specific element"""
+        path = os.path.join(self.screenshot_dir, f"{filename}.png")
+        try:
+            if element_selector:
+                element = await self.page.query_selector(element_selector)
+                if element:
+                    await element.screenshot(path=path)
+                else:
+                    await self.page.screenshot(path=path, full_page=True)
+            else:
+                await self.page.screenshot(path=path, full_page=True)
+            return path
+        except Exception as e:
+            logger.warning(f"Failed to take screenshot {filename}: {e}")
+            return ""
 
     async def scroll_to_bottom(self, max_scrolls: int = 5, scroll_delay: float = 1.5):
         """Scroll to the bottom of the page gradually"""
@@ -220,18 +232,18 @@ class ScraperUtils:
         timestamp = int(time.time())
         return f"{username}_{base}_{timestamp}"
 
-    async def human_like_delay(self, min_seconds=2, max_seconds=8):
-        """Add realistic human-like delays between actions"""
+    async def human_like_delay(self, min_seconds=0.5, max_seconds=2):
+        """Add minimal human-like delays between actions"""
         import random
         delay = random.uniform(min_seconds, max_seconds)
-        print(f"⏳ Human-like delay: {delay:.1f} seconds")
+        print(f"⏳ Quick delay: {delay:.1f} seconds")
         await asyncio.sleep(delay)
     
     async def slow_type(self, selector, text, delay_range=(0.05, 0.3)):
         """Type text slowly like a human"""
         import random
         await self.page.click(selector)
-        await asyncio.sleep(random.uniform(0.5, 1.5))  # Pause after clicking
+        await asyncio.sleep(random.uniform(0.2, 0.5))  # Quick pause after clicking
         
         for char in text:
             await self.page.keyboard.type(char)
@@ -255,8 +267,8 @@ class ScraperUtils:
             else:
                 await self.page.mouse.wheel(0, -scroll_amount)
             
-            # Random pause between scroll chunks
-            await asyncio.sleep(random.uniform(0.2, 0.8))
+            # Quick pause between scroll chunks
+            await asyncio.sleep(random.uniform(0.1, 0.3))
     
     async def random_mouse_movement(self):
         """Add random mouse movements to simulate human behavior"""
@@ -276,7 +288,7 @@ class ScraperUtils:
             
             # Move mouse with some randomness in the path
             await self.page.mouse.move(x, y)
-            await asyncio.sleep(random.uniform(0.1, 0.5))
+            await asyncio.sleep(random.uniform(0.05, 0.2))
     
     async def safe_click(self, selector, human_like=True):
         """Click with human-like behavior"""
@@ -324,7 +336,8 @@ class ScraperUtils:
             # Check for security checkpoint indicators
             for indicator in security_indicators:
                 if indicator.lower() in page_text:
-                    print(f"🔒 Security checkpoint detected: {indicator}")
+                    # Remove verbose checkpoint prints
+                    # print(f"🔒 Security checkpoint detected: {indicator}")
                     return True
             
             # Check for specific security-related selectors
@@ -340,46 +353,49 @@ class ScraperUtils:
             
             for selector in security_selectors:
                 if await self.page.is_visible(selector):
-                    print(f"🔒 Security checkpoint element found: {selector}")
+                    # Remove verbose checkpoint prints
+                    # print(f"🔒 Security checkpoint element found: {selector}")
                     return True
                     
             return False
             
         except Exception as e:
-            print(f"Error checking for security checkpoint: {e}")
+            # Remove verbose checkpoint prints
+            # print(f"Error checking for security checkpoint: {e}")
             return False
     
     async def handle_security_checkpoint(self, wait_time=300):
         """Enhanced security checkpoint handler for international accounts"""
-        print("\n" + "="*60)
-        print("🔒 SECURITY CHECKPOINT DETECTED")
-        print("="*60)
-        print("For international accounts (Moroccan account in US):")
-        print("1. ✅ Click 'This Was Me' or 'Yes, Continue'")
-        print("2. 📱 You may need to verify via SMS or email")
-        print("3. 📋 Have your ID ready if asked for verification")
-        print("4. 🌍 Confirm the login location is correct")
-        print("5. ⚠️ DO NOT use VPN - use your real US location")
-        print("6. 📝 Answer any security questions honestly")
-        print("="*60)
+        # Remove verbose checkpoint prints
+        # print("\n" + "="*60)
+        # print("🔒 SECURITY CHECKPOINT DETECTED")
+        # print("="*60)
+        # print("For international accounts (Moroccan account in US):")
+        # print("1. ✅ Click 'This Was Me' or 'Yes, Continue'")
+        # print("2. 📱 You may need to verify via SMS or email")
+        # print("3. 📋 Have your ID ready if asked for verification")
+        # print("4. 🌍 Confirm the login location is correct")
+        # print("5. ⚠️ DO NOT use VPN - use your real US location")
+        # print("6. 📝 Answer any security questions honestly")
+        # print("="*60)
         
         # Take screenshot for debugging
         checkpoint_screenshot = await self.take_screenshot("security_checkpoint_international")
-        print(f"📸 Checkpoint screenshot saved: {checkpoint_screenshot}")
+        # Remove verbose checkpoint prints
+        # print(f"📸 Checkpoint screenshot saved: {checkpoint_screenshot}")
         
-        print(f"⏳ Waiting {wait_time} seconds for manual resolution...")
-        print("Press Ctrl+C to skip waiting if you've resolved it quickly")
-        
-        try:
-            await asyncio.sleep(wait_time)
-        except KeyboardInterrupt:
-            print("\n⚡ Manual intervention detected, continuing...")
+        # Wait for checkpoint resolution
+        await asyncio.sleep(wait_time)
         
         # Verify checkpoint is resolved
         is_resolved = not await self.facebook_security_check()
         if is_resolved:
-            print("✅ Security checkpoint appears to be resolved!")
+            # Remove verbose checkpoint prints
+            # print("✅ Security checkpoint appears to be resolved!")
+            pass
         else:
-            print("⚠️ Security checkpoint may still be active")
+            # Remove verbose checkpoint prints
+            # print("⚠️ Security checkpoint may still be active")
+            pass
         
         return is_resolved

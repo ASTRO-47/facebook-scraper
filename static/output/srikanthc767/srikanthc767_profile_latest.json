@@ -1,0 +1,42 @@
+{
+  "profile": {
+    "name": "This content isn't available right now",
+    "bio": "",
+    "about": {
+      "work": "",
+      "education": "",
+      "location": "",
+      "birthday": "",
+      "contact": {
+        "email": "",
+        "phone": ""
+      }
+    },
+    "friends": [],
+    "pages_followed": [],
+    "following": [],
+    "groups": []
+  },
+  "posts": {
+    "own_posts": [],
+    "tagged_posts": [],
+    "comments_by_user": []
+  },
+  "locations_visited": [],
+  "extraction_metadata": {
+    "username": "srikanthc767",
+    "timestamp": 1752764088.3663292,
+    "date": "2025-07-17 14:54:48",
+    "total_items": {
+      "friends": 0,
+      "pages_followed": 0,
+      "following": 0,
+      "groups": 0,
+      "own_posts": 0,
+      "tagged_posts": 0,
+      "comments_by_user": 0,
+      "locations_visited": 0,
+      "total": 0
+    }
+  }
+}

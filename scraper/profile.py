@@ -500,23 +500,48 @@ class ProfileScraper:
                 if education_entries:
                     # Look for the main education entry (usually the first one)
                     for entry in education_entries:
-                        if "studied at" in entry.lower() or "attended" in entry.lower():
-                            # Extract just the institution name
-                            if "studied at" in entry.lower():
-                                institution = entry.split("studied at", 1)[1].strip()
+                        entry_lower = entry.lower()
+                        
+                        # Handle "Studied at" pattern
+                        if "studied at" in entry_lower:
+                            institution = entry.split("Studied at", 1)[1].strip()
+                            if "(" in institution:
+                                institution = institution.split("(")[0].strip()
+                            result["education"] = institution
+                            logger.info(f"Extracted education from 'Studied at': {institution}")
+                            break
+                        
+                        # Handle "Attended from" pattern
+                        elif "attended from" in entry_lower:
+                            # Extract institution from "Attended from X to Y" format
+                            parts = entry.split("Attended from", 1)
+                            if len(parts) > 1:
+                                # The institution name comes before "Attended from"
+                                institution = parts[0].strip()
                                 if "(" in institution:
                                     institution = institution.split("(")[0].strip()
                                 result["education"] = institution
+                                logger.info(f"Extracted education from 'Attended from': {institution}")
                                 break
-                            elif "attended" in entry.lower():
-                                # Extract institution from "Attended from X to Y" format
-                                parts = entry.split("attended from", 1)
-                                if len(parts) > 1:
-                                    institution = parts[0].strip()
-                                    if "(" in institution:
-                                        institution = institution.split("(")[0].strip()
-                                    result["education"] = institution
-                                    break
+                        
+                        # Handle "Studies at" pattern
+                        elif "studies at" in entry_lower:
+                            institution = entry.split("Studies at", 1)[1].strip()
+                            if "(" in institution:
+                                institution = institution.split("(")[0].strip()
+                            result["education"] = institution
+                            logger.info(f"Extracted education from 'Studies at': {institution}")
+                            break
+                        
+                        # Handle general education patterns
+                        elif any(pattern in entry_lower for pattern in ["university", "college", "institute", "school"]):
+                            # Clean up the entry to get just the institution name
+                            institution = entry.strip()
+                            if "(" in institution:
+                                institution = institution.split("(")[0].strip()
+                            result["education"] = institution
+                            logger.info(f"Extracted education from general pattern: {institution}")
+                            break
             
             logger.info(f"Extracted work: {result['work']}")
             logger.info(f"Extracted education: {result['education']}")
@@ -573,17 +598,34 @@ class ProfileScraper:
                             logger.info(f"Found work: {clean_line}")
                 
                 # Education patterns - specific to Facebook format
-                if any(pattern in line_lower for pattern in ["studied at", "studies at", "attended from"]):
+                # Look for "Studied at" pattern first (most common)
+                if "studied at" in line_lower:
                     if len(line) > 5:
                         clean_line = self.utils.clean_text(line)
                         if clean_line and clean_line not in result["education"]:
                             result["education"].append(clean_line)
-                            logger.info(f"Found education: {clean_line}")
+                            logger.info(f"Found education (studied at): {clean_line}")
                 
-                # Also look for general education patterns
-                if any(pattern in line_lower for pattern in ["university", "college", "institute", "school"]) and len(line) > 10:
-                    # Check if it's not already captured
-                    if not any(edu in line_lower for edu in ["studied at", "studies at", "attended"]):
+                # Look for "Attended from" pattern
+                elif "attended from" in line_lower:
+                    if len(line) > 5:
+                        clean_line = self.utils.clean_text(line)
+                        if clean_line and clean_line not in result["education"]:
+                            result["education"].append(clean_line)
+                            logger.info(f"Found education (attended from): {clean_line}")
+                
+                # Look for "Studies at" pattern
+                elif "studies at" in line_lower:
+                    if len(line) > 5:
+                        clean_line = self.utils.clean_text(line)
+                        if clean_line and clean_line not in result["education"]:
+                            result["education"].append(clean_line)
+                            logger.info(f"Found education (studies at): {clean_line}")
+                
+                # Also look for general education patterns (but be more specific)
+                elif any(pattern in line_lower for pattern in ["university", "college", "institute", "school"]) and len(line) > 10:
+                    # Check if it's not already captured and doesn't contain location keywords
+                    if not any(edu in line_lower for edu in ["studied at", "studies at", "attended", "lives in", "from"]):
                         clean_line = self.utils.clean_text(line)
                         if clean_line and clean_line not in result["education"]:
                             result["education"].append(clean_line)
@@ -672,6 +714,11 @@ class ProfileScraper:
                 if any(skip in line_lower for skip in skip_patterns):
                     continue
                 
+                # Skip education-related lines to avoid confusion
+                education_patterns = ["studied at", "studies at", "attended from", "university", "college", "institute", "school"]
+                if any(edu in line_lower for edu in education_patterns):
+                    continue
+                
                 # Location patterns - specific to Facebook format
                 if "lives in" in line_lower:
                     if len(line) > 5:
@@ -681,7 +728,7 @@ class ProfileScraper:
                             result["current_city"] = city
                             logger.info(f"Found current city: {city}")
                 
-                elif "from" in line_lower:
+                elif "from" in line_lower and not any(edu in line_lower for edu in ["attended from", "studied from"]):
                     if len(line) > 5:
                         clean_line = self.utils.clean_text(line)
                         hometown = clean_line.replace("From", "").strip()

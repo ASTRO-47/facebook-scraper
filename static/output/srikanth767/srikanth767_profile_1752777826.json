@@ -1,0 +1,56 @@
+{
+  "profile": {
+    "name": "",
+    "bio": "",
+    "about": {
+      "work": "",
+      "education": "",
+      "location": "",
+      "birthday": "",
+      "contact": {
+        "email": "",
+        "phone": ""
+      }
+    },
+    "friends": [],
+    "pages_followed": [],
+    "following": [],
+    "groups": []
+  },
+  "posts": {
+    "own_posts": [
+      {
+        "id": "post_22a3e9e7",
+        "timestamp": "",
+        "content": "Officially an Engineer! If this degree could talk it would be about what a rollercoaster ride the past 4 years have been. The good times, the tough ones, the laughter, and the beautiful friendships and memories made along the way. How can one degree hold so many emotions",
+        "caption": "",
+        "media_screenshot_url": "",
+        "original_url": "",
+        "tagged_accounts": [],
+        "location_tagged": "",
+        "comments": [],
+        "reactions_count": 0,
+        "media_urls": []
+      }
+    ],
+    "tagged_posts": [],
+    "comments_by_user": []
+  },
+  "locations_visited": [],
+  "extraction_metadata": {
+    "username": "srikanth767",
+    "timestamp": 1752777826.8464668,
+    "date": "2025-07-17 18:43:46",
+    "total_items": {
+      "friends": 0,
+      "pages_followed": 0,
+      "following": 0,
+      "groups": 0,
+      "own_posts": 1,
+      "tagged_posts": 0,
+      "comments_by_user": 0,
+      "locations_visited": 0,
+      "total": 1
+    }
+  }
+}

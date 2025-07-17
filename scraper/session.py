@@ -112,9 +112,16 @@ class FacebookSession:
         # Wait a moment for browser to stabilize
         await asyncio.sleep(2)
         
-        # Force focus and ensure window stays maximized
+        # Bring the page to the front and set viewport size to maximize
+        try:
+            await self.page.bring_to_front()
+            await self.page.set_viewport_size({"width": 1920, "height": 1080})
+            print("✅ Viewport set to 1920x1080")
+        except Exception as e:
+            print(f"⚠️ Could not set viewport size: {e}")
+        
+        # Force focus and maximize window (JS fullscreen request should be called after navigation)
         await self.page.evaluate("""
-            // Ensure window stays focused and maximized
             window.focus();
             window.moveTo(0, 0);
             window.resizeTo(screen.width, screen.height);
