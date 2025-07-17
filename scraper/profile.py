@@ -269,7 +269,7 @@ class ProfileScraper:
         Extract basic profile information with improved error handling
         
         Returns:
-            Dict containing profile information
+            Dict containing profile information in the requested format
         """
         try:
             logger.info("Extracting basic profile information...")
@@ -289,8 +289,9 @@ class ProfileScraper:
                 "name": self.utils.clean_text(name),
                 "bio": self.utils.clean_text(bio),
                 "profile_picture": "",
-                "work": about_data.get("work", []),
-                "education": about_data.get("education", []),
+                "work": about_data.get("work", ""),  # Now returns string instead of list
+                "education": about_data.get("education", ""),  # Now returns string instead of list
+                "location": about_data.get("location", ""),  # Combined location field
                 "current_city": about_data.get("current_city", ""),
                 "hometown": about_data.get("hometown", ""),
                 "email": about_data.get("email", ""),
@@ -434,51 +435,91 @@ class ProfileScraper:
         return about_data
     
     async def _navigate_to_about_page(self) -> bool:
-        """Navigate to the About page"""
-        about_selectors = [
-            'a[href*="/about"]',
-            'nav a:text("About")',
-            'div[role="tablist"] a:text("About")',
-            '[data-testid*="about"]',
-        ]
-        
-        for selector in about_selectors:
-            try:
-                about_link = await self.page.query_selector(selector)
-                if about_link:
-                    await about_link.click()
-                    await asyncio.sleep(6)
-                    await self.page.wait_for_load_state("domcontentloaded", timeout=self.default_timeout)
-                    logger.info(f"Navigated to About using selector: {selector}")
-                    return True
-            except Exception as e:
-                logger.warning(f"About selector {selector} failed: {e}")
-                continue
-        
-        return False
+        """Navigate to the About page using direct URL navigation"""
+        try:
+            # Construct the About page URL directly
+            about_url = self._construct_profile_url(self.original_username, "about_overview")
+            logger.info(f"Navigating directly to About page: {about_url}")
+            
+            # Navigate to the About page
+            await self.page.goto(about_url, wait_until="domcontentloaded", timeout=self.default_timeout)
+            await asyncio.sleep(6)
+            
+            # Verify we're on the About page
+            current_url = self.page.url
+            if "about" in current_url.lower():
+                logger.info(f"Successfully navigated to About page: {current_url}")
+                return True
+            else:
+                logger.warning(f"Navigation may have failed, current URL: {current_url}")
+                return False
+                
+        except Exception as e:
+            logger.error(f"Error navigating to About page: {e}")
+            return False
     
     async def _extract_work_education(self) -> Dict[str, Any]:
-        """Extract work and education information"""
-        result = {"work": [], "education": []}
+        """Extract work and education information with improved selectors for specific Facebook format"""
+        result = {"work": "", "education": ""}
         
         try:
-            await asyncio.sleep(2)
+            await asyncio.sleep(3)  # Give more time for page to load
             
-            # Work extraction
-            work_selectors = [
-                '[data-overviewsection="work"] div[role="button"]',
-                '[aria-label*="Work"] div',
-                'div:has-text("Works at") + div',
-                'div:has-text("Worked at") + div'
-            ]
+            # Get page content for debugging
+            page_text = await self.page.evaluate('() => document.body.innerText')
+            logger.info(f"About page content preview: {page_text[:500]}...")
             
-            result["work"] = await self._extract_section_data(work_selectors, "work")
-            result["education"] = await self._extract_section_data([
-                '[data-overviewsection="education"] div[role="button"]',
-                '[aria-label*="Education"] div',
-                'div:has-text("Studies at") + div',
-                'div:has-text("Studied at") + div'
-            ], "education")
+            # Extract work and education using the specific Facebook format
+            work_education_data = await self._extract_work_education_from_text(page_text)
+            
+            # Format work information
+            if work_education_data.get("work"):
+                work_entries = work_education_data["work"]
+                if work_entries:
+                    # Combine current and past work
+                    current_work = []
+                    past_work = []
+                    
+                    for entry in work_entries:
+                        if "works at" in entry.lower():
+                            current_work.append(entry)
+                        elif "past:" in entry.lower() or "worked at" in entry.lower():
+                            past_work.append(entry)
+                        else:
+                            current_work.append(entry)
+                    
+                    # Format as requested: "Software Engineer at Meta"
+                    if current_work:
+                        result["work"] = current_work[0]  # Take the first current work
+                    elif past_work:
+                        result["work"] = past_work[0]  # Fallback to past work
+            
+            # Format education information
+            if work_education_data.get("education"):
+                education_entries = work_education_data["education"]
+                if education_entries:
+                    # Look for the main education entry (usually the first one)
+                    for entry in education_entries:
+                        if "studied at" in entry.lower() or "attended" in entry.lower():
+                            # Extract just the institution name
+                            if "studied at" in entry.lower():
+                                institution = entry.split("studied at", 1)[1].strip()
+                                if "(" in institution:
+                                    institution = institution.split("(")[0].strip()
+                                result["education"] = institution
+                                break
+                            elif "attended" in entry.lower():
+                                # Extract institution from "Attended from X to Y" format
+                                parts = entry.split("attended from", 1)
+                                if len(parts) > 1:
+                                    institution = parts[0].strip()
+                                    if "(" in institution:
+                                        institution = institution.split("(")[0].strip()
+                                    result["education"] = institution
+                                    break
+            
+            logger.info(f"Extracted work: {result['work']}")
+            logger.info(f"Extracted education: {result['education']}")
             
         except Exception as e:
             logger.error(f"Error extracting work/education: {e}")
@@ -502,6 +543,58 @@ class ProfileScraper:
                 continue
         
         return data
+    
+    async def _extract_work_education_from_text(self, page_text: str) -> Dict[str, List[str]]:
+        """Extract work and education information from page text using specific Facebook format"""
+        result = {"work": [], "education": []}
+        
+        try:
+            # Split text into lines and look for work/education patterns
+            lines = page_text.split('\n')
+            
+            for line in lines:
+                line = line.strip()
+                if not line:
+                    continue
+                
+                line_lower = line.lower()
+                
+                # Skip navigation and UI elements
+                skip_patterns = ["add", "edit", "delete", "more", "see all", "notification", "friend", "mutual"]
+                if any(skip in line_lower for skip in skip_patterns):
+                    continue
+                
+                # Work patterns - specific to Facebook format
+                if any(pattern in line_lower for pattern in ["works at", "worked at", "past:"]):
+                    if len(line) > 5:
+                        clean_line = self.utils.clean_text(line)
+                        if clean_line and clean_line not in result["work"]:
+                            result["work"].append(clean_line)
+                            logger.info(f"Found work: {clean_line}")
+                
+                # Education patterns - specific to Facebook format
+                if any(pattern in line_lower for pattern in ["studied at", "studies at", "attended from"]):
+                    if len(line) > 5:
+                        clean_line = self.utils.clean_text(line)
+                        if clean_line and clean_line not in result["education"]:
+                            result["education"].append(clean_line)
+                            logger.info(f"Found education: {clean_line}")
+                
+                # Also look for general education patterns
+                if any(pattern in line_lower for pattern in ["university", "college", "institute", "school"]) and len(line) > 10:
+                    # Check if it's not already captured
+                    if not any(edu in line_lower for edu in ["studied at", "studies at", "attended"]):
+                        clean_line = self.utils.clean_text(line)
+                        if clean_line and clean_line not in result["education"]:
+                            result["education"].append(clean_line)
+                            logger.info(f"Found education (general): {clean_line}")
+            
+            logger.info(f"Extracted from text - Work: {len(result['work'])}, Education: {len(result['education'])}")
+            
+        except Exception as e:
+            logger.error(f"Error extracting work/education from text: {e}")
+        
+        return result
     
     def _is_valid_section_data(self, text: str, section_type: str) -> bool:
         """Validate section data"""
@@ -529,59 +622,124 @@ class ProfileScraper:
         return len(text) > 5 and not text.isdigit()
     
     async def _extract_places(self) -> Dict[str, Any]:
-        """Extract location information"""
+        """Extract location information with improved selectors for specific Facebook format"""
         result = {}
         
         try:
-            location_selectors = [
-                'div[data-overviewsection="places"]',
-                'div:has-text("Places lived")',
-                'div:has-text("Lives in")',
-                'div:has-text("From")',
-            ]
+            # Get page text for text-based extraction
+            page_text = await self.page.evaluate('() => document.body.innerText')
             
-            for selector in location_selectors:
-                try:
-                    location_section = await self.page.query_selector(selector)
-                    if location_section:
-                        entries = await location_section.query_selector_all('div[role="button"], a[role="link"]')
-                        for entry in entries:
-                            text = await entry.text_content()
-                            if text and len(text.strip()) > 3:
-                                clean_location = self.utils.clean_text(text)
-                                if "lives in" in clean_location.lower():
-                                    result["current_city"] = clean_location.replace("Lives in", "").strip()
-                                elif "from" in clean_location.lower():
-                                    result["hometown"] = clean_location.replace("From", "").strip()
-                        if result:
-                            break
-                except Exception as e:
-                    logger.warning(f"Location selector {selector} failed: {e}")
-                    continue
+            # Extract location using the specific Facebook format
+            location_data = await self._extract_location_from_text(page_text)
+            
+            # Format location as requested: "San Francisco, CA"
+            current_city = location_data.get("current_city", "")
+            hometown = location_data.get("hometown", "")
+            
+            # Combine current city and hometown if both exist
+            if current_city and hometown:
+                result["location"] = f"{current_city}, {hometown}"
+            elif current_city:
+                result["location"] = current_city
+            elif hometown:
+                result["location"] = hometown
+            else:
+                result["location"] = ""
+            
+            logger.info(f"Extracted location: {result['location']}")
                     
         except Exception as e:
             logger.error(f"Error extracting places: {e}")
         
         return result
     
+    async def _extract_location_from_text(self, page_text: str) -> Dict[str, str]:
+        """Extract location information from page text using specific Facebook format"""
+        result = {}
+        
+        try:
+            lines = page_text.split('\n')
+            
+            for line in lines:
+                line = line.strip()
+                if not line:
+                    continue
+                
+                line_lower = line.lower()
+                
+                # Skip navigation and UI elements
+                skip_patterns = ["add", "edit", "delete", "more", "see all", "notification", "friend", "mutual"]
+                if any(skip in line_lower for skip in skip_patterns):
+                    continue
+                
+                # Location patterns - specific to Facebook format
+                if "lives in" in line_lower:
+                    if len(line) > 5:
+                        clean_line = self.utils.clean_text(line)
+                        city = clean_line.replace("Lives in", "").strip()
+                        if city and not result.get("current_city"):
+                            result["current_city"] = city
+                            logger.info(f"Found current city: {city}")
+                
+                elif "from" in line_lower:
+                    if len(line) > 5:
+                        clean_line = self.utils.clean_text(line)
+                        hometown = clean_line.replace("From", "").strip()
+                        if hometown and not result.get("hometown"):
+                            result["hometown"] = hometown
+                            logger.info(f"Found hometown: {hometown}")
+            
+            logger.info(f"Extracted location from text: {result}")
+            
+        except Exception as e:
+            logger.error(f"Error extracting location from text: {e}")
+        
+        return result
+    
     async def _extract_contact_info(self) -> Dict[str, Any]:
-        """Extract contact information"""
+        """Extract contact information with improved patterns"""
         result = {}
         
         try:
             page_text = await self.page.evaluate('() => document.body.innerText')
             
-            # Extract email
-            email_pattern = r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b'
-            email_matches = re.findall(email_pattern, page_text)
-            if email_matches:
-                result["email"] = email_matches[0]
+            # Extract email with multiple patterns
+            email_patterns = [
+                r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b',
+                r'[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}',
+                r'[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}'
+            ]
             
-            # Extract phone
-            phone_pattern = r'(\+\d{1,3}[-.\s]?)?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}'
-            phone_matches = re.findall(phone_pattern, page_text)
-            if phone_matches:
-                result["phone"] = ''.join(phone_matches[0]) if isinstance(phone_matches[0], tuple) else phone_matches[0]
+            for pattern in email_patterns:
+                email_matches = re.findall(pattern, page_text)
+                if email_matches:
+                    # Clean and validate email
+                    email = email_matches[0].strip()
+                    if '@' in email and '.' in email.split('@')[1]:
+                        result["email"] = email
+                        logger.info(f"Found email: {email}")
+                        break
+            
+            # Extract phone with multiple patterns
+            phone_patterns = [
+                r'(\+\d{1,3}[-.\s]?)?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}',
+                r'\+?[\d\s\-\(\)]{10,}',
+                r'\(\d{3}\)\s?\d{3}-\d{4}',
+                r'\d{3}-\d{3}-\d{4}',
+                r'\d{3}\.\d{3}\.\d{4}'
+            ]
+            
+            for pattern in phone_patterns:
+                phone_matches = re.findall(pattern, page_text)
+                if phone_matches:
+                    phone = phone_matches[0]
+                    if isinstance(phone, tuple):
+                        phone = ''.join(phone)
+                    phone = phone.strip()
+                    if len(phone) >= 10:  # Basic validation
+                        result["phone"] = phone
+                        logger.info(f"Found phone: {phone}")
+                        break
                 
         except Exception as e:
             logger.error(f"Error extracting contact info: {e}")
@@ -589,33 +747,109 @@ class ProfileScraper:
         return result
     
     async def _extract_basic_details(self) -> Dict[str, Any]:
-        """Extract basic details like birthday"""
+        """Extract basic details like birthday with improved selectors"""
         result = {}
         
         try:
-            birthday_patterns = [
+            # Get page text for text-based extraction
+            page_text = await self.page.evaluate('() => document.body.innerText')
+            
+            birthday_selectors = [
                 'div:has-text("Birthday")',
                 'div:has-text("Born")',
                 '[data-testid*="birthday"]',
+                'div:has-text("Date of birth")',
+                'div:has-text("DOB")',
+                'div[data-testid*="birth"]',
+                'div:has-text("Birth")'
             ]
             
-            for pattern in birthday_patterns:
+            # Try selector-based extraction first
+            for selector in birthday_selectors:
                 try:
-                    elements = await self.page.query_selector_all(pattern)
+                    elements = await self.page.query_selector_all(selector)
                     for element in elements:
                         text = await element.text_content()
-                        if text and ("Birthday" in text or "Born" in text):
-                            birthday = text.replace("Birthday", "").replace("Born", "").strip()
-                            if birthday:
+                        if text and any(birth_keyword in text.lower() for birth_keyword in ["birthday", "born", "birth"]):
+                            # Extract birthday from text
+                            birthday = text
+                            for keyword in ["Birthday:", "Born:", "Birth:", "Date of birth:", "DOB:"]:
+                                if keyword in birthday:
+                                    birthday = birthday.split(keyword, 1)[1].strip()
+                                    break
+                            if birthday and len(birthday) > 3:
                                 result["birthday"] = self.utils.clean_text(birthday)
+                                logger.info(f"Found birthday: {result['birthday']}")
                                 break
-                except Exception:
+                except Exception as e:
+                    logger.warning(f"Birthday selector {selector} failed: {e}")
                     continue
+            
+            # If no birthday found with selectors, try text-based extraction
+            if not result.get("birthday"):
+                logger.info("No birthday found with selectors, trying text extraction...")
+                birthday_from_text = await self._extract_birthday_from_text(page_text)
+                if birthday_from_text:
+                    result["birthday"] = birthday_from_text
                     
         except Exception as e:
             logger.error(f"Error extracting basic details: {e}")
         
         return result
+    
+    async def _extract_birthday_from_text(self, page_text: str) -> str:
+        """Extract birthday information from page text"""
+        try:
+            lines = page_text.split('\n')
+            
+            for line in lines:
+                line = line.strip()
+                if not line:
+                    continue
+                
+                line_lower = line.lower()
+                
+                # Birthday patterns
+                birthday_patterns = [
+                    "birthday", "born", "birth", "date of birth", "dob"
+                ]
+                
+                if any(pattern in line_lower for pattern in birthday_patterns):
+                    if len(line) > 5 and not any(skip in line_lower for skip in ["add", "edit", "delete", "more"]):
+                        clean_line = self.utils.clean_text(line)
+                        
+                        # Extract birthday from various formats
+                        for keyword in ["Birthday:", "Born:", "Birth:", "Date of birth:", "DOB:"]:
+                            if keyword in clean_line:
+                                birthday = clean_line.split(keyword, 1)[1].strip()
+                                if birthday and len(birthday) > 3:
+                                    logger.info(f"Found birthday from text: {birthday}")
+                                    return birthday
+                        
+                        # If no keyword found, try to extract date-like content
+                        if any(char.isdigit() for char in clean_line):
+                            # Look for date patterns
+                            date_patterns = [
+                                r'\d{1,2}/\d{1,2}/\d{4}',
+                                r'\d{1,2}-\d{1,2}-\d{4}',
+                                r'\d{1,2}\.\d{1,2}\.\d{4}',
+                                r'[A-Za-z]+ \d{1,2},? \d{4}',
+                                r'\d{1,2} [A-Za-z]+ \d{4}'
+                            ]
+                            
+                            for pattern in date_patterns:
+                                matches = re.findall(pattern, clean_line)
+                                if matches:
+                                    birthday = matches[0]
+                                    logger.info(f"Found birthday pattern: {birthday}")
+                                    return birthday
+            
+            logger.info("No birthday found in text")
+            return ""
+            
+        except Exception as e:
+            logger.error(f"Error extracting birthday from text: {e}")
+            return ""
 
     # Additional methods for friends, groups, etc. will be added in the next part...
 

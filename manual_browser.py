@@ -184,8 +184,11 @@ class ManualBrowser:
         """Navigate to Facebook"""
         print("🔗 Navigating to Facebook...")
         try:
-            await self.page.goto('https://www.facebook.com', wait_until='domcontentloaded', timeout=30000)
-            print("✅ Successfully navigated to Facebook in KIOSK FULL SCREEN MODE!")
+            if self.page:
+                await self.page.goto('https://www.facebook.com', wait_until='domcontentloaded', timeout=30000)
+                print("✅ Successfully navigated to Facebook in KIOSK FULL SCREEN MODE!")
+            else:
+                print("⚠️ Page not initialized")
         except Exception as e:
             print(f"⚠️ Navigation failed: {e}")
             print("🔄 You can manually navigate to any site in the browser")
@@ -210,14 +213,15 @@ class ManualBrowser:
             while self.running:
                 # Periodically ensure window stays focused and maximized
                 try:
-                    await self.page.evaluate("""
-                        // Keep window focused and maximized
-                        window.focus();
-                        if (window.screen && window.screen.width) {
-                            window.moveTo(0, 0);
-                            window.resizeTo(screen.width, screen.height);
-                        }
-                    """)
+                    if self.page:
+                        await self.page.evaluate("""
+                            // Keep window focused and maximized
+                            window.focus();
+                            if (window.screen && window.screen.width) {
+                                window.moveTo(0, 0);
+                                window.resizeTo(screen.width, screen.height);
+                            }
+                        """)
                 except Exception:
                     pass  # Ignore errors if page is closed
                 

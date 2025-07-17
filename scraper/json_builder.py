@@ -24,9 +24,9 @@ class JSONBuilder:
                 "name": basic_info.get("name", ""),
                 "bio": basic_info.get("bio", ""),
                 "about": {
-                    "work": self._format_work_education(basic_info.get("work", [])),
-                    "education": self._format_work_education(basic_info.get("education", [])),
-                    "location": basic_info.get("current_city", ""),
+                    "work": basic_info.get("work", ""),  # Now directly use the string
+                    "education": basic_info.get("education", ""),  # Now directly use the string
+                    "location": basic_info.get("location", ""),  # Use the combined location field
                     "birthday": basic_info.get("birthday", ""),
                     "contact": {
                         "email": basic_info.get("email", ""),
