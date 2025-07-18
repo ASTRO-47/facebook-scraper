@@ -1,0 +1,1860 @@
+{
+  "profile": {
+    "name": "Srikanth Chellaboina",
+    "bio": "",
+    "about": {
+      "work": "Works at onepriceai.com",
+      "education": "National Institute of Technology Warangal",
+      "location": "Bangalore, India, Hyderabad",
+      "birthday": "",
+      "contact": {
+        "email": "",
+        "phone": ""
+      }
+    },
+    "friends": [
+      {
+        "name": "Sridhar Sirugudi",
+        "profile_url": "https://www.facebook.com/yeti.yankee",
+        "bio": ""
+      },
+      {
+        "name": "Nodi Roy",
+        "profile_url": "https://www.facebook.com/nodi.roy",
+        "bio": ""
+      },
+      {
+        "name": "Naresh Rathode",
+        "profile_url": "https://www.facebook.com/naresh.banouth",
+        "bio": ""
+      },
+      {
+        "name": "Rohan Rao",
+        "profile_url": "https://www.facebook.com/rohan.rao.58",
+        "bio": ""
+      },
+      {
+        "name": "Pankaj Chaurasia",
+        "profile_url": "https://www.facebook.com/impankaj2108",
+        "bio": ""
+      },
+      {
+        "name": "Surya Saha",
+        "profile_url": "https://www.facebook.com/sahasurya19",
+        "bio": ""
+      },
+      {
+        "name": "Debjeet Pal",
+        "profile_url": "https://www.facebook.com/itsdebjeet",
+        "bio": ""
+      },
+      {
+        "name": "Sourav Prasad",
+        "profile_url": "https://www.facebook.com/sourav.prasad.94651774",
+        "bio": ""
+      },
+      {
+        "name": "Priyanshu Piyush",
+        "profile_url": "https://www.facebook.com/priyanshu.piyush",
+        "bio": ""
+      },
+      {
+        "name": "Murali Kanth Chellaboyana",
+        "profile_url": "https://www.facebook.com/muralikanth",
+        "bio": ""
+      },
+      {
+        "name": "Sahith Reddy Vancha",
+        "profile_url": "https://www.facebook.com/sahith.reddy.351",
+        "bio": ""
+      },
+      {
+        "name": "Avinash Kolluri",
+        "profile_url": "https://www.facebook.com/avinash.kolluri.3",
+        "bio": ""
+      },
+      {
+        "name": "Karthik Kotugumada",
+        "profile_url": "https://www.facebook.com/karthik.king.7315",
+        "bio": ""
+      },
+      {
+        "name": "Narendra Kumar",
+        "profile_url": "https://www.facebook.com/narendra.kumar.3781995",
+        "bio": ""
+      },
+      {
+        "name": "Varun Gehlot",
+        "profile_url": "https://www.facebook.com/varun.gehlot.14",
+        "bio": ""
+      },
+      {
+        "name": "Swaapnika Motapothula",
+        "profile_url": "https://www.facebook.com/swaapnika.motapothula",
+        "bio": ""
+      },
+      {
+        "name": "Rakshith Mamidala",
+        "profile_url": "https://www.facebook.com/rakshith.mamidala",
+        "bio": ""
+      },
+      {
+        "name": "Akshay Garg",
+        "profile_url": "https://www.facebook.com/akshaygarg834",
+        "bio": ""
+      },
+      {
+        "name": "Aditya Sarjak Kantha",
+        "profile_url": "https://www.facebook.com/adityasarjak.kantha",
+        "bio": ""
+      },
+      {
+        "name": "Ibon Tarun Kataki",
+        "profile_url": "https://www.facebook.com/ibontkataki",
+        "bio": ""
+      },
+      {
+        "name": "Amar Rao",
+        "profile_url": "https://www.facebook.com/amar.rao.56",
+        "bio": ""
+      },
+      {
+        "name": "Dhanistha Sudhakar",
+        "profile_url": "https://www.facebook.com/danistha.sudhakar",
+        "bio": ""
+      },
+      {
+        "name": "Kaushik Kumar",
+        "profile_url": "https://www.facebook.com/kfusion13",
+        "bio": ""
+      },
+      {
+        "name": "Rama Krishna",
+        "profile_url": "https://www.facebook.com/randy.naik",
+        "bio": ""
+      },
+      {
+        "name": "Shailoz Singh",
+        "profile_url": "https://www.facebook.com/shailoz.singh",
+        "bio": ""
+      },
+      {
+        "name": "Nikhil Yadav Mattepu",
+        "profile_url": "https://www.facebook.com/nikhilyadavmattepu",
+        "bio": ""
+      },
+      {
+        "name": "Rajat Nagar",
+        "profile_url": "https://www.facebook.com/rajatnagar261",
+        "bio": ""
+      },
+      {
+        "name": "Abhilash Sivva",
+        "profile_url": "https://www.facebook.com/abhilash.gupta.9081",
+        "bio": ""
+      },
+      {
+        "name": "Santhosh Vajinepalli",
+        "profile_url": "https://www.facebook.com/sai.santhosh.167",
+        "bio": ""
+      },
+      {
+        "name": "Moujiz Ali D",
+        "profile_url": "https://www.facebook.com/moujiz.d",
+        "bio": ""
+      },
+      {
+        "name": "Shweta Ann Mathew",
+        "profile_url": "https://www.facebook.com/shweta.ann96",
+        "bio": ""
+      },
+      {
+        "name": "Gokul Krishna",
+        "profile_url": "https://www.facebook.com/gokul.jordan",
+        "bio": ""
+      },
+      {
+        "name": "Sudarshan Chakravarthy",
+        "profile_url": "https://www.facebook.com/sudarshan.chakravarthy.7",
+        "bio": ""
+      },
+      {
+        "name": "Prateek Pole",
+        "profile_url": "https://www.facebook.com/prateek.pole",
+        "bio": ""
+      },
+      {
+        "name": "Ashish Raj",
+        "profile_url": "https://www.facebook.com/profile.php?id=100002571613543",
+        "bio": ""
+      },
+      {
+        "name": "Pratik Raj",
+        "profile_url": "https://www.facebook.com/pratik.raj.12382",
+        "bio": ""
+      },
+      {
+        "name": "Azman Samad",
+        "profile_url": "https://www.facebook.com/azman.samad.5",
+        "bio": ""
+      },
+      {
+        "name": "Korneli Pamula",
+        "profile_url": "https://www.facebook.com/pamula.korneli",
+        "bio": ""
+      },
+      {
+        "name": "Aditya Singh",
+        "profile_url": "https://www.facebook.com/singh.sinaditya.singh",
+        "bio": ""
+      },
+      {
+        "name": "Thomas Sam",
+        "profile_url": "https://www.facebook.com/thomas.sam.97",
+        "bio": ""
+      },
+      {
+        "name": "Vignesh Jayathilakan",
+        "profile_url": "https://www.facebook.com/VigneshCopperfield",
+        "bio": ""
+      },
+      {
+        "name": "Aravind Peri",
+        "profile_url": "https://www.facebook.com/aravind.peri.lakshmi",
+        "bio": ""
+      },
+      {
+        "name": "Kshitij Tiwari",
+        "profile_url": "https://www.facebook.com/profile.php?id=100007138427907",
+        "bio": ""
+      },
+      {
+        "name": "Harsha Sappa",
+        "profile_url": "https://www.facebook.com/harsha.sappa",
+        "bio": ""
+      },
+      {
+        "name": "Phaneendra Medida",
+        "profile_url": "https://www.facebook.com/phaneendra.medida",
+        "bio": ""
+      },
+      {
+        "name": "Niha Peddaiahgari",
+        "profile_url": "https://www.facebook.com/niha.peddaiahgari",
+        "bio": ""
+      },
+      {
+        "name": "Kaushik Reddy",
+        "profile_url": "https://www.facebook.com/ml.kaushik.reddy",
+        "bio": ""
+      },
+      {
+        "name": "Jishin C",
+        "profile_url": "https://www.facebook.com/jishinc",
+        "bio": ""
+      },
+      {
+        "name": "Kaustav Kanti Paul",
+        "profile_url": "https://www.facebook.com/Vatsuak",
+        "bio": ""
+      },
+      {
+        "name": "Tarek Helal",
+        "profile_url": "https://www.facebook.com/tarek.helal98",
+        "bio": ""
+      },
+      {
+        "name": "Prashant Vissa",
+        "profile_url": "https://www.facebook.com/pvissa96",
+        "bio": ""
+      },
+      {
+        "name": "Shyam Hari",
+        "profile_url": "https://www.facebook.com/shyamhari6",
+        "bio": ""
+      },
+      {
+        "name": "Ch Sai Naga Vamshi",
+        "profile_url": "https://www.facebook.com/ch.sainagavamshi",
+        "bio": ""
+      },
+      {
+        "name": "Srinivas Dheeravath",
+        "profile_url": "https://www.facebook.com/srinivas.dheeravath.1",
+        "bio": ""
+      },
+      {
+        "name": "Amir Khan",
+        "profile_url": "https://www.facebook.com/The.Amir10",
+        "bio": ""
+      },
+      {
+        "name": "Deepshika Arasu",
+        "profile_url": "https://www.facebook.com/deepshika.arasu",
+        "bio": ""
+      },
+      {
+        "name": "Asif Mohd",
+        "profile_url": "https://www.facebook.com/asif.mohd.5496",
+        "bio": ""
+      },
+      {
+        "name": "Hitesh Kolukula",
+        "profile_url": "https://www.facebook.com/hitesh.kolukula",
+        "bio": ""
+      },
+      {
+        "name": "Sai Sneha",
+        "profile_url": "https://www.facebook.com/yvsaisneha",
+        "bio": ""
+      },
+      {
+        "name": "Ro Han",
+        "profile_url": "https://www.facebook.com/rohan.papad",
+        "bio": ""
+      },
+      {
+        "name": "Atul MOhan",
+        "profile_url": "https://www.facebook.com/atulmohan93",
+        "bio": ""
+      },
+      {
+        "name": "Kosgi Ranjitha",
+        "profile_url": "https://www.facebook.com/ranjitha.kosgi",
+        "bio": ""
+      },
+      {
+        "name": "Abhilash Munnur",
+        "profile_url": "https://www.facebook.com/munnur.abhilash",
+        "bio": ""
+      },
+      {
+        "name": "Kiran Konduru",
+        "profile_url": "https://www.facebook.com/kirankonduru15",
+        "bio": ""
+      },
+      {
+        "name": "Abhinav Thogari",
+        "profile_url": "https://www.facebook.com/abhinav.thogari",
+        "bio": ""
+      },
+      {
+        "name": "Vadlamudi Aneesh",
+        "profile_url": "https://www.facebook.com/aneeshomax",
+        "bio": ""
+      },
+      {
+        "name": "Rajat Soni",
+        "profile_url": "https://www.facebook.com/rajat.soni11",
+        "bio": ""
+      },
+      {
+        "name": "Sindhu Yadavilli",
+        "profile_url": "https://www.facebook.com/profile.php?id=100001679533585",
+        "bio": ""
+      },
+      {
+        "name": "Harsha Pappala",
+        "profile_url": "https://www.facebook.com/harshalwayzz",
+        "bio": ""
+      },
+      {
+        "name": "Nilakshi Sharma",
+        "profile_url": "https://www.facebook.com/nilakshi.sharma.31",
+        "bio": ""
+      },
+      {
+        "name": "Jesh Galla",
+        "profile_url": "https://www.facebook.com/jeswanth.galla",
+        "bio": ""
+      },
+      {
+        "name": "Abelson Tenny",
+        "profile_url": "https://www.facebook.com/abelson.tenny",
+        "bio": ""
+      },
+      {
+        "name": "Mohammed Azman",
+        "profile_url": "https://www.facebook.com/mohammed.azman",
+        "bio": ""
+      },
+      {
+        "name": "Jagadeesh Chandra",
+        "profile_url": "https://www.facebook.com/jagadeesh.chandra.9250",
+        "bio": ""
+      },
+      {
+        "name": "Reason Mainali",
+        "profile_url": "https://www.facebook.com/reason.mainali",
+        "bio": ""
+      },
+      {
+        "name": "Pratyusha Satpathy",
+        "profile_url": "https://www.facebook.com/pratyusha.satpathy",
+        "bio": ""
+      },
+      {
+        "name": "Shiva Subba Rao Vangara",
+        "profile_url": "https://www.facebook.com/iamvssrao",
+        "bio": ""
+      },
+      {
+        "name": "Subhash Saini",
+        "profile_url": "https://www.facebook.com/Subbusaini0",
+        "bio": ""
+      },
+      {
+        "name": "Raja Vishwanathan",
+        "profile_url": "https://www.facebook.com/vishwanathan.raja.37",
+        "bio": ""
+      },
+      {
+        "name": "Anusha Guduri",
+        "profile_url": "https://www.facebook.com/anusha.kotagiri",
+        "bio": ""
+      },
+      {
+        "name": "Jahnavi Veluri",
+        "profile_url": "https://www.facebook.com/jahnaviveluri1",
+        "bio": ""
+      },
+      {
+        "name": "Tashfique Ahmed Chowdhury",
+        "profile_url": "https://www.facebook.com/tashfique.ahmed.chy",
+        "bio": ""
+      },
+      {
+        "name": "Zaman Orko",
+        "profile_url": "https://www.facebook.com/zaman.orko",
+        "bio": ""
+      },
+      {
+        "name": "Aditya Hudar",
+        "profile_url": "https://www.facebook.com/aditya.hudar",
+        "bio": ""
+      },
+      {
+        "name": "Pembarthy Pavan",
+        "profile_url": "https://www.facebook.com/pavan.pembarthi",
+        "bio": ""
+      },
+      {
+        "name": "Aditya Chaudhari",
+        "profile_url": "https://www.facebook.com/AdityaChaudhari11",
+        "bio": ""
+      },
+      {
+        "name": "Victor Dey",
+        "profile_url": "https://www.facebook.com/victor.dey",
+        "bio": ""
+      },
+      {
+        "name": "Gundu Prashanth",
+        "profile_url": "https://www.facebook.com/gundu.prashanth.7",
+        "bio": ""
+      },
+      {
+        "name": "Snehit Kumar",
+        "profile_url": "https://www.facebook.com/Snehitk",
+        "bio": ""
+      },
+      {
+        "name": "Naveen Naik",
+        "profile_url": "https://www.facebook.com/naveennaik1789",
+        "bio": ""
+      },
+      {
+        "name": "Kuldeep Jain",
+        "profile_url": "https://www.facebook.com/kuldeep.jain.204788",
+        "bio": ""
+      },
+      {
+        "name": "Praveen Velampudi",
+        "profile_url": "https://www.facebook.com/praveen.velampudi",
+        "bio": ""
+      },
+      {
+        "name": "Aabhaas Dasgupta",
+        "profile_url": "https://www.facebook.com/ritabratad",
+        "bio": ""
+      },
+      {
+        "name": "Jay Charan",
+        "profile_url": "https://www.facebook.com/DJCharan7",
+        "bio": ""
+      },
+      {
+        "name": "Aashish Ranjan",
+        "profile_url": "https://www.facebook.com/sujal.kumar.125",
+        "bio": ""
+      },
+      {
+        "name": "Ranjith Singh Dheeravath",
+        "profile_url": "https://www.facebook.com/Ranjithsingh007",
+        "bio": ""
+      },
+      {
+        "name": "Shivani Shukla",
+        "profile_url": "https://www.facebook.com/profile.php?id=100006419867996",
+        "bio": ""
+      },
+      {
+        "name": "Dipayan Mukherji",
+        "profile_url": "https://www.facebook.com/profile.php?id=560078153",
+        "bio": ""
+      },
+      {
+        "name": "Gaurav Rathi",
+        "profile_url": "https://www.facebook.com/iamgaurav06",
+        "bio": ""
+      },
+      {
+        "name": "Somesh Kumar",
+        "profile_url": "https://www.facebook.com/kumar.somesh230",
+        "bio": ""
+      },
+      {
+        "name": "Jaypreet Singh Dhariwal",
+        "profile_url": "https://www.facebook.com/jaypreet04",
+        "bio": ""
+      },
+      {
+        "name": "Shawn Vincent",
+        "profile_url": "https://www.facebook.com/shawn.vincent.18",
+        "bio": ""
+      },
+      {
+        "name": "Allama Hossain",
+        "profile_url": "https://www.facebook.com/allama008",
+        "bio": ""
+      },
+      {
+        "name": "Mamidi Dushyanth Kumar",
+        "profile_url": "https://www.facebook.com/DushyanthHarika",
+        "bio": ""
+      },
+      {
+        "name": "Meenakshi Josyula",
+        "profile_url": "https://www.facebook.com/profile.php?id=100005693025419",
+        "bio": ""
+      },
+      {
+        "name": "Anirban Jyoti",
+        "profile_url": "https://www.facebook.com/anirban.jyoti",
+        "bio": ""
+      },
+      {
+        "name": "Krishna Chaitanya",
+        "profile_url": "https://www.facebook.com/profile.php?id=100006119598285",
+        "bio": ""
+      },
+      {
+        "name": "Soumya Ranjan Harichandan",
+        "profile_url": "https://www.facebook.com/soumyaranjan.harichandan.5",
+        "bio": ""
+      },
+      {
+        "name": "Ganesh Gardas",
+        "profile_url": "https://www.facebook.com/profile.php?id=100008306920518",
+        "bio": ""
+      },
+      {
+        "name": "Sankalp Pahade",
+        "profile_url": "https://www.facebook.com/sankalp.pahade",
+        "bio": ""
+      },
+      {
+        "name": "Pratyusha Prasad",
+        "profile_url": "https://www.facebook.com/pratyusha.prasad",
+        "bio": ""
+      },
+      {
+        "name": "Aravind Rathod",
+        "profile_url": "https://www.facebook.com/aravindrathodnitw",
+        "bio": ""
+      },
+      {
+        "name": "Aman Alam",
+        "profile_url": "https://www.facebook.com/amanalam589",
+        "bio": ""
+      },
+      {
+        "name": "Yashwanth Vasa",
+        "profile_url": "https://www.facebook.com/yashwanth.vasa",
+        "bio": ""
+      },
+      {
+        "name": "Ravikiran Pilla",
+        "profile_url": "https://www.facebook.com/ravikiran.pilla.5",
+        "bio": ""
+      },
+      {
+        "name": "Spandan Pandey",
+        "profile_url": "https://www.facebook.com/spandan.pandey.14",
+        "bio": ""
+      },
+      {
+        "name": "Sharath Kumar",
+        "profile_url": "https://www.facebook.com/sharath.kumar.75839923",
+        "bio": ""
+      },
+      {
+        "name": "Venkata Sai Kiran Kompalli",
+        "profile_url": "https://www.facebook.com/SAIKIRANK025",
+        "bio": ""
+      },
+      {
+        "name": "Revanth VermaReddy",
+        "profile_url": "https://www.facebook.com/verma.rev",
+        "bio": ""
+      },
+      {
+        "name": "Bharat Sai",
+        "profile_url": "https://www.facebook.com/bsai2",
+        "bio": ""
+      },
+      {
+        "name": "Srikar Nayan",
+        "profile_url": "https://www.facebook.com/srikar.nayan",
+        "bio": ""
+      },
+      {
+        "name": "Maneendra B",
+        "profile_url": "https://www.facebook.com/maneendrab",
+        "bio": ""
+      },
+      {
+        "name": "Rachana Ponagandla",
+        "profile_url": "https://www.facebook.com/profile.php?id=100007463176075",
+        "bio": ""
+      },
+      {
+        "name": "Aditya Tayade",
+        "profile_url": "https://www.facebook.com/aditya.tayade.96",
+        "bio": ""
+      },
+      {
+        "name": "Divya Sankhe",
+        "profile_url": "https://www.facebook.com/DivyaSankhe",
+        "bio": ""
+      },
+      {
+        "name": "Rohan Tiwari",
+        "profile_url": "https://www.facebook.com/rohan.tiwari.50",
+        "bio": ""
+      },
+      {
+        "name": "Nadeem Gauhar",
+        "profile_url": "https://www.facebook.com/nadeem.gauhar.2025",
+        "bio": ""
+      },
+      {
+        "name": "Soumik M.",
+        "profile_url": "https://www.facebook.com/SoumikSeymour",
+        "bio": ""
+      },
+      {
+        "name": "Srinivas Kashyap",
+        "profile_url": "https://www.facebook.com/srinivask1998",
+        "bio": ""
+      },
+      {
+        "name": "Dhanush Ck",
+        "profile_url": "https://www.facebook.com/dhanushchandra.kasarapu",
+        "bio": ""
+      },
+      {
+        "name": "Shashwat Shukla",
+        "profile_url": "https://www.facebook.com/shashwat.shukla.739",
+        "bio": ""
+      },
+      {
+        "name": "Siddarth Sriram",
+        "profile_url": "https://www.facebook.com/sidsriram12",
+        "bio": ""
+      },
+      {
+        "name": "Yash Loya",
+        "profile_url": "https://www.facebook.com/Yash.Loya.007",
+        "bio": ""
+      },
+      {
+        "name": "Sujith Chappidi",
+        "profile_url": "https://www.facebook.com/chapsujith",
+        "bio": ""
+      },
+      {
+        "name": "Ujjwal Ved",
+        "profile_url": "https://www.facebook.com/ujjwal.ved",
+        "bio": ""
+      },
+      {
+        "name": "Harikesh Pradeep",
+        "profile_url": "https://www.facebook.com/kshpradeep",
+        "bio": ""
+      },
+      {
+        "name": "Priyanka Prabhala",
+        "profile_url": "https://www.facebook.com/priyanka.prabhala",
+        "bio": ""
+      },
+      {
+        "name": "Rahul Singh",
+        "profile_url": "https://www.facebook.com/rahul42524",
+        "bio": ""
+      },
+      {
+        "name": "Shine Daniel",
+        "profile_url": "https://www.facebook.com/shine.v.daniel",
+        "bio": ""
+      },
+      {
+        "name": "Prathyusha Challa",
+        "profile_url": "https://www.facebook.com/prathyusha.challa103",
+        "bio": ""
+      },
+      {
+        "name": "Chuna Ram Godara",
+        "profile_url": "https://www.facebook.com/TheGodara",
+        "bio": ""
+      },
+      {
+        "name": "Saikiran Gogurla",
+        "profile_url": "https://www.facebook.com/gogurla",
+        "bio": ""
+      },
+      {
+        "name": "Ananya Hande",
+        "profile_url": "https://www.facebook.com/ananya.hande2",
+        "bio": ""
+      },
+      {
+        "name": "Akhil Nambiar",
+        "profile_url": "https://www.facebook.com/akhildkn10896",
+        "bio": ""
+      },
+      {
+        "name": "Yashwanth Sanikommu",
+        "profile_url": "https://www.facebook.com/yashwanth.sanikommu",
+        "bio": ""
+      },
+      {
+        "name": "Shweta Rathod",
+        "profile_url": "https://www.facebook.com/shwetarathod04",
+        "bio": ""
+      },
+      {
+        "name": "Nikhil Joshi",
+        "profile_url": "https://www.facebook.com/nikhiljoshi03",
+        "bio": ""
+      },
+      {
+        "name": "Rishav Agarwal",
+        "profile_url": "https://www.facebook.com/rishav.agarwal.7965",
+        "bio": ""
+      },
+      {
+        "name": "Pruthvi Raj",
+        "profile_url": "https://www.facebook.com/kpruthvi.raj.3",
+        "bio": ""
+      },
+      {
+        "name": "Aashish Albert",
+        "profile_url": "https://www.facebook.com/aAsHIshHeLgaSt",
+        "bio": ""
+      },
+      {
+        "name": "Sammohith Nittala",
+        "profile_url": "https://www.facebook.com/Sammohith13198",
+        "bio": ""
+      },
+      {
+        "name": "Mulkur Samson",
+        "profile_url": "https://www.facebook.com/mulkur.samson",
+        "bio": ""
+      },
+      {
+        "name": "Gaurav Chipre",
+        "profile_url": "https://www.facebook.com/gaurav.chipre",
+        "bio": ""
+      },
+      {
+        "name": "Reshmi Ramesh Kumar",
+        "profile_url": "https://www.facebook.com/reshmi.r.kumar",
+        "bio": ""
+      },
+      {
+        "name": "Lohit Varma",
+        "profile_url": "https://www.facebook.com/lohitvarmapenmatsa",
+        "bio": ""
+      },
+      {
+        "name": "Miriam Solomon",
+        "profile_url": "https://www.facebook.com/miriam.solomon.710",
+        "bio": ""
+      },
+      {
+        "name": "Hari Anantharaman",
+        "profile_url": "https://www.facebook.com/harileo96",
+        "bio": ""
+      },
+      {
+        "name": "Rohila Reddy",
+        "profile_url": "https://www.facebook.com/rohila.d",
+        "bio": ""
+      },
+      {
+        "name": "Nasser Fazal",
+        "profile_url": "https://www.facebook.com/nasser.fazal.73",
+        "bio": ""
+      },
+      {
+        "name": "Pratik Priyadarshi",
+        "profile_url": "https://www.facebook.com/pratiknitw",
+        "bio": ""
+      },
+      {
+        "name": "Paparao Bhukya",
+        "profile_url": "https://www.facebook.com/paparao.bhukya.90",
+        "bio": ""
+      },
+      {
+        "name": "Harsha Kanuri",
+        "profile_url": "https://www.facebook.com/harsha.kanuri.9",
+        "bio": ""
+      },
+      {
+        "name": "Nikhil Reddy Kunta",
+        "profile_url": "https://www.facebook.com/nikhilreddykunta",
+        "bio": ""
+      },
+      {
+        "name": "Yousuf Nizam",
+        "profile_url": "https://www.facebook.com/yousufnzm",
+        "bio": ""
+      },
+      {
+        "name": "Dwayne Robinson",
+        "profile_url": "https://www.facebook.com/dwaynerobinson007",
+        "bio": ""
+      },
+      {
+        "name": "Zain",
+        "profile_url": "https://www.facebook.com/szain96",
+        "bio": ""
+      },
+      {
+        "name": "Praneeth Chandra",
+        "profile_url": "https://www.facebook.com/praneeth.chandra.31",
+        "bio": ""
+      },
+      {
+        "name": "Sangeeta Shetty",
+        "profile_url": "https://www.facebook.com/sangeeta.shetty",
+        "bio": ""
+      },
+      {
+        "name": "Anirudh Thandu",
+        "profile_url": "https://www.facebook.com/athandu",
+        "bio": ""
+      },
+      {
+        "name": "Joshan Babu",
+        "profile_url": "https://www.facebook.com/joshanbabu",
+        "bio": ""
+      },
+      {
+        "name": "Pratyusha P",
+        "profile_url": "https://www.facebook.com/pratyusha.p.948190",
+        "bio": ""
+      },
+      {
+        "name": "Anamika Pandey",
+        "profile_url": "https://www.facebook.com/anamika.pandey.3382118",
+        "bio": ""
+      },
+      {
+        "name": "Anshuman Dev Choudhury",
+        "profile_url": "https://www.facebook.com/anshumandc",
+        "bio": ""
+      },
+      {
+        "name": "Manas Gupte",
+        "profile_url": "https://www.facebook.com/Manas94",
+        "bio": ""
+      },
+      {
+        "name": "Vishnu Narayanan",
+        "profile_url": "https://www.facebook.com/vishnu.narayanan2",
+        "bio": ""
+      },
+      {
+        "name": "Irini Sabbagh",
+        "profile_url": "https://www.facebook.com/irini.sabagh",
+        "bio": ""
+      },
+      {
+        "name": "Rajat Kate",
+        "profile_url": "https://www.facebook.com/rajat.kate.3",
+        "bio": ""
+      },
+      {
+        "name": "Avirath Saigal",
+        "profile_url": "https://www.facebook.com/avirath.saigal",
+        "bio": ""
+      },
+      {
+        "name": "Jose Sebastian Mattam",
+        "profile_url": "https://www.facebook.com/jose.mattam",
+        "bio": ""
+      },
+      {
+        "name": "Ankit Sharma",
+        "profile_url": "https://www.facebook.com/onlyankitsharma",
+        "bio": ""
+      },
+      {
+        "name": "Chaithanya Nadimetla",
+        "profile_url": "https://www.facebook.com/chaitu2307",
+        "bio": ""
+      },
+      {
+        "name": "Aravind Chandapola",
+        "profile_url": "https://www.facebook.com/aravind.chandapola",
+        "bio": ""
+      },
+      {
+        "name": "Harsha Vardhan",
+        "profile_url": "https://www.facebook.com/harsha.vardhan.340464",
+        "bio": ""
+      },
+      {
+        "name": "Abhishek Krishna",
+        "profile_url": "https://www.facebook.com/abhishek.krishna.1232",
+        "bio": ""
+      },
+      {
+        "name": "Shibil Rasheed",
+        "profile_url": "https://www.facebook.com/El.Diablo0927",
+        "bio": ""
+      },
+      {
+        "name": "Shashank Kasala",
+        "profile_url": "https://www.facebook.com/shashank.kasala",
+        "bio": ""
+      },
+      {
+        "name": "Shubham Maurya",
+        "profile_url": "https://www.facebook.com/profile.php?id=100010141570034",
+        "bio": ""
+      },
+      {
+        "name": "Ahmad Rashad Ansari",
+        "profile_url": "https://www.facebook.com/rashad.ansari.3",
+        "bio": ""
+      },
+      {
+        "name": "Aleena Rehan",
+        "profile_url": "https://www.facebook.com/profile.php?id=1575698648",
+        "bio": ""
+      },
+      {
+        "name": "Swarali Joshi",
+        "profile_url": "https://www.facebook.com/swarali.joshi.79",
+        "bio": ""
+      },
+      {
+        "name": "Vineeth Kumar",
+        "profile_url": "https://www.facebook.com/bvineeth2",
+        "bio": ""
+      },
+      {
+        "name": "Anshul Goyal",
+        "profile_url": "https://www.facebook.com/anshul.goyal.5855",
+        "bio": ""
+      },
+      {
+        "name": "Gulrez Rasool",
+        "profile_url": "https://www.facebook.com/gulrez.rasool",
+        "bio": ""
+      },
+      {
+        "name": "Ashita Chaudhary",
+        "profile_url": "https://www.facebook.com/ashita.chaudhary.5",
+        "bio": ""
+      },
+      {
+        "name": "Sathyanarayanan Srinivasan",
+        "profile_url": "https://www.facebook.com/sathya91",
+        "bio": ""
+      },
+      {
+        "name": "Nagavardhan Raju Ch",
+        "profile_url": "https://www.facebook.com/nagavardhanraju",
+        "bio": ""
+      },
+      {
+        "name": "Anant Saxena",
+        "profile_url": "https://www.facebook.com/helloworldanant",
+        "bio": ""
+      },
+      {
+        "name": "Khambam Kaushik Raj",
+        "profile_url": "https://www.facebook.com/kaushik.raj.980",
+        "bio": ""
+      },
+      {
+        "name": "Chekuri Hrishikesh",
+        "profile_url": "https://www.facebook.com/chekuri.hrishikesh",
+        "bio": ""
+      },
+      {
+        "name": "Krishna Bhargava Chowdary",
+        "profile_url": "https://www.facebook.com/krishna.b.chowdary",
+        "bio": ""
+      },
+      {
+        "name": "Sandilya D Rama Krishna",
+        "profile_url": "https://www.facebook.com/sandilya.dramakrishna",
+        "bio": ""
+      },
+      {
+        "name": "Vinay Sonti",
+        "profile_url": "https://www.facebook.com/itsmevinnu",
+        "bio": ""
+      },
+      {
+        "name": "Ravi Bilochi",
+        "profile_url": "https://www.facebook.com/ravi.bilochi",
+        "bio": ""
+      },
+      {
+        "name": "Sridatta Satuluri",
+        "profile_url": "https://www.facebook.com/sridatta.satuluri",
+        "bio": ""
+      },
+      {
+        "name": "Rohith Ravi",
+        "profile_url": "https://www.facebook.com/rohith96",
+        "bio": ""
+      },
+      {
+        "name": "Adithya Manoj Kumar",
+        "profile_url": "https://www.facebook.com/adithya.kumar.92",
+        "bio": ""
+      },
+      {
+        "name": "Nikhil Vundamati",
+        "profile_url": "https://www.facebook.com/vundmati.sai",
+        "bio": ""
+      },
+      {
+        "name": "Amarnath Chitukula",
+        "profile_url": "https://www.facebook.com/amar8nath4reddy3",
+        "bio": ""
+      },
+      {
+        "name": "Ankur Saini",
+        "profile_url": "https://www.facebook.com/SAINIANKUR55",
+        "bio": ""
+      },
+      {
+        "name": "Sumang Jain",
+        "profile_url": "https://www.facebook.com/sumang.jain",
+        "bio": ""
+      },
+      {
+        "name": "Quazi Mashood Shahid",
+        "profile_url": "https://www.facebook.com/quazi.m.shahid",
+        "bio": ""
+      },
+      {
+        "name": "Anisha Jain",
+        "profile_url": "https://www.facebook.com/hi.anisha.jain",
+        "bio": ""
+      },
+      {
+        "name": "Vrunda Shah",
+        "profile_url": "https://www.facebook.com/vrunda.shah.967",
+        "bio": ""
+      },
+      {
+        "name": "Sanjoe Sunny",
+        "profile_url": "https://www.facebook.com/sanjoesunnyv",
+        "bio": ""
+      },
+      {
+        "name": "Akshaya Chennakeshava",
+        "profile_url": "https://www.facebook.com/profile.php?id=100008299070190",
+        "bio": ""
+      },
+      {
+        "name": "Soham Singh Sengar",
+        "profile_url": "https://www.facebook.com/soham.singh.17",
+        "bio": ""
+      },
+      {
+        "name": "Neil Mukherjee",
+        "profile_url": "https://www.facebook.com/neilmukherjee961",
+        "bio": ""
+      },
+      {
+        "name": "Abhinav Peguda",
+        "profile_url": "https://www.facebook.com/abhinavabhi003",
+        "bio": ""
+      },
+      {
+        "name": "Kranthi Kiran GV",
+        "profile_url": "https://www.facebook.com/index.ajax",
+        "bio": ""
+      },
+      {
+        "name": "Nishanth Bandapalli",
+        "profile_url": "https://www.facebook.com/nishanth.bandapalli",
+        "bio": ""
+      },
+      {
+        "name": "Sankalp Jetty",
+        "profile_url": "https://www.facebook.com/sai.sankalp.18",
+        "bio": ""
+      },
+      {
+        "name": "Hemanth Kalyan",
+        "profile_url": "https://www.facebook.com/hkdrizzle",
+        "bio": ""
+      },
+      {
+        "name": "Saptarshi Rakshit",
+        "profile_url": "https://www.facebook.com/saptarshi.rakshit.5",
+        "bio": ""
+      },
+      {
+        "name": "Sandeep Reddy Vanga",
+        "profile_url": "https://www.facebook.com/sandeep.vanga.1",
+        "bio": ""
+      },
+      {
+        "name": "Abhijeet Joshi",
+        "profile_url": "https://www.facebook.com/abhijeetjoshi100493",
+        "bio": ""
+      },
+      {
+        "name": "Ravavarapu Tejas",
+        "profile_url": "https://www.facebook.com/ravavarapu.tejas",
+        "bio": ""
+      },
+      {
+        "name": "Christien Abraham",
+        "profile_url": "https://www.facebook.com/christienabrhm",
+        "bio": ""
+      },
+      {
+        "name": "Sahil Shah",
+        "profile_url": "https://www.facebook.com/sahiltshah981",
+        "bio": ""
+      },
+      {
+        "name": "Srivatsa Thumurikota",
+        "profile_url": "https://www.facebook.com/srivatsa.thumurikota",
+        "bio": ""
+      },
+      {
+        "name": "Srivatsava Guduri",
+        "profile_url": "https://www.facebook.com/srivatsavag",
+        "bio": ""
+      },
+      {
+        "name": "Venkata Leela Krishna",
+        "profile_url": "https://www.facebook.com/krishna.rockstar.5",
+        "bio": ""
+      },
+      {
+        "name": "Vinay Khandelwal",
+        "profile_url": "https://www.facebook.com/34dedend",
+        "bio": ""
+      },
+      {
+        "name": "Keerthini Rajkumar",
+        "profile_url": "https://www.facebook.com/keerthini.rajkumar",
+        "bio": ""
+      },
+      {
+        "name": "Vaishnavi Veluri",
+        "profile_url": "https://www.facebook.com/Vaishnavi.Veluri",
+        "bio": ""
+      },
+      {
+        "name": "Shravya Gorantala",
+        "profile_url": "https://www.facebook.com/shravya.gorantala",
+        "bio": ""
+      },
+      {
+        "name": "Nikhil Chada",
+        "profile_url": "https://www.facebook.com/nikchad24",
+        "bio": ""
+      },
+      {
+        "name": "Bharath Kumar",
+        "profile_url": "https://www.facebook.com/bharath.manthati",
+        "bio": ""
+      },
+      {
+        "name": "Pallav Jain",
+        "profile_url": "https://www.facebook.com/ipallav",
+        "bio": ""
+      },
+      {
+        "name": "Sarath Chandra",
+        "profile_url": "https://www.facebook.com/sarath.chandra.71619",
+        "bio": ""
+      },
+      {
+        "name": "Arjun Sadanand",
+        "profile_url": "https://www.facebook.com/arjun.sadanand",
+        "bio": ""
+      },
+      {
+        "name": "Bidyanath Jha",
+        "profile_url": "https://www.facebook.com/trapquake",
+        "bio": ""
+      },
+      {
+        "name": "Kunal Gir",
+        "profile_url": "https://www.facebook.com/kunal.gir.94",
+        "bio": ""
+      },
+      {
+        "name": "Rohit Chandra Pampana",
+        "profile_url": "https://www.facebook.com/rohit.chandra3",
+        "bio": ""
+      },
+      {
+        "name": "Sai Krishna",
+        "profile_url": "https://www.facebook.com/sai.krishna.73594479",
+        "bio": ""
+      },
+      {
+        "name": "Ar J UN",
+        "profile_url": "https://www.facebook.com/arjun.jayswal.58",
+        "bio": ""
+      },
+      {
+        "name": "Kunal Tatu",
+        "profile_url": "https://www.facebook.com/tatu.kunal",
+        "bio": ""
+      },
+      {
+        "name": "Malavika Lal",
+        "profile_url": "https://www.facebook.com/malavika.lal",
+        "bio": ""
+      },
+      {
+        "name": "Mohit Deshmukh",
+        "profile_url": "https://www.facebook.com/mohitdeshmukh1997",
+        "bio": ""
+      },
+      {
+        "name": "Surya Selenophile",
+        "profile_url": "https://www.facebook.com/suryateja.ilindraparthi",
+        "bio": ""
+      },
+      {
+        "name": "Vamsi Krishna Kunapuli",
+        "profile_url": "https://www.facebook.com/vamsi.kunapuli",
+        "bio": ""
+      },
+      {
+        "name": "Shivam Pandey",
+        "profile_url": "https://www.facebook.com/shivampandeybest",
+        "bio": ""
+      },
+      {
+        "name": "Raghava Reddy",
+        "profile_url": "https://www.facebook.com/raghava2797",
+        "bio": ""
+      },
+      {
+        "name": "Bhanu Prasad",
+        "profile_url": "https://www.facebook.com/banalabhanuprasad",
+        "bio": ""
+      },
+      {
+        "name": "Ram Narayanan",
+        "profile_url": "https://www.facebook.com/ram.narayanan.18",
+        "bio": ""
+      },
+      {
+        "name": "Pravalika Guduri",
+        "profile_url": "https://www.facebook.com/pravalika.h34",
+        "bio": ""
+      },
+      {
+        "name": "Mahdir Ishmam",
+        "profile_url": "https://www.facebook.com/mahdir24",
+        "bio": ""
+      },
+      {
+        "name": "Rahul Raj",
+        "profile_url": "https://www.facebook.com/rahulvivan.raj",
+        "bio": ""
+      },
+      {
+        "name": "Sreerag Sreenath",
+        "profile_url": "https://www.facebook.com/sreeragsreenath",
+        "bio": ""
+      },
+      {
+        "name": "Rahul Ravi",
+        "profile_url": "https://www.facebook.com/ravirahulkumar",
+        "bio": ""
+      },
+      {
+        "name": "Sujith Kokala",
+        "profile_url": "https://www.facebook.com/kokala.sujith",
+        "bio": ""
+      },
+      {
+        "name": "Mitali Ramakumar",
+        "profile_url": "https://www.facebook.com/r.mitali",
+        "bio": ""
+      },
+      {
+        "name": "Jatin Tomar",
+        "profile_url": "https://www.facebook.com/jatin.tomar.9659",
+        "bio": ""
+      },
+      {
+        "name": "Arun Mudulakar",
+        "profile_url": "https://www.facebook.com/arun.mudulakar",
+        "bio": ""
+      },
+      {
+        "name": "Arbaaz Shaik",
+        "profile_url": "https://www.facebook.com/82.Arbaaz.64.Bale",
+        "bio": ""
+      },
+      {
+        "name": "Bhargavi Nannapuraju",
+        "profile_url": "https://www.facebook.com/bhargavi.ns",
+        "bio": ""
+      },
+      {
+        "name": "Aslesha Pulagam",
+        "profile_url": "https://www.facebook.com/profile.php?id=100004493625352",
+        "bio": ""
+      },
+      {
+        "name": "Tarun Chellaboyina",
+        "profile_url": "https://www.facebook.com/tarun.chellaboyina",
+        "bio": ""
+      },
+      {
+        "name": "Ani Rudhan",
+        "profile_url": "https://www.facebook.com/ani.rudhan.14",
+        "bio": ""
+      },
+      {
+        "name": "Pavan Gulla",
+        "profile_url": "https://www.facebook.com/profile.php?id=100005906087596",
+        "bio": ""
+      },
+      {
+        "name": "Akshay Gangavalli",
+        "profile_url": "https://www.facebook.com/akshay.gangavalli",
+        "bio": ""
+      },
+      {
+        "name": "Sanjana Duddella",
+        "profile_url": "https://www.facebook.com/sanju.duddella",
+        "bio": ""
+      },
+      {
+        "name": "Gautham Menon",
+        "profile_url": "https://www.facebook.com/gauthamjmenon",
+        "bio": ""
+      },
+      {
+        "name": "Mrityunjay Raj",
+        "profile_url": "https://www.facebook.com/mrityunjay.raj.52",
+        "bio": ""
+      },
+      {
+        "name": "Yash Ga",
+        "profile_url": "https://www.facebook.com/yg1993",
+        "bio": ""
+      },
+      {
+        "name": "Ahana Chandrasekar",
+        "profile_url": "https://www.facebook.com/Ahana21",
+        "bio": ""
+      },
+      {
+        "name": "Aditya Gaikwad",
+        "profile_url": "https://www.facebook.com/adityagaikwad21",
+        "bio": ""
+      },
+      {
+        "name": "Danielsukumar Gaddam",
+        "profile_url": "https://www.facebook.com/danielsukumar.gaddam",
+        "bio": ""
+      },
+      {
+        "name": "Pradeep Vasamsetty",
+        "profile_url": "https://www.facebook.com/pradeep.vasamsetti",
+        "bio": ""
+      },
+      {
+        "name": "Rahul Mathew John",
+        "profile_url": "https://www.facebook.com/rahul.mathewjohn",
+        "bio": ""
+      },
+      {
+        "name": "Jeco Jacob",
+        "profile_url": "https://www.facebook.com/jecoj95",
+        "bio": ""
+      },
+      {
+        "name": "Adil Hameed",
+        "profile_url": "https://www.facebook.com/messified36",
+        "bio": ""
+      },
+      {
+        "name": "Rahul Guin",
+        "profile_url": "https://www.facebook.com/rahulguinn",
+        "bio": ""
+      },
+      {
+        "name": "Sri Harsha Guduri",
+        "profile_url": "https://www.facebook.com/scadrules",
+        "bio": ""
+      },
+      {
+        "name": "Rajiv Kashyap",
+        "profile_url": "https://www.facebook.com/rajiv.kashyap.969",
+        "bio": ""
+      },
+      {
+        "name": "Shobhankita Reddy",
+        "profile_url": "https://www.facebook.com/shobhankita.reddy",
+        "bio": ""
+      },
+      {
+        "name": "Pratyush Vankadara",
+        "profile_url": "https://www.facebook.com/vpratyush",
+        "bio": ""
+      },
+      {
+        "name": "Twinkle Shetty",
+        "profile_url": "https://www.facebook.com/twinkleshetty04",
+        "bio": ""
+      },
+      {
+        "name": "Deborah Ann",
+        "profile_url": "https://www.facebook.com/deborah.ann.731",
+        "bio": ""
+      },
+      {
+        "name": "Mahendra Dasari",
+        "profile_url": "https://www.facebook.com/mdasari83",
+        "bio": ""
+      },
+      {
+        "name": "Manjunath Shivanagi",
+        "profile_url": "https://www.facebook.com/mshivanagi",
+        "bio": ""
+      },
+      {
+        "name": "Srikar Siddharth",
+        "profile_url": "https://www.facebook.com/srikar.siddharth",
+        "bio": ""
+      },
+      {
+        "name": "S Md Shaikshavali",
+        "profile_url": "https://www.facebook.com/smdshaiksha.vali",
+        "bio": ""
+      },
+      {
+        "name": "Vinay Kumar",
+        "profile_url": "https://www.facebook.com/profile.php?id=100001583956648",
+        "bio": ""
+      },
+      {
+        "name": "Monica Stella",
+        "profile_url": "https://www.facebook.com/monica.stellamathe",
+        "bio": ""
+      },
+      {
+        "name": "Amani Kolli",
+        "profile_url": "https://www.facebook.com/amani.kolli",
+        "bio": ""
+      },
+      {
+        "name": "Basudev Sahoo",
+        "profile_url": "https://www.facebook.com/basudev.sahoo.7",
+        "bio": ""
+      },
+      {
+        "name": "Srivatsav Nutheti",
+        "profile_url": "https://www.facebook.com/srivatsav.nutheti",
+        "bio": ""
+      },
+      {
+        "name": "Vinay Raj",
+        "profile_url": "https://www.facebook.com/vinayraj0921",
+        "bio": ""
+      },
+      {
+        "name": "Chenille Jacob",
+        "profile_url": "https://www.facebook.com/chenillejacob",
+        "bio": ""
+      },
+      {
+        "name": "Tejavath Vinay",
+        "profile_url": "https://www.facebook.com/profile.php?id=100004726441095",
+        "bio": ""
+      },
+      {
+        "name": "Anvitha Gondyala",
+        "profile_url": "https://www.facebook.com/anvitha.gondyala",
+        "bio": ""
+      }
+    ],
+    "pages_followed": [
+      {
+        "page_name": "\"Ya i am reaching in 5 minutes\".*1 hour later* \"Im almost there,only 2mins\"",
+        "page_url": "https://www.facebook.com/pages/Ya-i-am-reaching-in-5-minutes1-hour-later-Im-almost-thereonly-2mins/10150124442530287",
+        "bio": ""
+      },
+      {
+        "page_name": "The Expendables",
+        "page_url": "https://facebook.com/TheExpendablesMovie",
+        "bio": ""
+      },
+      {
+        "page_name": "Research Conclave 2017",
+        "page_url": "https://facebook.com/researchconclavenitw",
+        "bio": ""
+      },
+      {
+        "page_name": "Developer Student Club, NITW",
+        "page_url": "https://facebook.com/dscnitw",
+        "bio": ""
+      },
+      {
+        "page_name": "Google",
+        "page_url": "https://facebook.com/Google",
+        "bio": ""
+      },
+      {
+        "page_name": "Entity Gaming",
+        "page_url": "https://facebook.com/officialentitygaming",
+        "bio": ""
+      },
+      {
+        "page_name": "The Economic Times Young Leaders B-School",
+        "page_url": "https://facebook.com/etylbschool",
+        "bio": ""
+      },
+      {
+        "page_name": "Goela School of Finance",
+        "page_url": "https://facebook.com/goelaschooloffinance",
+        "bio": ""
+      },
+      {
+        "page_name": "Fukkard",
+        "page_url": "https://facebook.com/fukkard",
+        "bio": ""
+      },
+      {
+        "page_name": "Faking Humour",
+        "page_url": "https://facebook.com/fakinghumour",
+        "bio": ""
+      },
+      {
+        "page_name": "Nitw Studentscouncil",
+        "page_url": "https://facebook.com/studentscouncil.nitw",
+        "bio": ""
+      },
+      {
+        "page_name": "Innovation Garage",
+        "page_url": "https://facebook.com/TheInnovationGarage",
+        "bio": ""
+      },
+      {
+        "page_name": "WanderOn",
+        "page_url": "https://facebook.com/wander.on",
+        "bio": ""
+      },
+      {
+        "page_name": "Ferrero Rocher",
+        "page_url": "https://facebook.com/FerreroRocher",
+        "bio": ""
+      },
+      {
+        "page_name": "Metamorphē",
+        "page_url": "https://facebook.com/metamorphestore",
+        "bio": ""
+      },
+      {
+        "page_name": "PUMA",
+        "page_url": "https://facebook.com/puma.morocco.official",
+        "bio": ""
+      },
+      {
+        "page_name": "Faking News at NITW",
+        "page_url": "https://facebook.com/100064525999770",
+        "bio": ""
+      },
+      {
+        "page_name": "STAGE",
+        "page_url": "https://facebook.com/STAGEdotin",
+        "bio": ""
+      },
+      {
+        "page_name": "Read Riordan",
+        "page_url": "https://facebook.com/ReadRiordan",
+        "bio": ""
+      },
+      {
+        "page_name": "The Emotional Typewriter",
+        "page_url": "https://facebook.com/TheEmotionalTypewriter",
+        "bio": ""
+      },
+      {
+        "page_name": "Lamborghini",
+        "page_url": "https://facebook.com/Lamborghini",
+        "bio": ""
+      },
+      {
+        "page_name": "Edgar Souza Photography",
+        "page_url": "https://facebook.com/edgarsouzaphotography",
+        "bio": ""
+      },
+      {
+        "page_name": "Design Burp",
+        "page_url": "https://facebook.com/designburp",
+        "bio": ""
+      },
+      {
+        "page_name": "NIT MUN",
+        "page_url": "https://facebook.com/nitmunconference",
+        "bio": ""
+      },
+      {
+        "page_name": "Aap NITian Hai Kya ?",
+        "page_url": "https://facebook.com/ImNITian",
+        "bio": ""
+      },
+      {
+        "page_name": "Filmy Updates",
+        "page_url": "https://facebook.com/FilmyUpdatesOfficial",
+        "bio": ""
+      },
+      {
+        "page_name": "Cricket on Facebook",
+        "page_url": "https://facebook.com/cricket",
+        "bio": ""
+      },
+      {
+        "page_name": "Doritos",
+        "page_url": "https://facebook.com/doritos",
+        "bio": ""
+      },
+      {
+        "page_name": "Dank Memes Melt Steel Beams",
+        "page_url": "https://facebook.com/DankMemesGang",
+        "bio": ""
+      },
+      {
+        "page_name": "Sprite",
+        "page_url": "https://facebook.com/SpriteMaroc",
+        "bio": ""
+      },
+      {
+        "page_name": "Ballr - Live Fantasy Sport",
+        "page_url": "https://facebook.com/Ballr",
+        "bio": ""
+      }
+    ],
+    "following": [
+      {
+        "name": "Meta",
+        "profile_url": "https://www.facebook.com/MetaIndia",
+        "bio": ""
+      },
+      {
+        "name": "Gary Cahill",
+        "profile_url": "https://www.facebook.com/garyjcahill",
+        "bio": ""
+      },
+      {
+        "name": "OMG. I was JOKING. CHILL.",
+        "profile_url": "https://www.facebook.com/profile.php?id=100066607697030",
+        "bio": ""
+      },
+      {
+        "name": "Borussia Dortmund",
+        "profile_url": "https://www.facebook.com/BVB",
+        "bio": ""
+      },
+      {
+        "name": "Kevin Pietersen",
+        "profile_url": "https://www.facebook.com/kevinpietersen",
+        "bio": ""
+      },
+      {
+        "name": "Anushka Shetty",
+        "profile_url": "https://www.facebook.com/AnushkaShetty",
+        "bio": ""
+      },
+      {
+        "name": "Ravinder Singh",
+        "profile_url": "https://www.facebook.com/ThisIsRavinder",
+        "bio": ""
+      },
+      {
+        "name": "Don 2",
+        "profile_url": "https://www.facebook.com/Don2thefilm",
+        "bio": ""
+      },
+      {
+        "name": "The Emotional Typewriter",
+        "profile_url": "https://www.facebook.com/TheEmotionalTypewriter",
+        "bio": ""
+      },
+      {
+        "name": "AKON",
+        "profile_url": "https://www.facebook.com/AKON",
+        "bio": ""
+      },
+      {
+        "name": "Sum 41",
+        "profile_url": "https://www.facebook.com/Sum41",
+        "bio": ""
+      },
+      {
+        "name": "Jayaprakash Narayan",
+        "profile_url": "https://www.facebook.com/JPLOKSATTA",
+        "bio": ""
+      },
+      {
+        "name": "Thiago Alcantara",
+        "profile_url": "https://www.facebook.com/thiago6alcantara",
+        "bio": ""
+      },
+      {
+        "name": "Zedd",
+        "profile_url": "https://www.facebook.com/Zedd",
+        "bio": ""
+      },
+      {
+        "name": "Britney Spears",
+        "profile_url": "https://www.facebook.com/britneyspears",
+        "bio": ""
+      },
+      {
+        "name": "Divyansh Photography",
+        "profile_url": "https://www.facebook.com/DivyanshSinghPhotography",
+        "bio": ""
+      },
+      {
+        "name": "Oscar Dos Santos Fans",
+        "profile_url": "https://www.facebook.com/ChelseaNewsFC1",
+        "bio": ""
+      },
+      {
+        "name": "Amazon.sa",
+        "profile_url": "https://www.facebook.com/amazonksa",
+        "bio": ""
+      },
+      {
+        "name": "Sony Middle East",
+        "profile_url": "https://www.facebook.com/SonyMEA",
+        "bio": ""
+      },
+      {
+        "name": "Chelsea FC Latest News",
+        "profile_url": "https://www.facebook.com/CHELSEAFCLATESTNEWS",
+        "bio": ""
+      },
+      {
+        "name": "Dank Memes",
+        "profile_url": "https://www.facebook.com/DankQualityMemes",
+        "bio": ""
+      },
+      {
+        "name": "Sarcasm",
+        "profile_url": "https://www.facebook.com/SarcasmLol",
+        "bio": ""
+      },
+      {
+        "name": "Revolution 2020",
+        "profile_url": "https://www.facebook.com/revolution2020cb",
+        "bio": ""
+      },
+      {
+        "name": "Burnout Paradise",
+        "profile_url": "https://www.facebook.com/burnoutparadise",
+        "bio": ""
+      },
+      {
+        "name": "Humans Of Hyderabad",
+        "profile_url": "https://www.facebook.com/hohyd",
+        "bio": ""
+      },
+      {
+        "name": "Amit Mishra",
+        "profile_url": "https://www.facebook.com/CircleofCricket.AmitMishra",
+        "bio": ""
+      },
+      {
+        "name": "Batman",
+        "profile_url": "https://www.facebook.com/batman",
+        "bio": ""
+      },
+      {
+        "name": "The Simpsons",
+        "profile_url": "https://www.facebook.com/TheSimpsons",
+        "bio": ""
+      },
+      {
+        "name": "Stephen Amell",
+        "profile_url": "https://www.facebook.com/stephenamell",
+        "bio": ""
+      },
+      {
+        "name": "Jaden Smith",
+        "profile_url": "https://www.facebook.com/officialjaden",
+        "bio": ""
+      },
+      {
+        "name": "Blasterjaxx",
+        "profile_url": "https://www.facebook.com/BlasterjaxxOfficial",
+        "bio": ""
+      }
+    ],
+    "groups": []
+  },
+  "posts": {
+    "own_posts": [],
+    "tagged_posts": [],
+    "comments_by_user": []
+  },
+  "locations_visited": [],
+  "extraction_metadata": {
+    "username": "srikanth767",
+    "timestamp": 1752795522.7467475,
+    "date": "2025-07-17 23:38:42",
+    "total_items": {
+      "friends": 301,
+      "pages_followed": 31,
+      "following": 31,
+      "groups": 0,
+      "own_posts": 0,
+      "tagged_posts": 0,
+      "comments_by_user": 0,
+      "locations_visited": 0,
+      "total": 363
+    }
+  }
+}

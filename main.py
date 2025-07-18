@@ -574,27 +574,15 @@ async def scrape_profile(username: str, use_vnc: bool = False, headless: bool = 
                     # Minimal delays to speed up process
                     await utils.human_like_delay(2, 4)  # Short pre-operation delay
                     
-                    # Standard timeout for all operations
-                    timeout_seconds = 180.0  # 3 minutes for all operations
-                    result = await asyncio.wait_for(
-                        func(*args, **kwargs), 
-                        timeout=timeout_seconds
-                    )
+                    # The timeout is now handled inside the scraper functions themselves
+                    # to allow for partial data return.
+                    result = await func(*args, **kwargs)
                     
                     print(f"✅ [{name}] completed successfully")
                     # Minimal wait between operations
                     await utils.human_like_delay(3, 6)  # 3-6 seconds between operations
                     return result
                     
-                except asyncio.TimeoutError:
-                    print(f"⚠️ Timeout in [{name}] after {timeout_seconds//60} minutes")
-                    if attempt < max_retries:
-                        print(f"🔄 Retrying [{name}] in 10 seconds...")
-                        await asyncio.sleep(10)  # Reduced retry delay
-                    else:
-                        print(f"❌ Failed [{name}] after {max_retries + 1} attempts (timeout)")
-                        return {}
-                        
                 except Exception as e:
                     print(f"⚠️ Error in [{name}]: {str(e)}")
                     if attempt < max_retries:
@@ -604,63 +592,26 @@ async def scrape_profile(username: str, use_vnc: bool = False, headless: bool = 
                         print(f"❌ Failed [{name}] after {max_retries + 1} attempts")
                         return {}
         
-        # Basic profile info
-        scrape_data["basic_info"] = await safe_scrape(
-            profile_scraper.get_basic_info, 
-            "Basic profile info"
+        # All post types
+        scrape_data["posts"] = await safe_scrape(
+            posts_scraper.get_all_post_types,
+            "All Posts",
+            username
         )
+
+        # # User comments on other posts
+        # scrape_data["user_comments"] = await safe_scrape(
+        #     posts_scraper.get_user_comments, 
+        #     "User comments",
+        #     username  # Keep original username for navigation
+        # )
         
-        # Groups
-        scrape_data["groups"] = await safe_scrape(
-            profile_scraper.get_groups, 
-            "Groups"
-        )
-        
-        # Pages followed
-        scrape_data["pages_followed"] = await safe_scrape(
-            profile_scraper.get_pages_followed, 
-            "Pages followed"
-        )
-        
-        # Following list
-        scrape_data["following_list"] = await safe_scrape(
-            profile_scraper.get_following_list, 
-            "Following list"
-        )
-        
-        # Friends list
-        scrape_data["friends_list"] = await safe_scrape(
-            profile_scraper.get_friends_list, 
-            "Friends list"
-        )
-        
-        # Own posts
-        scrape_data["own_posts"] = await safe_scrape(
-            posts_scraper.get_own_posts, 
-            "Own posts",
-            username  # Keep original username for navigation
-        )
-        
-        # Tagged posts
-        scrape_data["tagged_posts"] = await safe_scrape(
-            posts_scraper.get_tagged_posts, 
-            "Tagged posts",
-            username  # Keep original username for navigation
-        )
-        
-        # User comments on other posts
-        scrape_data["user_comments"] = await safe_scrape(
-            posts_scraper.get_user_comments, 
-            "User comments",
-            username  # Keep original username for navigation
-        )
-        
-        # Locations
-        scrape_data["locations"] = await safe_scrape(
-            posts_scraper.get_locations, 
-            "Locations",
-            username  # Keep original username for navigation
-        )
+        # # Locations
+        # scrape_data["locations"] = await safe_scrape(
+        #     posts_scraper.get_locations, 
+        #     "Locations",
+        #     username  # Keep original username for navigation
+        # )
         
         print("🎉 All scraping operations completed!")
         
@@ -670,15 +621,17 @@ async def scrape_profile(username: str, use_vnc: bool = False, headless: bool = 
         
         # Print extraction statistics
         print("📊 Extraction Statistics:")
-        print(f"   👤 Profile name: {scrape_data.get('basic_info', {}).get('name', 'Unknown')}")
-        print(f"   👥 Friends: {len(scrape_data.get('friends_list', []))}")
-        print(f"   🏢 Groups: {len(scrape_data.get('groups', []))}")
-        print(f"   📄 Pages followed: {len(scrape_data.get('pages_followed', []))}")
-        print(f"   👥 Following: {len(scrape_data.get('following_list', []))}")
-        print(f"   📝 Own posts: {len(scrape_data.get('own_posts', []))}")
-        print(f"   🏷️  Tagged posts: {len(scrape_data.get('tagged_posts', []))}")
-        print(f"   💬 User comments: {len(scrape_data.get('user_comments', []))}")
-        print(f"   📍 Locations: {len(scrape_data.get('locations', []))}")
+        # print(f"   👤 Profile name: {scrape_data.get('basic_info', {}).get('name', 'Unknown')}")
+        # print(f"   👥 Friends: {len(scrape_data.get('friends_list', []))}")
+        # print(f"   🏢 Groups: {len(scrape_data.get('groups', []))}")
+        # print(f"   📄 Pages followed: {len(scrape_data.get('pages_followed', []))}")
+        # print(f"   👥 Following: {len(scrape_data.get('following_list', []))}")
+        posts_data = scrape_data.get("posts", {})
+        print(f"   📝 Own posts: {len(posts_data.get('own_posts', []))}")
+        print(f"   🏷️  Tagged posts: {len(posts_data.get('tagged_posts', []))}")
+        print(f"   🔗 Shared posts: {len(posts_data.get('shared_posts', []))}")
+        # print(f"   💬 User comments: {len(scrape_data.get('user_comments', []))}")
+        # print(f"   📍 Locations: {len(scrape_data.get('locations', []))}")
         
         # Cache the result  
         scrape_results_cache[clean_username] = result

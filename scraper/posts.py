@@ -92,6 +92,54 @@ class PostsScraper:
                 return f"{base_url}/{section}"
             return base_url
     
+    async def get_all_post_types(self, username: str, max_posts: int = 20) -> Dict[str, List[Dict[str, Any]]]:
+        """
+        Extract all types of posts (own, tagged, shared) in a single run.
+        This is more efficient as it avoids multiple page navigations.
+        """
+        all_posts = {
+            "own_posts": [],
+            "tagged_posts": [],
+            "shared_posts": []
+        }
+        
+        try:
+            logger.info(f"🚀 Starting comprehensive post extraction for {username}")
+            
+            # Navigate to the main profile page
+            profile_url = self._construct_profile_url(username)
+            if not await self._navigate_with_retries(profile_url):
+                logger.error(f"❌ Failed to navigate to profile {profile_url}")
+                return all_posts
+            
+            await self._wait_for_posts_to_load()
+            
+            # Extract all posts from the main feed
+            logger.info("🔍 Extracting all visible posts from the main feed...")
+            extracted_posts = await self._extract_posts_with_scrolling("all_posts", max_posts)
+            
+            # Categorize posts
+            for post in extracted_posts:
+                if post.get("shared"):
+                    all_posts["shared_posts"].append(post)
+                # A post can be both tagged and own, so we check both
+                if post.get("is_tagged"):
+                    all_posts["tagged_posts"].append(post)
+                # If not shared and not tagged, assume it's an own post
+                if not post.get("shared") and not post.get("is_tagged"):
+                    all_posts["own_posts"].append(post)
+            
+            logger.info(f"📊 Categorization complete:")
+            logger.info(f"   - Own posts: {len(all_posts['own_posts'])}")
+            logger.info(f"   - Tagged posts: {len(all_posts['tagged_posts'])}")
+            logger.info(f"   - Shared posts: {len(all_posts['shared_posts'])}")
+            
+            return all_posts
+            
+        except Exception as e:
+            logger.error(f"❌ Error in get_all_post_types: {e}", exc_info=True)
+            return all_posts
+
     async def get_own_posts(self, username: str, max_posts: int = None) -> List[Dict[str, Any]]:
         """
         Extract user's own posts with improved error handling and fallback
@@ -275,6 +323,7 @@ class PostsScraper:
     async def _wait_for_posts_to_load(self) -> None:
         """Wait for posts content to load"""
         post_selectors = [
+            'div[role="article"]',
             'div[data-ad-preview="message"]',
             'div[data-ad-comet-preview="message"]'
         ]
@@ -303,19 +352,22 @@ class PostsScraper:
         max_stable_rounds = 5
         max_scrolls = min(30, max_posts // 5 + 10)  # Reduced from 50 to 30
         start_time = time.time()
-        max_time = 180  # 3 minutes max
+        max_time = 300  # 5 minutes max
         
-        logger.info(f"Starting posts extraction (max {max_scrolls} scrolls)")
+        logger.info(f"Starting posts extraction (max {max_scrolls} scrolls, {max_time/60:.1f} min timeout)")
         
+        # More robust post container selector
+        post_container_selector = 'div[role="main"]'
+
         for scroll_attempt in range(max_scrolls):
             # Check timeout
             if time.time() - start_time > max_time:
-                logger.warning(f"Timeout in posts extraction after {max_time} seconds")
+                logger.warning(f"Timeout reached in posts extraction after {max_time/60:.1f} minutes. Returning {len(posts)} posts found so far.")
                 break
                 
             try:
                 # Extract current batch of posts
-                current_batch = await self._extract_current_posts_batch(post_type)
+                current_batch = await self._extract_current_posts_batch(post_type, post_container_selector)
                 
                 # Add new posts to list
                 for post in current_batch:
@@ -329,13 +381,13 @@ class PostsScraper:
                 new_posts = current_count - last_count
                 logger.info(f"Scroll {scroll_attempt + 1}: Found {current_count} total (+{new_posts} new)")
                 
-                # Take debug screenshot after each scroll
-                if hasattr(self.utils, 'take_screenshot'):
-                    try:
-                        await self.utils.take_screenshot(f"posts_scroll_{scroll_attempt+1}")
-                        logger.info(f"[DEBUG] Screenshot taken: posts_scroll_{scroll_attempt+1}")
-                    except Exception as e:
-                        logger.warning(f"[DEBUG] Could not take screenshot after scroll {scroll_attempt+1}: {e}")
+                # # Take debug screenshot after each scroll
+                # if hasattr(self.utils, 'take_screenshot'):
+                #     try:
+                #         await self.utils.take_screenshot(f"posts_scroll_{scroll_attempt+1}")
+                #         logger.info(f"[DEBUG] Screenshot taken: posts_scroll_{scroll_attempt+1}")
+                #     except Exception as e:
+                #         logger.warning(f"[DEBUG] Could not take screenshot after scroll {scroll_attempt+1}: {e}")
                 
                 # Check for stability (no new posts found)
                 if current_count == last_count:
@@ -358,44 +410,38 @@ class PostsScraper:
         
         return posts
     
-    async def _extract_current_posts_batch(self, post_type: str) -> List[Dict[str, Any]]:
+    async def _extract_current_posts_batch(self, post_type: str, container_selector: str) -> List[Dict[str, Any]]:
         posts_batch = []
         try:
-            post_selectors = [
-                'div[data-ad-preview="message"]',
-                'div[data-ad-comet-preview="message"]'
-            ]
-            logger.info(f"Trying to extract posts with {len(post_selectors)} selectors...")
-            for selector in post_selectors:
+            # Find the main container
+            container = await self.page.query_selector(container_selector)
+            if not container:
+                logger.warning(f"Could not find post container with selector: {container_selector}. Falling back to page-wide search.")
+                # If main container isn't found, search the whole page for articles
+                post_elements = await self.page.query_selector_all('div[role="article"]')
+            else:
+                logger.info(f"Found post container with selector: {container_selector}. Searching for articles within.")
+                # Search for articles only within the main container
+                post_elements = await container.query_selector_all('div[role="article"]')
+
+            logger.info(f"[DEBUG] Found {len(post_elements)} potential post elements.")
+
+            for i, element in enumerate(post_elements):
                 try:
-                    post_elements = await self.page.query_selector_all(selector)
-                    logger.info(f"[DEBUG] Selector: {selector} - Found {len(post_elements)} elements")
-                    # Log the text content of the first 2 elements for debugging
-                    for idx, elem in enumerate(post_elements[:2]):
-                        try:
-                            text = await elem.text_content()
-                            logger.info(f"[DEBUG] Selector: {selector} - Element {idx} text: {text[:200] if text else 'None'}")
-                        except Exception as e:
-                            logger.warning(f"[DEBUG] Could not get text for element {idx}: {e}")
-                    for i, element in enumerate(post_elements):
-                        try:
-                            post_data = await self._extract_single_post(element, post_type)
-                            if post_data:
-                                posts_batch.append(post_data)
-                                logger.info(f"Successfully extracted post {i+1} with selector {selector}")
-                            else:
-                                logger.debug(f"Post {i+1} with selector {selector} was filtered out")
-                        except Exception as e:
-                            logger.warning(f"Error extracting post {i+1} with selector {selector}: {e}")
-                    if posts_batch:
-                        logger.info(f"Successfully extracted {len(posts_batch)} posts with selector: {selector}")
-                        break
+                    post_data = await self._extract_single_post(element, post_type)
+                    # Check for post_data and that the ID is not None before checking for duplicates
+                    if post_data and post_data.get("id") and not any(p.get("id") == post_data.get("id") for p in posts_batch):
+                        posts_batch.append(post_data)
+                        logger.info(f"Successfully extracted and added new post {i+1}")
+                    else:
+                        logger.debug(f"Post {i+1} was a duplicate, empty, or filtered out")
                 except Exception as e:
-                    logger.warning(f"Error with selector {selector}: {e}")
-                    continue
+                    logger.warning(f"Error processing single post element {i+1}: {e}", exc_info=True)
+
         except Exception as e:
-            logger.warning(f"Error extracting posts batch: {e}")
-        logger.info(f"Total posts extracted in this batch: {len(posts_batch)}")
+            logger.warning(f"Error in _extract_current_posts_batch: {e}", exc_info=True)
+            
+        logger.info(f"Total new posts extracted in this batch: {len(posts_batch)}")
         return posts_batch
 
     async def _extract_single_post(self, element, post_type: str) -> Optional[Dict[str, Any]]:
@@ -403,42 +449,39 @@ class PostsScraper:
             # Detect if this is a shared post
             is_shared = False
             shared_content = ""
+            original_poster = ""
             try:
-                shared_marker_selectors = [
-                    'span:has-text("shared")',
-                    'span:has-text("shared a post")',
-                    'span:has-text("shared a memory")',
-                    'span:has-text("shared a link")',
-                    'span:has-text("shared a photo")',
-                    'span:has-text("shared a video")',
-                    'span[role="button"]:has-text("shared")',
-                ]
-                for selector in shared_marker_selectors:
-                    marker = await element.query_selector(selector)
-                    if marker:
-                        is_shared = True
-                        break
-                if is_shared:
-                    shared_content_selectors = [
-                        'div[role="article"]',
-                        'div[data-ad-preview="message"]',
-                        'div[data-ad-comet-preview="message"]',
-                        '[data-testid="post_message"]',
-                        'div[dir="auto"]',
-                        'span[dir="auto"]',
-                    ]
-                    for sc_selector in shared_content_selectors:
-                        try:
-                            shared_elem = await element.query_selector(sc_selector)
-                            if shared_elem:
-                                shared_content = await shared_elem.text_content()
-                                if shared_content and len(shared_content.strip()) > 1:
-                                    shared_content = self.utils.clean_text(shared_content.strip())
-                                    break
-                        except Exception:
-                            continue
+                # A more reliable way to detect shared posts is to see if there's a nested article
+                nested_article = await element.query_selector('div[role="article"] div[role="article"]')
+                if nested_article:
+                    is_shared = True
+                    # The content of the outer article is the "share" message
+                    # The content of the inner article is the original post
+                    
+                    # Extract original poster info
+                    poster_element = await nested_article.query_selector('h3, a[role="link"]')
+                    if poster_element:
+                        original_poster = await poster_element.text_content()
+                        original_poster = self.utils.clean_text(original_poster)
+
+                    # Extract shared content from the nested article
+                    shared_content_element = await nested_article.query_selector('[data-ad-preview="message"], [data-ad-comet-preview="message"], div[dir="auto"]')
+                    if shared_content_element:
+                        shared_content = await shared_content_element.text_content()
+                        shared_content = self.utils.clean_text(shared_content)
+
             except Exception as e:
                 logger.warning(f"[DEBUG] Error detecting shared post: {e}")
+
+            # Detect if the user is tagged in the post
+            is_tagged = False
+            try:
+                # Look for "is with" text or tags within the post header
+                header_text = await element.text_content()
+                if "is with" in header_text or "tagged" in header_text:
+                    is_tagged = True
+            except Exception:
+                pass
 
             # Extract main content
             content = await self._extract_post_content(element)
@@ -468,16 +511,16 @@ class PostsScraper:
 
             # Media screenshot URL (improved with error handling)
             media_screenshot_url = ""
-            try:
-                if hasattr(self.utils, 'take_screenshot'):
-                    # Try to screenshot the main post content area
-                    screenshot_selector = 'div[data-ad-preview="message"]' or 'div[role="article"]'
-                    screenshot_path = await self.utils.take_screenshot(f"post_{post_id}", screenshot_selector)
-                    if screenshot_path:
-                        # Convert local path to URL path
-                        media_screenshot_url = screenshot_path.replace("static/", "/static/").replace("../static/", "/static/")
-            except Exception as e:
-                logger.warning(f"Failed to take post screenshot: {e}")
+            # try:
+            #     if hasattr(self.utils, 'take_screenshot'):
+            #         # Try to screenshot the main post content area
+            #         screenshot_selector = 'div[data-ad-preview="message"]' or 'div[role="article"]'
+            #         screenshot_path = await self.utils.take_screenshot(f"post_{post_id}", screenshot_selector)
+            #         if screenshot_path:
+            #             # Convert local path to URL path
+            #             media_screenshot_url = screenshot_path.replace("static/", "/static/").replace("../static/", "/static/")
+            # except Exception as e:
+            #     logger.warning(f"Failed to take post screenshot: {e}")
 
             # Extract reaction counts (likes, loves, etc.)
             reactions = await self._extract_post_reactions(element)
@@ -507,8 +550,8 @@ class PostsScraper:
                 ]
                 
                 for selector in link_selectors:
-                    link_elems = await element.query_selector_all(selector)
-                    for link_elem in link_elems:
+                    link_elem = await element.query_selector(selector)
+                    if link_elem:
                         href = await link_elem.get_attribute('href')
                         if href and "facebook.com" in href:
                             # Clean the URL - remove tracking parameters
@@ -728,15 +771,15 @@ class PostsScraper:
 
             post_data = {
                 "id": post_id,
-                "timestamp": timestamp,
-                "content": content,
-                "caption": caption,
+                "timestamp": timestamp if timestamp else await self._extract_post_timestamp(element),
+                "content": content if content else await self._extract_post_content(element),
+                "caption": caption if caption else content,
                 "media_screenshot_url": media_screenshot_url,
                 "original_url": original_url,
-                "tagged_accounts": tagged_accounts,
-                "location_tagged": location_tagged,
-                "comments": comments,
-                "reactions": reactions,
+                "tagged_accounts": tagged_accounts if tagged_accounts else [],
+                "location_tagged": location_tagged if location_tagged else await self._extract_location_tagged(element),
+                "comments": comments if comments else await self._extract_post_comments(element),
+                "reactions": reactions if reactions else await self._extract_post_reactions(element),
                 "reactions_count": reactions.get("total", metrics.get("likes", 0)),
                 "shares_count": shares_count,
                 "comments_count": comments_count,
@@ -755,456 +798,217 @@ class PostsScraper:
             logger.warning(f"Error extracting single post: {e}")
             return None
 
-    async def _extract_post_reactions(self, element) -> Dict[str, Any]:
-        """Extract detailed reaction counts (likes, loves, etc.)"""
-        reactions = {"total": 0, "like": 0, "love": 0, "haha": 0, "wow": 0, "sad": 0, "angry": 0}
-        
+    async def _perform_post_scrolling(self):
+        """Performs a more human-like and robust scroll action"""
         try:
-            # Try to find reaction elements
-            reaction_selectors = [
-                'span[aria-label*="reactions"]',
-                'div[aria-label*="reactions"]',
-                'span[aria-label*="people reacted"]',
-                'div[data-testid*="reaction"]',
-                'a[aria-label*="See who reacted"]',
+            scroll_height = await self.page.evaluate("document.body.scrollHeight")
+            
+            # Try different scroll methods
+            scroll_options = [
+                lambda: self.page.evaluate(f"window.scrollTo(0, {scroll_height});"),
+                lambda: self.page.mouse.wheel(0, 1500),
+                lambda: self.page.keyboard.press("PageDown"),
             ]
             
-            for selector in reaction_selectors:
-                reaction_elem = await element.query_selector(selector)
-                if reaction_elem:
-                    aria_label = await reaction_elem.get_attribute('aria-label')
-                    text_content = await reaction_elem.text_content()
-                    
-                    # Parse reaction counts from aria-label or text
-                    if aria_label:
-                        reactions["total"] = self._parse_reaction_count(aria_label)
-                        break
-                    elif text_content and any(char.isdigit() for char in text_content):
-                        reactions["total"] = self._parse_reaction_count(text_content)
-                        break
+            # Choose a random scroll method
+            import random
+            scroll_method = random.choice(scroll_options)
+            await scroll_method()
             
-            # Try to find specific reaction types
-            reaction_icons = await element.query_selector_all('img[alt*="Like"], img[alt*="Love"], img[alt*="Haha"], img[alt*="Wow"], img[alt*="Sad"], img[alt*="Angry"]')
-            for icon in reaction_icons:
-                alt_text = await icon.get_attribute('alt')
-                if alt_text:
-                    reaction_type = alt_text.lower()
-                    if reaction_type in reactions:
-                        reactions[reaction_type] = 1  # At least one of this type exists
-                        
+            logger.info("Scrolled down the page.")
+            
+            # Wait for new content to load
+            await asyncio.sleep(random.uniform(3, 6))
+            
         except Exception as e:
-            logger.warning(f"Error extracting reactions: {e}")
-            
-        return reactions
-    
-    def _parse_reaction_count(self, text: str) -> int:
-        """Parse reaction count from text"""
-        try:
-            # Look for numbers in the text
-            numbers = re.findall(r'\d+(?:,\d+)*(?:\.\d+)?[KkMm]?', text)
-            if numbers:
-                count_str = numbers[0].replace(',', '')
-                
-                # Handle K/M suffixes
-                if count_str.endswith(('K', 'k')):
-                    return int(float(count_str[:-1]) * 1000)
-                elif count_str.endswith(('M', 'm')):
-                    return int(float(count_str[:-1]) * 1000000)
-                else:
-                    return int(float(count_str))
-        except Exception:
-            pass
-        return 0
+            logger.warning(f"Could not perform scroll: {e}")
+            # Fallback to simple scroll
+            await self.page.evaluate("window.scrollTo(0, document.body.scrollHeight);")
+            await asyncio.sleep(5)
 
     async def _extract_post_content(self, element) -> str:
-        try:
-            # Enhanced "See more" button clicking with multiple selectors
-            see_more_selectors = [
-                'span:has-text("See more")',
-                'a:has-text("See more")',
-                'div:has-text("See more")',
-                'span[role="button"]:has-text("See more")',
-                'div[role="button"]:has-text("See more")',
-                '[role="button"]:has-text("See more")',
-                '[aria-label="See more"]',
-                'span:has-text("Show more")',
-                'div:has-text("Show more")',
-                '[aria-expanded="false"]:has-text("more")',
-            ]
-            
-            # Click all "See more" buttons found
-            for see_more_selector in see_more_selectors:
-                try:
-                    see_more_buttons = await element.query_selector_all(see_more_selector)
-                    for btn in see_more_buttons:
-                        if await btn.is_visible():
-                            try:
-                                await btn.click()
-                                logger.info(f"[DEBUG] Clicked 'See more' button with selector: {see_more_selector}")
-                                await asyncio.sleep(0.7)  # Wait for content to expand
-                            except Exception as e:
-                                logger.warning(f"[DEBUG] Failed to click 'See more': {e}")
-                except Exception:
-                    continue
-            
-            # Enhanced content extraction with better selectors
-            content_selectors = [
-                'div[data-ad-preview="message"]',
-                'div[data-ad-comet-preview="message"]',
-                '[data-testid="post_message"]',
-                'div[data-testid="post_message_container"]',
-                'span[data-testid="post_message"] span',
-                'div[dir="auto"][role="main"]',
-                'div[dir="auto"]:not([aria-hidden="true"])',
-                'span[dir="auto"]:not([aria-hidden="true"])',
-            ]
-            
-            for selector in content_selectors:
-                try:
-                    content_elem = await element.query_selector(selector)
-                    if content_elem:
-                        text = await content_elem.text_content()
-                        if text and len(text.strip()) > 1:
-                            cleaned_text = self.utils.clean_text(text.strip())
-                            # Ensure we got meaningful content, not just metadata
-                            if len(cleaned_text) > 10 and not self._is_unwanted_text(cleaned_text):
-                                return cleaned_text
-                except Exception:
-                    continue
-            
-            # Fallback: extract all text and filter intelligently
-            all_text = await element.text_content()
-            if all_text:
-                lines = all_text.split('\n')
-                content_lines = []
-                
-                for line in lines:
-                    line = line.strip()
-                    # More intelligent filtering
-                    if (len(line) > 1 and 
-                        not self._is_unwanted_text(line) and
-                        not self._is_comment_metadata(line)):
-                        content_lines.append(line)
-                
-                if content_lines:
-                    # Join the most relevant lines
-                    content = '\n'.join(content_lines[:10])  # Take up to 10 meaningful lines
-                    return self.utils.clean_text(content)
-                
-                # Last resort: log for debugging
-                logger.info(f"[DEBUG] No content found by selectors, full text preview: {all_text[:500]}")
-            
-            return ""
-        except Exception as e:
-            logger.warning(f"Error extracting post content: {e}")
-            return ""
-    
-    def _is_comment_metadata(self, text: str) -> bool:
-        """Check if text is comment metadata (timestamps, actions, etc.)"""
-        metadata_patterns = [
-            "like", "reply", "react", "ago", "minutes", "hours", "days",
-            "weeks", "months", "years", "edited", "translate", "see translation",
-            "view", "show", "hide", "more replies", "view more comments",
-            "see more", "see less", "report", "delete", "share"
+        """Extracts the main text content of a post."""
+        content = ""
+        content_selectors = [
+            'div[data-ad-preview="message"]',
+            'div[data-ad-comet-preview="message"]',
+            '[data-testid="post_message"]',
+            'div[dir="auto"]'
         ]
-        
-        text_lower = text.lower().strip()
-        return (any(pattern in text_lower for pattern in metadata_patterns) or 
-                len(text) < 3 or
-                text.isdigit() or
-                re.match(r'^\d+[smhdwmy]$', text_lower))  # Match patterns like "5m", "2h", "1d"
-    
-    def _is_unwanted_text(self, text: str) -> bool:
-        """Check if text should be filtered out"""
-        unwanted_patterns = [
-            "like", "comment", "share", "ago", "minutes", "hours", "days",
-            "see more", "see less", "view", "show", "hide", "edit", "delete",
-            "report", "save", "follow", "unfollow", "tag", "check-in",
-            "photo", "video", "story", "reel", "live", "event"
-        ]
-        
-        text_lower = text.lower()
-        return any(pattern in text_lower for pattern in unwanted_patterns) or len(text) < 3  # Reduced from 10 to 3
-    
-    async def _extract_post_timestamp(self, element) -> str:
-        """Extract timestamp from post with improved selectors"""
-        try:
-            timestamp_selectors = [
-                'time[datetime]',
-                'a[href*="story_fbid"] time',
-                'a[href*="posts"] time',
-                'a[aria-label*="ago"]',
-                'span[aria-label*="ago"]',
-                '[data-testid="story-subtitle"] a',
-                '[data-testid="story-subtitle"] time',
-                'a[role="link"][tabindex="0"]:has(time)',
-                'a[href*="permalink"]',
-            ]
-            
-            for selector in timestamp_selectors:
-                try:
-                    time_elem = await element.query_selector(selector)
-                    if time_elem:
-                        # First try datetime attribute (most reliable)
-                        datetime_attr = await time_elem.get_attribute('datetime')
-                        if datetime_attr:
-                            return datetime_attr
-                        
-                        # Try aria-label for relative time
-                        aria_label = await time_elem.get_attribute('aria-label')
-                        if aria_label and ('ago' in aria_label.lower() or 'at' in aria_label.lower()):
-                            return self.utils.clean_text(aria_label.strip())
-                        
-                        # Try text content
-                        time_text = await time_elem.text_content()
-                        if time_text and ('ago' in time_text.lower() or 'at' in time_text.lower() or self._is_valid_timestamp(time_text)):
-                            return self.utils.clean_text(time_text.strip())
-                except Exception:
-                    continue
-            
-            return ""
-        except Exception as e:
-            logger.warning(f"Error extracting timestamp: {e}")
-            return ""
-    
-    def _is_valid_timestamp(self, text: str) -> bool:
-        """Check if text looks like a valid timestamp"""
-        timestamp_patterns = [
-            r'\d+[smhdwmy]',  # 5m, 2h, 1d, etc.
-            r'\d{1,2}:\d{2}',  # 14:32
-            r'\d{4}-\d{2}-\d{2}',  # 2025-07-01
-            r'(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)',  # Month names
-            r'(Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday)',  # Day names
-        ]
-        return any(re.search(pattern, text, re.IGNORECASE) for pattern in timestamp_patterns)
-    
-    async def _extract_post_metrics(self, element) -> Dict[str, Any]:
-        """Extract likes, comments, shares counts"""
-        metrics = {"likes": 0, "comments": [], "shares": 0}
-        
-        try:
-            # Extract likes count
-            likes_selectors = [
-                '[data-testid="like_def"]',
-                'span[aria-label*="reaction"]',
-                'span[aria-label*="like"]'
-            ]
-            
-            for selector in likes_selectors:
-                try:
-                    likes_elem = await element.query_selector(selector)
-                    if likes_elem:
-                        likes_text = await likes_elem.text_content()
-                        if likes_text:
-                            metrics["likes"] = self._extract_number_from_text(likes_text)
-                            break
-                except Exception:
-                    continue
-            
-            # Extract comments (simplified - just count, not content)
-            comments_selectors = [
-                '[data-testid="UFI2Comment/root"]',
-                'div[role="article"] ul li'
-            ]
-            
-            for selector in comments_selectors:
-                try:
-                    comment_elements = await element.query_selector_all(selector)
-                    metrics["comments"] = [{"content": "Comment content not extracted", "author": "Unknown"} for _ in comment_elements[:5]]
-                    if comment_elements:
-                        break
-                except Exception:
-                    continue
-            
-            # Extract shares count
-            shares_selectors = [
-                '[aria-label*="share"]',
-                'span[data-testid="UFI2SharesCount/root"]'
-            ]
-            
-            for selector in shares_selectors:
-                try:
-                    shares_elem = await element.query_selector(selector)
-                    if shares_elem:
-                        shares_text = await shares_elem.text_content()
-                        if shares_text:
-                            metrics["shares"] = self._extract_number_from_text(shares_text)
-                            break
-                except Exception:
-                    continue
-            
-        except Exception as e:
-            logger.warning(f"Error extracting metrics: {e}")
-        
-        return metrics
-    
-    def _extract_number_from_text(self, text: str) -> int:
-        """Extract numeric value from text like '123 likes' or '1.2K comments'"""
-        try:
-            text = text.lower().strip()
-            
-            # Handle K, M notation
-            if 'k' in text:
-                number_part = re.search(r'(\d+\.?\d*)', text)
-                if number_part:
-                    return int(float(number_part.group(1)) * 1000)
-            elif 'm' in text:
-                number_part = re.search(r'(\d+\.?\d*)', text)
-                if number_part:
-                    return int(float(number_part.group(1)) * 1000000)
-            else:
-                # Extract regular number
-                number_part = re.search(r'(\d+)', text)
-                if number_part:
-                    return int(number_part.group(1))
-            
-            return 0
-            
-        except Exception:
-            return 0
-    
-    async def _extract_post_media(self, element) -> List[Dict[str, str]]:
-        """Extract media (images, videos) from post"""
-        media = []
-        
-        try:
-            # Extract images
-            img_elements = await element.query_selector_all('img')
-            for img in img_elements:
-                try:
-                    src = await img.get_attribute('src')
-                    alt = await img.get_attribute('alt')
-                    if src and 'profile' not in src.lower() and 'icon' not in src.lower():
-                        media.append({
-                            "type": "image",
-                            "url": src,
-                            "description": alt or ""
-                        })
-                except Exception:
-                    continue
-            
-            # Extract videos
-            video_elements = await element.query_selector_all('video')
-            for video in video_elements:
-                try:
-                    src = await video.get_attribute('src')
-                    if src:
-                        media.append({
-                            "type": "video",
-                            "url": src,
-                            "description": ""
-                        })
-                except Exception:
-                    continue
-            
-        except Exception as e:
-            logger.warning(f"Error extracting media: {e}")
-        
-        return media[:5]  # Limit to 5 media items per post
-    
-    def _generate_post_id(self, content: str, timestamp: str) -> str:
-        """Generate a unique-ish ID for the post"""
-        try:
-            import hashlib
-            content_hash = hashlib.md5(f"{content}_{timestamp}".encode()).hexdigest()[:8]
-            return f"post_{content_hash}"
-        except Exception:
-            import time
-            return f"post_{int(time.time())}"
-    
-    async def _perform_post_scrolling(self) -> None:
-        """Perform human-like scrolling for posts"""
-        try:
-            # Gradual scrolling
-            for i in range(2):
-                await self.page.evaluate(f'window.scrollBy(0, {400 + i * 200})')
-                await asyncio.sleep(2)
-            
-            # Scroll to bottom
-            await self.page.evaluate('window.scrollTo(0, document.body.scrollHeight)')
-            await asyncio.sleep(5)
-            
-            # Explicit wait for post selector after scrolling
+        for selector in content_selectors:
             try:
-                await self.page.wait_for_selector('div[data-ad-preview="message"], div[data-ad-comet-preview="message"]', timeout=15000)
-            except Exception as e:
-                logger.warning(f"[DEBUG] No post selector found after scroll: {e}")
-            
-            # Try to click "See more posts" if available
-            await self._click_see_more_posts()
-            
-        except Exception as e:
-            logger.warning(f"Error during post scrolling: {e}")
-    
-    async def _click_see_more_posts(self) -> None:
-        """Click 'See more posts' buttons if available"""
-        see_more_selectors = [
-            'text="See more posts"',
-            'text="Show more"',
-            'text="Load more"',
-            '[aria-label*="See more"]'
-        ]
-        
-        for selector in see_more_selectors:
-            try:
-                buttons = await self.page.query_selector_all(selector)
-                for button in buttons:
-                    try:
-                        if await button.is_visible():
-                            await asyncio.sleep(2)
-                            await button.click()
-                            await asyncio.sleep(4)
-                    except Exception:
-                        continue
+                content_element = await element.query_selector(selector)
+                if content_element:
+                    text = await content_element.text_content()
+                    if text:
+                        content = self.utils.clean_text(text.strip())
+                        if len(content) > 10: # Heuristic to avoid short, irrelevant text
+                            logger.debug(f"Extracted content with selector: {selector}")
+                            return content
             except Exception:
                 continue
-    
-    async def _extract_location_data(self) -> List[Dict[str, Any]]:
-        """Extract location data from places/map page"""
-        locations = []
-        
+        logger.debug("Failed to extract post content with primary selectors.")
+        return content
+
+    async def _extract_post_timestamp(self, element) -> str:
+        """Extracts the timestamp of a post."""
+        timestamp = ""
+        timestamp_selectors = [
+            'a[href*="/posts/"] > span',
+            'a[href*="/permalink/"] > span',
+            'span[id] a[role="link"]',
+            'a[aria-label*="ago"]',
+            'a:has-text("ago")'
+        ]
+        for selector in timestamp_selectors:
+            try:
+                time_element = await element.query_selector(selector)
+                if time_element:
+                    text = await time_element.text_content()
+                    timestamp = self.utils.clean_text(text.strip())
+                    if timestamp:
+                        logger.debug(f"Extracted timestamp with selector: {selector}")
+                        return timestamp
+            except Exception:
+                continue
+        logger.debug("Failed to extract post timestamp.")
+        return ""
+
+    async def _extract_post_metrics(self, element) -> Dict[str, int]:
+        """Extracts comment and share counts."""
+        metrics = {"comments": 0, "shares": 0}
         try:
-            # Wait for map or location content to load
-            await asyncio.sleep(5)
-            
-            # Try to find location elements
-            location_selectors = [
-                'div[data-testid="place"]',
-                'a[href*="/places/"]',
-                'div[role="link"]'
-            ]
-            
-            for selector in location_selectors:
-                try:
-                    location_elements = await self.page.query_selector_all(selector)
-                    for element in location_elements:
-                        try:
-                            name_elem = await element.query_selector('span, div')
-                            if name_elem:
-                                name = await name_elem.text_content()
-                                if name and len(name.strip()) > 3:
-                                    location_data = {
-                                        "name": self.utils.clean_text(name.strip()),
-                                        "address": "",
-                                        "coordinates": "",
-                                        "visit_count": 1
-                                    }
-                                    
-                                    # Avoid duplicates
-                                    if not any(loc["name"] == location_data["name"] for loc in locations):
-                                        locations.append(location_data)
-                        except Exception:
-                            continue
-                    
-                    if locations:
-                        break  # Found locations with this selector
-                        
-                except Exception:
-                    continue
-            
-            # Limit to reasonable number
-            return locations[:20]
-            
+            # Combined selector for all metrics
+            metrics_text_element = await element.query_selector('div[role="toolbar"] + div > div')
+            if metrics_text_element:
+                metrics_text = await metrics_text_element.text_content()
+                metrics_text = metrics_text.lower()
+
+                # Extract comments
+                comment_match = re.search(r'(\d+k?)\s+comment', metrics_text)
+                if comment_match:
+                    metrics["comments"] = self.utils.parse_count(comment_match.group(1))
+
+                # Extract shares
+                share_match = re.search(r'(\d+k?)\s+share', metrics_text)
+                if share_match:
+                    metrics["shares"] = self.utils.parse_count(share_match.group(1))
+                
+                logger.debug(f"Extracted metrics: {metrics}")
         except Exception as e:
-            logger.warning(f"Error extracting location data: {e}")
-            return [] 
+            logger.debug(f"Could not extract post metrics: {e}")
+        return metrics
+
+    async def _extract_post_media(self, element) -> List[Dict[str, str]]:
+        """Extracts media (images, videos) from post"""
+        media_list = []
+        try:
+            # Images
+            image_elements = await element.query_selector_all('img[alt]')
+            for img in image_elements:
+                src = await img.get_attribute('src')
+                alt = await img.get_attribute('alt')
+                if src and "emoji" not in src and "profile" not in src:
+                    media_list.append({"type": "image", "url": src, "alt": alt})
+
+            # Videos
+            video_elements = await element.query_selector_all('video')
+            for video in video_elements:
+                src = await video.get_attribute('src')
+                if src:
+                    media_list.append({"type": "video", "url": src})
+            
+            logger.debug(f"Extracted {len(media_list)} media items.")
+        except Exception as e:
+            logger.debug(f"Could not extract post media: {e}")
+        return media_list
+
+    def _generate_post_id(self, content: str, timestamp: str) -> str:
+        """Generates a unique ID for a post based on its content and timestamp."""
+        import hashlib
+        if not content and not timestamp:
+            return hashlib.md5(str(time.time()).encode()).hexdigest()
+        
+        return hashlib.md5((content[:50] + timestamp).encode()).hexdigest()
+
+    async def _extract_post_reactions(self, element) -> Dict[str, Any]:
+        """Extracts detailed reaction counts (likes, loves, etc.)"""
+        reactions = {"total": 0, "types": {}}
+        try:
+            reaction_button = await element.query_selector('span[role="button"] span[aria-label]')
+            if reaction_button:
+                aria_label = await reaction_button.get_attribute('aria-label')
+                if aria_label:
+                    # Example: "Like: 1.2K" or "Reactions: 1.2K"
+                    total_match = re.search(r'(\d+\.?\d*k?)', aria_label)
+                    if total_match:
+                        reactions["total"] = self.utils.parse_count(total_match.group(1))
+                    
+                    # Try to get detailed reaction types by hovering
+                    await reaction_button.hover()
+                    await asyncio.sleep(0.5)
+                    
+                    tooltip = await self.page.query_selector('div[role="tooltip"]')
+                    if tooltip:
+                        reaction_types_text = await tooltip.text_content()
+                        # Example: "1K Likes, 200 Loves, ..."
+                        types = re.findall(r'(\d+k?)\s+(\w+)', reaction_types_text)
+                        for count, type_name in types:
+                            reactions["types"][type_name.lower()] = self.utils.parse_count(count)
+            
+            logger.debug(f"Extracted reactions: {reactions}")
+        except Exception as e:
+            logger.debug(f"Could not extract post reactions: {e}")
+        return reactions
+
+    async def _extract_post_comments(self, element) -> List[Dict[str, Any]]:
+        """Extracts comments from a post."""
+        comments = []
+        try:
+            # Click to show comments if not visible
+            comment_button_selectors = [
+                'div[role="button"]:has-text("Comment")',
+                'div[role="button"]:has-text("View all comments")'
+            ]
+            for selector in comment_button_selectors:
+                comment_button = await element.query_selector(selector)
+                if comment_button:
+                    await comment_button.click()
+                    await asyncio.sleep(2) # Wait for comments to load
+                    logger.info("Clicked to expand comments.")
+                    break
+
+            comment_elements = await element.query_selector_all('div[aria-label*="Comment by"]')
+            for i, comment_elem in enumerate(comment_elements[:5]): # Limit to 5 comments for performance
+                try:
+                    author_elem = await comment_elem.query_selector('a[role="link"]')
+                    content_elem = await comment_elem.query_selector('div[dir="auto"]')
+                    
+                    if author_elem and content_elem:
+                        author = await author_elem.text_content()
+                        content = await content_elem.text_content()
+                        comments.append({
+                            "author": self.utils.clean_text(author),
+                            "content": self.utils.clean_text(content)
+                        })
+                except Exception as e:
+                    logger.debug(f"Could not extract comment {i+1}: {e}")
+            
+            logger.debug(f"Extracted {len(comments)} comments.")
+        except Exception as e:
+            logger.debug(f"Could not extract post comments: {e}")
+        return comments
+
+    async def _extract_location_tagged(self, element) -> str:
+        """Extracts the tagged location from a post."""
+        location = ""
+        try:
+            # Look for a link with a location icon or "at" text
+            location_link = await element.query_selector('a[href*="/places/"]')
+            if location_link:
+                location = await location_link.text_content()
+                location = self.utils.clean_text(location)
+                logger.debug(f"Extracted location: {location}")
+        except Exception as e:
+            logger.debug(f"Could not extract tagged location: {e}")
+        return location

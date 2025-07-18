@@ -38,11 +38,7 @@ class JSONBuilder:
                 "following": self._format_following(data.get("following_list", [])),
                 "groups": self._format_groups(data.get("groups", []))
             },
-            "posts": {
-                "own_posts": self._format_posts(data.get("own_posts", [])),
-                "tagged_posts": self._format_posts(data.get("tagged_posts", [])),
-                "comments_by_user": self._format_user_comments(data.get("user_comments", []))
-            },
+            "posts": self._format_all_posts(data.get("posts", {})),
             "locations_visited": self._format_locations(data.get("locations", []))
         }
         
@@ -70,6 +66,15 @@ class JSONBuilder:
             "data": profile_data,
             "filepath": filepath,
             "latest_filepath": latest_filepath
+        }
+
+    def _format_all_posts(self, posts_data: Dict[str, List[Dict[str, Any]]]) -> Dict[str, List[Dict[str, Any]]]:
+        """Formats all post types from the new combined dictionary structure."""
+        return {
+            "own_posts": self._format_posts(posts_data.get("own_posts", [])),
+            "tagged_posts": self._format_posts(posts_data.get("tagged_posts", [])),
+            "shared_posts": self._format_posts(posts_data.get("shared_posts", [])),
+            "comments_by_user": self._format_user_comments(posts_data.get("user_comments", []))
         }
 
     def _format_work_education(self, items: List[Any]) -> str:
@@ -142,11 +147,17 @@ class JSONBuilder:
                 "caption": post.get("caption", ""),
                 "media_screenshot_url": self._convert_to_relative_path(post.get("media_screenshot_url", post.get("screenshot", ""))),
                 "original_url": post.get("original_url", ""),
+                "shared": post.get("shared", False),
+                "shared_content": post.get("shared_content", ""),
+                "original_poster": post.get("original_poster", ""),
+                "is_tagged": post.get("is_tagged", False),
                 "tagged_accounts": post.get("tagged_accounts", []),
                 "location_tagged": post.get("location_tagged", ""),
                 "comments": self._format_comments(post.get("comments", [])),
-                "reactions_count": post.get("reactions_count", 0),
-                "media_urls": post.get("media_urls", [])
+                "reactions": post.get("reactions", {}),
+                "comments_count": post.get("comments_count", 0),
+                "shares_count": post.get("shares_count", 0),
+                "media": post.get("media", [])
             }
             formatted_posts.append(formatted_post)
         return formatted_posts
@@ -209,6 +220,7 @@ class JSONBuilder:
             "groups": len(profile_data.get("profile", {}).get("groups", [])),
             "own_posts": len(profile_data.get("posts", {}).get("own_posts", [])),
             "tagged_posts": len(profile_data.get("posts", {}).get("tagged_posts", [])),
+            "shared_posts": len(profile_data.get("posts", {}).get("shared_posts", [])),
             "comments_by_user": len(profile_data.get("posts", {}).get("comments_by_user", [])),
             "locations_visited": len(profile_data.get("locations_visited", []))
         }
