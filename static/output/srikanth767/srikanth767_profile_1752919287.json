@@ -1,0 +1,495 @@
+{
+  "profile": {
+    "name": "Srikanth Chellaboina",
+    "bio": "",
+    "about": {
+      "work": "Works at onepriceai.com",
+      "education": "National Institute of Technology Warangal",
+      "location": "Bangalore, India, Hyderabad",
+      "birthday": "",
+      "contact": {
+        "email": "",
+        "phone": ""
+      }
+    },
+    "friends": [],
+    "pages_followed": [],
+    "following": [],
+    "groups": []
+  },
+  "posts": {
+    "own_posts": [
+      {
+        "id": "d3f0104597b4766d460612c8910e19a2",
+        "timestamp": "5y",
+        "content": "Oh no!",
+        "caption": "Oh no!",
+        "media_screenshot_url": "",
+        "original_url": "",
+        "shared": false,
+        "shared_content": "",
+        "original_poster": "",
+        "is_tagged": false,
+        "tagged_accounts": [],
+        "location_tagged": "",
+        "comments": [],
+        "reactions": {
+          "total": 1,
+          "types": {
+            "like": 1
+          }
+        },
+        "comments_count": 0,
+        "shares_count": 0,
+        "media": []
+      },
+      {
+        "id": "ff9301da460126acb489b4a26b44718d",
+        "timestamp": "",
+        "content": "",
+        "caption": "",
+        "media_screenshot_url": "",
+        "original_url": "",
+        "shared": false,
+        "shared_content": "",
+        "original_poster": "",
+        "is_tagged": false,
+        "tagged_accounts": [],
+        "location_tagged": "",
+        "comments": [],
+        "reactions": {
+          "total": 0,
+          "types": {}
+        },
+        "comments_count": 0,
+        "shares_count": 0,
+        "media": []
+      },
+      {
+        "id": "f41417f38be41878ff9c36eb74c0b9fb",
+        "timestamp": "",
+        "content": "",
+        "caption": "",
+        "media_screenshot_url": "",
+        "original_url": "",
+        "shared": false,
+        "shared_content": "",
+        "original_poster": "",
+        "is_tagged": false,
+        "tagged_accounts": [],
+        "location_tagged": "",
+        "comments": [],
+        "reactions": {
+          "total": 0,
+          "types": {}
+        },
+        "comments_count": 0,
+        "shares_count": 0,
+        "media": []
+      },
+      {
+        "id": "6c69ccde88e99e64d63276574d5e627f",
+        "timestamp": "",
+        "content": "",
+        "caption": "",
+        "media_screenshot_url": "",
+        "original_url": "",
+        "shared": false,
+        "shared_content": "",
+        "original_poster": "",
+        "is_tagged": false,
+        "tagged_accounts": [],
+        "location_tagged": "",
+        "comments": [],
+        "reactions": {
+          "total": 0,
+          "types": {}
+        },
+        "comments_count": 0,
+        "shares_count": 0,
+        "media": []
+      },
+      {
+        "id": "27e2ff650ef750bfdf9d5280dfebd3e3",
+        "timestamp": "",
+        "content": "",
+        "caption": "",
+        "media_screenshot_url": "",
+        "original_url": "",
+        "shared": false,
+        "shared_content": "",
+        "original_poster": "",
+        "is_tagged": false,
+        "tagged_accounts": [],
+        "location_tagged": "",
+        "comments": [],
+        "reactions": {
+          "total": 0,
+          "types": {}
+        },
+        "comments_count": 0,
+        "shares_count": 0,
+        "media": []
+      },
+      {
+        "id": "6a784070edffaee882bc701f65d48bbb",
+        "timestamp": "",
+        "content": "",
+        "caption": "",
+        "media_screenshot_url": "",
+        "original_url": "",
+        "shared": false,
+        "shared_content": "",
+        "original_poster": "",
+        "is_tagged": false,
+        "tagged_accounts": [],
+        "location_tagged": "",
+        "comments": [],
+        "reactions": {
+          "total": 0,
+          "types": {}
+        },
+        "comments_count": 0,
+        "shares_count": 0,
+        "media": []
+      },
+      {
+        "id": "c377c10c09a6569b356a6a21cff5fa96",
+        "timestamp": "",
+        "content": "",
+        "caption": "",
+        "media_screenshot_url": "",
+        "original_url": "",
+        "shared": false,
+        "shared_content": "",
+        "original_poster": "",
+        "is_tagged": false,
+        "tagged_accounts": [],
+        "location_tagged": "",
+        "comments": [],
+        "reactions": {
+          "total": 0,
+          "types": {}
+        },
+        "comments_count": 0,
+        "shares_count": 0,
+        "media": []
+      },
+      {
+        "id": "43cae61a01b426dbc36c45a59afe1cce",
+        "timestamp": "6y",
+        "content": "For a second I thought they were infinty stones",
+        "caption": "For a second I thought they were infinty stones",
+        "media_screenshot_url": "",
+        "original_url": "",
+        "shared": false,
+        "shared_content": "",
+        "original_poster": "",
+        "is_tagged": false,
+        "tagged_accounts": [],
+        "location_tagged": "",
+        "comments": [],
+        "reactions": {
+          "total": 1,
+          "types": {
+            "like": 1
+          }
+        },
+        "comments_count": 0,
+        "shares_count": 0,
+        "media": []
+      },
+      {
+        "id": "64e257f1d2e1f5ceafd2f2097f5d6679",
+        "timestamp": "",
+        "content": "",
+        "caption": "",
+        "media_screenshot_url": "",
+        "original_url": "",
+        "shared": false,
+        "shared_content": "",
+        "original_poster": "",
+        "is_tagged": false,
+        "tagged_accounts": [],
+        "location_tagged": "",
+        "comments": [],
+        "reactions": {
+          "total": 0,
+          "types": {}
+        },
+        "comments_count": 0,
+        "shares_count": 0,
+        "media": []
+      },
+      {
+        "id": "5684fe5681a83e956925e36b751f6824",
+        "timestamp": "",
+        "content": "",
+        "caption": "",
+        "media_screenshot_url": "",
+        "original_url": "",
+        "shared": false,
+        "shared_content": "",
+        "original_poster": "",
+        "is_tagged": false,
+        "tagged_accounts": [],
+        "location_tagged": "",
+        "comments": [],
+        "reactions": {
+          "total": 0,
+          "types": {}
+        },
+        "comments_count": 0,
+        "shares_count": 0,
+        "media": []
+      },
+      {
+        "id": "f02f62f590112adc88f9543318274fe0",
+        "timestamp": "",
+        "content": "",
+        "caption": "",
+        "media_screenshot_url": "",
+        "original_url": "",
+        "shared": false,
+        "shared_content": "",
+        "original_poster": "",
+        "is_tagged": false,
+        "tagged_accounts": [],
+        "location_tagged": "",
+        "comments": [],
+        "reactions": {
+          "total": 0,
+          "types": {}
+        },
+        "comments_count": 0,
+        "shares_count": 0,
+        "media": []
+      },
+      {
+        "id": "4665a1980038a5f620484a78735e604d",
+        "timestamp": "",
+        "content": "",
+        "caption": "",
+        "media_screenshot_url": "",
+        "original_url": "",
+        "shared": false,
+        "shared_content": "",
+        "original_poster": "",
+        "is_tagged": false,
+        "tagged_accounts": [],
+        "location_tagged": "",
+        "comments": [],
+        "reactions": {
+          "total": 0,
+          "types": {}
+        },
+        "comments_count": 0,
+        "shares_count": 0,
+        "media": []
+      },
+      {
+        "id": "de11f958fe474c585c664fd8fef45715",
+        "timestamp": "",
+        "content": "",
+        "caption": "",
+        "media_screenshot_url": "",
+        "original_url": "",
+        "shared": false,
+        "shared_content": "",
+        "original_poster": "",
+        "is_tagged": false,
+        "tagged_accounts": [],
+        "location_tagged": "",
+        "comments": [],
+        "reactions": {
+          "total": 0,
+          "types": {}
+        },
+        "comments_count": 0,
+        "shares_count": 0,
+        "media": []
+      },
+      {
+        "id": "1013041723da0e235d0962ea28c4f193",
+        "timestamp": "",
+        "content": "",
+        "caption": "",
+        "media_screenshot_url": "",
+        "original_url": "",
+        "shared": false,
+        "shared_content": "",
+        "original_poster": "",
+        "is_tagged": false,
+        "tagged_accounts": [],
+        "location_tagged": "",
+        "comments": [],
+        "reactions": {
+          "total": 0,
+          "types": {}
+        },
+        "comments_count": 0,
+        "shares_count": 0,
+        "media": []
+      },
+      {
+        "id": "59ffbe94320bdf72f2f9f3f805cf4815",
+        "timestamp": "6y",
+        "content": "Congratulations",
+        "caption": "Congratulations",
+        "media_screenshot_url": "",
+        "original_url": "",
+        "shared": false,
+        "shared_content": "",
+        "original_poster": "",
+        "is_tagged": false,
+        "tagged_accounts": [],
+        "location_tagged": "",
+        "comments": [],
+        "reactions": {
+          "total": 1,
+          "types": {
+            "like": 1
+          }
+        },
+        "comments_count": 0,
+        "shares_count": 0,
+        "media": []
+      },
+      {
+        "id": "45b8688ac4818668c0a1e7700fd700dd",
+        "timestamp": "6y",
+        "content": "Thank you so much Aunty!",
+        "caption": "Thank you so much Aunty!",
+        "media_screenshot_url": "",
+        "original_url": "",
+        "shared": false,
+        "shared_content": "",
+        "original_poster": "",
+        "is_tagged": false,
+        "tagged_accounts": [],
+        "location_tagged": "",
+        "comments": [],
+        "reactions": {
+          "total": 1,
+          "types": {
+            "like": 1
+          }
+        },
+        "comments_count": 0,
+        "shares_count": 0,
+        "media": []
+      },
+      {
+        "id": "dfd9624a30f84bf7b89ce636ab3d42be",
+        "timestamp": "7y",
+        "content": "Could have made reservations more often at Punjabi dhaba if this thing existed during college xP",
+        "caption": "Could have made reservations more often at Punjabi dhaba if this thing existed during college xP",
+        "media_screenshot_url": "",
+        "original_url": "",
+        "shared": false,
+        "shared_content": "",
+        "original_poster": "",
+        "is_tagged": false,
+        "tagged_accounts": [],
+        "location_tagged": "",
+        "comments": [],
+        "reactions": {
+          "total": 1,
+          "types": {
+            "like": 1
+          }
+        },
+        "comments_count": 0,
+        "shares_count": 0,
+        "media": []
+      },
+      {
+        "id": "603154a0d3ae7ce45c67b756476b6d05",
+        "timestamp": "",
+        "content": "",
+        "caption": "",
+        "media_screenshot_url": "",
+        "original_url": "",
+        "shared": false,
+        "shared_content": "",
+        "original_poster": "",
+        "is_tagged": false,
+        "tagged_accounts": [],
+        "location_tagged": "",
+        "comments": [],
+        "reactions": {
+          "total": 0,
+          "types": {}
+        },
+        "comments_count": 0,
+        "shares_count": 0,
+        "media": []
+      },
+      {
+        "id": "98e0331603b803e6cbb62912004b2ad1",
+        "timestamp": "",
+        "content": "",
+        "caption": "",
+        "media_screenshot_url": "",
+        "original_url": "",
+        "shared": false,
+        "shared_content": "",
+        "original_poster": "",
+        "is_tagged": false,
+        "tagged_accounts": [],
+        "location_tagged": "",
+        "comments": [],
+        "reactions": {
+          "total": 0,
+          "types": {}
+        },
+        "comments_count": 0,
+        "shares_count": 0,
+        "media": []
+      },
+      {
+        "id": "d45cc3d93c908eecbe7988c4cc90e472",
+        "timestamp": "",
+        "content": "",
+        "caption": "",
+        "media_screenshot_url": "",
+        "original_url": "",
+        "shared": false,
+        "shared_content": "",
+        "original_poster": "",
+        "is_tagged": false,
+        "tagged_accounts": [],
+        "location_tagged": "",
+        "comments": [],
+        "reactions": {
+          "total": 0,
+          "types": {}
+        },
+        "comments_count": 0,
+        "shares_count": 0,
+        "media": []
+      }
+    ],
+    "tagged_posts": [],
+    "shared_posts": [],
+    "comments_by_user": []
+  },
+  "locations_visited": [],
+  "extraction_metadata": {
+    "username": "srikanth767",
+    "timestamp": 1752919287.7034962,
+    "date": "2025-07-19 10:01:27",
+    "total_items": {
+      "friends": 0,
+      "pages_followed": 0,
+      "following": 0,
+      "groups": 0,
+      "own_posts": 20,
+      "tagged_posts": 0,
+      "shared_posts": 0,
+      "comments_by_user": 0,
+      "locations_visited": 0,
+      "total": 20
+    }
+  }
+}

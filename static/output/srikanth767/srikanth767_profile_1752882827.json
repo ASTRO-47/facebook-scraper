@@ -1,0 +1,44 @@
+{
+  "profile": {
+    "name": "Unknown",
+    "bio": "",
+    "about": {
+      "work": "",
+      "education": "",
+      "location": "",
+      "birthday": "",
+      "contact": {
+        "email": "",
+        "phone": ""
+      }
+    },
+    "friends": [],
+    "pages_followed": [],
+    "following": [],
+    "groups": []
+  },
+  "posts": {
+    "own_posts": [],
+    "tagged_posts": [],
+    "shared_posts": [],
+    "comments_by_user": []
+  },
+  "locations_visited": [],
+  "extraction_metadata": {
+    "username": "srikanth767",
+    "timestamp": 1752882827.2825694,
+    "date": "2025-07-18 23:53:47",
+    "total_items": {
+      "friends": 0,
+      "pages_followed": 0,
+      "following": 0,
+      "groups": 0,
+      "own_posts": 0,
+      "tagged_posts": 0,
+      "shared_posts": 0,
+      "comments_by_user": 0,
+      "locations_visited": 0,
+      "total": 0
+    }
+  }
+}

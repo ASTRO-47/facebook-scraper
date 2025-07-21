@@ -1,0 +1,610 @@
+{
+  "profile": {
+    "name": "",
+    "bio": "",
+    "about": {
+      "work": "",
+      "education": "",
+      "location": "",
+      "birthday": "",
+      "contact": {
+        "email": "",
+        "phone": ""
+      }
+    },
+    "friends": [],
+    "pages_followed": [],
+    "following": [],
+    "groups": []
+  },
+  "posts": {
+    "own_posts": [
+      {
+        "id": "ed95254a7068ffd8729fd94d07347d67",
+        "timestamp": "",
+        "content": "Oh no!",
+        "caption": "Thasneem Sithara",
+        "media_screenshot_url": "",
+        "original_url": "https://www.facebook.com/reshmi.r.kumar/posts/pfbid0A1jRLEs6nSKYgcE3fQgzZsXi1HpSSTFHSVvStUjynyKUZgrEohxTLgG26hoe1vWgl",
+        "shared": false,
+        "shared_content": "",
+        "original_poster": "",
+        "is_tagged": false,
+        "tagged_accounts": [
+          {
+            "name": "Thasneem Sithara",
+            "profile_url": "https://www.facebook.com/thasneem.sithara",
+            "bio": ""
+          },
+          {
+            "name": "5y",
+            "profile_url": "https://www.facebook.com/reshmi.r.kumar/posts/pfbid0A1jRLEs6nSKYgcE3fQgzZsXi1HpSSTFHSVvStUjynyKUZgrEohxTLgG26hoe1vWgl",
+            "bio": ""
+          }
+        ],
+        "location_tagged": "",
+        "comments": [],
+        "reactions": {
+          "total": 0,
+          "types": {}
+        },
+        "comments_count": 0,
+        "shares_count": 0,
+        "media": []
+      },
+      {
+        "id": "9eaa31138b755b6a616814c2ab719851",
+        "timestamp": "",
+        "content": "",
+        "caption": "",
+        "media_screenshot_url": "",
+        "original_url": "",
+        "shared": false,
+        "shared_content": "",
+        "original_poster": "",
+        "is_tagged": false,
+        "tagged_accounts": [],
+        "location_tagged": "",
+        "comments": [],
+        "reactions": {
+          "total": 0,
+          "types": {}
+        },
+        "comments_count": 0,
+        "shares_count": 0,
+        "media": []
+      },
+      {
+        "id": "a16a1e0d8b7066fc445eb8f42937bd46",
+        "timestamp": "",
+        "content": "",
+        "caption": "",
+        "media_screenshot_url": "",
+        "original_url": "",
+        "shared": false,
+        "shared_content": "",
+        "original_poster": "",
+        "is_tagged": false,
+        "tagged_accounts": [],
+        "location_tagged": "",
+        "comments": [],
+        "reactions": {
+          "total": 0,
+          "types": {}
+        },
+        "comments_count": 0,
+        "shares_count": 0,
+        "media": []
+      },
+      {
+        "id": "f01c3702abe0388c147a4a2be36bc600",
+        "timestamp": "",
+        "content": "",
+        "caption": "",
+        "media_screenshot_url": "",
+        "original_url": "",
+        "shared": false,
+        "shared_content": "",
+        "original_poster": "",
+        "is_tagged": false,
+        "tagged_accounts": [],
+        "location_tagged": "",
+        "comments": [],
+        "reactions": {
+          "total": 0,
+          "types": {}
+        },
+        "comments_count": 0,
+        "shares_count": 0,
+        "media": []
+      },
+      {
+        "id": "915b549a5afc9fa081196fba75d212ee",
+        "timestamp": "",
+        "content": "",
+        "caption": "",
+        "media_screenshot_url": "",
+        "original_url": "",
+        "shared": false,
+        "shared_content": "",
+        "original_poster": "",
+        "is_tagged": false,
+        "tagged_accounts": [],
+        "location_tagged": "",
+        "comments": [],
+        "reactions": {
+          "total": 0,
+          "types": {}
+        },
+        "comments_count": 0,
+        "shares_count": 0,
+        "media": []
+      },
+      {
+        "id": "0a73967bdaad5d38352f55465363ac72",
+        "timestamp": "",
+        "content": "Udaykiran Reddy : Areyy mabbu, cloud Reddy...",
+        "caption": "Sathya Dharan",
+        "media_screenshot_url": "",
+        "original_url": "https://www.facebook.com/udaykiran.reddy.1441/posts/pfbid02hLmaQEtHQREQHDfSAzurq355fCTPjNh97Rx1gACneA9WJtZKJqK6bfz68JWddtpBl",
+        "shared": false,
+        "shared_content": "",
+        "original_poster": "",
+        "is_tagged": false,
+        "tagged_accounts": [
+          {
+            "name": "Sathya Dharan",
+            "profile_url": "https://www.facebook.com/sathya.dharan.5",
+            "bio": ""
+          },
+          {
+            "name": "Udaykiran Reddy",
+            "profile_url": "https://www.facebook.com/udaykiran.reddy.1441",
+            "bio": ""
+          },
+          {
+            "name": "7y",
+            "profile_url": "https://www.facebook.com/udaykiran.reddy.1441/posts/pfbid02hLmaQEtHQREQHDfSAzurq355fCTPjNh97Rx1gACneA9WJtZKJqK6bfz68JWddtpBl",
+            "bio": ""
+          }
+        ],
+        "location_tagged": "",
+        "comments": [],
+        "reactions": {
+          "total": 0,
+          "types": {}
+        },
+        "comments_count": 0,
+        "shares_count": 0,
+        "media": []
+      },
+      {
+        "id": "4fb39d2094a120fc151f00d5339de00d",
+        "timestamp": "",
+        "content": "Puli Raja vetagadu",
+        "caption": "Udaykiran Reddy",
+        "media_screenshot_url": "",
+        "original_url": "https://www.facebook.com/udaykiran.reddy.1441/posts/pfbid02hLmaQEtHQREQHDfSAzurq355fCTPjNh97Rx1gACneA9WJtZKJqK6bfz68JWddtpBl",
+        "shared": false,
+        "shared_content": "",
+        "original_poster": "",
+        "is_tagged": false,
+        "tagged_accounts": [
+          {
+            "name": "Udaykiran Reddy",
+            "profile_url": "https://www.facebook.com/udaykiran.reddy.1441",
+            "bio": ""
+          },
+          {
+            "name": "7y",
+            "profile_url": "https://www.facebook.com/udaykiran.reddy.1441/posts/pfbid02hLmaQEtHQREQHDfSAzurq355fCTPjNh97Rx1gACneA9WJtZKJqK6bfz68JWddtpBl",
+            "bio": ""
+          }
+        ],
+        "location_tagged": "",
+        "comments": [],
+        "reactions": {
+          "total": 0,
+          "types": {}
+        },
+        "comments_count": 0,
+        "shares_count": 0,
+        "media": []
+      },
+      {
+        "id": "1dc756ae3b1d24ad9c15641d854471c2",
+        "timestamp": "",
+        "content": "Could have made reservations more often at Punjabi dhaba if this thing existed during college xP",
+        "caption": "Akhil Nambiar",
+        "media_screenshot_url": "",
+        "original_url": "https://www.facebook.com/srikanth767/posts/pfbid02PsxJqTqHsCUr85s33YJWrDVTmEZSqQVVkmMuVcVMFpnegB4upKv1q2skJSaAzgjCl",
+        "shared": false,
+        "shared_content": "",
+        "original_poster": "",
+        "is_tagged": false,
+        "tagged_accounts": [
+          {
+            "name": "Akhil Nambiar",
+            "profile_url": "https://www.facebook.com/akhildkn10896",
+            "bio": ""
+          },
+          {
+            "name": "7y",
+            "profile_url": "https://www.facebook.com/srikanth767/posts/pfbid02PsxJqTqHsCUr85s33YJWrDVTmEZSqQVVkmMuVcVMFpnegB4upKv1q2skJSaAzgjCl",
+            "bio": ""
+          }
+        ],
+        "location_tagged": "",
+        "comments": [],
+        "reactions": {
+          "total": 0,
+          "types": {}
+        },
+        "comments_count": 0,
+        "shares_count": 0,
+        "media": []
+      },
+      {
+        "id": "b05f63012620e8db90b8ff198fd9ccde",
+        "timestamp": "",
+        "content": "",
+        "caption": "",
+        "media_screenshot_url": "",
+        "original_url": "",
+        "shared": false,
+        "shared_content": "",
+        "original_poster": "",
+        "is_tagged": false,
+        "tagged_accounts": [],
+        "location_tagged": "",
+        "comments": [],
+        "reactions": {
+          "total": 0,
+          "types": {}
+        },
+        "comments_count": 0,
+        "shares_count": 0,
+        "media": []
+      },
+      {
+        "id": "82ba8ce9c39d0d29ff6899f9a4df4f59",
+        "timestamp": "",
+        "content": "",
+        "caption": "",
+        "media_screenshot_url": "",
+        "original_url": "",
+        "shared": false,
+        "shared_content": "",
+        "original_poster": "",
+        "is_tagged": false,
+        "tagged_accounts": [],
+        "location_tagged": "",
+        "comments": [],
+        "reactions": {
+          "total": 0,
+          "types": {}
+        },
+        "comments_count": 0,
+        "shares_count": 0,
+        "media": []
+      },
+      {
+        "id": "ca39e112c936ba6852743409ef006730",
+        "timestamp": "",
+        "content": "",
+        "caption": "Srivatsa Thumurikota",
+        "media_screenshot_url": "",
+        "original_url": "",
+        "shared": false,
+        "shared_content": "",
+        "original_poster": "",
+        "is_tagged": false,
+        "tagged_accounts": [
+          {
+            "name": "Srivatsa Thumurikota",
+            "profile_url": "https://www.facebook.com/srivatsa.thumurikota",
+            "bio": ""
+          },
+          {
+            "name": "8y",
+            "profile_url": "https://www.facebook.com/photo/",
+            "bio": ""
+          }
+        ],
+        "location_tagged": "",
+        "comments": [],
+        "reactions": {
+          "total": 0,
+          "types": {}
+        },
+        "comments_count": 0,
+        "shares_count": 0,
+        "media": []
+      },
+      {
+        "id": "cd36b84e7b006ce7081ab96451408528",
+        "timestamp": "",
+        "content": "",
+        "caption": "",
+        "media_screenshot_url": "",
+        "original_url": "",
+        "shared": false,
+        "shared_content": "",
+        "original_poster": "",
+        "is_tagged": false,
+        "tagged_accounts": [],
+        "location_tagged": "",
+        "comments": [],
+        "reactions": {
+          "total": 0,
+          "types": {}
+        },
+        "comments_count": 0,
+        "shares_count": 0,
+        "media": []
+      },
+      {
+        "id": "2d854b9994acdc0f9f446387fc1c7006",
+        "timestamp": "",
+        "content": "",
+        "caption": "",
+        "media_screenshot_url": "",
+        "original_url": "",
+        "shared": false,
+        "shared_content": "",
+        "original_poster": "",
+        "is_tagged": false,
+        "tagged_accounts": [],
+        "location_tagged": "",
+        "comments": [],
+        "reactions": {
+          "total": 0,
+          "types": {}
+        },
+        "comments_count": 0,
+        "shares_count": 0,
+        "media": []
+      },
+      {
+        "id": "f827cf462f62848df37c5e1e94a4da74",
+        "timestamp": "",
+        "content": "True",
+        "caption": "Akshaya Chennakeshava",
+        "media_screenshot_url": "",
+        "original_url": "https://www.facebook.com/haasa.sri/posts/pfbid0NNNNjP5Jaw9ThBZAzuw7TmzCM9n8VuT18nQ13YSyP3Xe7SCnwWeRCnCkDobsUYWsl",
+        "shared": false,
+        "shared_content": "",
+        "original_poster": "",
+        "is_tagged": false,
+        "tagged_accounts": [
+          {
+            "name": "Akshaya Chennakeshava",
+            "profile_url": "https://www.facebook.com/profile.php?id=100008299070190&comment_id=Y29tbWVudDoxOTA5NTYxMDkyNDE3NjMzXzE5MDk1ODA5MTkwODIzMTc%3D&__cft__[0]=AZWjWwivEQX6rl8MoQoX-mCzoDxkTFE8UaFpDTxW9eL7hvAOOIL0tCIA2ezpTFnPHEeNm3YXLDhxBZW3j1O_Cx82KBVplh0o6UxNF6wEiQQ_qVnZe9ZPEJbVjiOO6xpL_ljw7y0cRZFGVv0er7Y9Mq8t&__tn__=R-R",
+            "bio": ""
+          },
+          {
+            "name": "7y",
+            "profile_url": "https://www.facebook.com/haasa.sri/posts/pfbid0NNNNjP5Jaw9ThBZAzuw7TmzCM9n8VuT18nQ13YSyP3Xe7SCnwWeRCnCkDobsUYWsl",
+            "bio": ""
+          }
+        ],
+        "location_tagged": "",
+        "comments": [],
+        "reactions": {
+          "total": 0,
+          "types": {}
+        },
+        "comments_count": 0,
+        "shares_count": 0,
+        "media": []
+      },
+      {
+        "id": "e548e3e717315e391049464a06cc3897",
+        "timestamp": "",
+        "content": "Kuldeep Jain hahahaha",
+        "caption": "Srikanth Chellaboina",
+        "media_screenshot_url": "",
+        "original_url": "https://www.facebook.com/haasa.sri/posts/pfbid0NNNNjP5Jaw9ThBZAzuw7TmzCM9n8VuT18nQ13YSyP3Xe7SCnwWeRCnCkDobsUYWsl",
+        "shared": false,
+        "shared_content": "",
+        "original_poster": "",
+        "is_tagged": false,
+        "tagged_accounts": [
+          {
+            "name": "Srikanth Chellaboina",
+            "profile_url": "https://www.facebook.com/srikanth767",
+            "bio": ""
+          },
+          {
+            "name": "Kuldeep Jain",
+            "profile_url": "https://www.facebook.com/kuldeep.jain.204788",
+            "bio": ""
+          },
+          {
+            "name": "7y",
+            "profile_url": "https://www.facebook.com/haasa.sri/posts/pfbid0NNNNjP5Jaw9ThBZAzuw7TmzCM9n8VuT18nQ13YSyP3Xe7SCnwWeRCnCkDobsUYWsl",
+            "bio": ""
+          }
+        ],
+        "location_tagged": "",
+        "comments": [],
+        "reactions": {
+          "total": 0,
+          "types": {}
+        },
+        "comments_count": 0,
+        "shares_count": 0,
+        "media": []
+      },
+      {
+        "id": "a9b2372d3284d25f07980313fdcb3825",
+        "timestamp": "",
+        "content": "Very very long",
+        "caption": "Srikanth Chellaboina",
+        "media_screenshot_url": "",
+        "original_url": "",
+        "shared": false,
+        "shared_content": "",
+        "original_poster": "",
+        "is_tagged": false,
+        "tagged_accounts": [
+          {
+            "name": "Srikanth Chellaboina",
+            "profile_url": "https://www.facebook.com/srikanth767",
+            "bio": ""
+          },
+          {
+            "name": "7y",
+            "profile_url": "https://www.facebook.com/reshmi.r.kumar/videos/10213869535470549/",
+            "bio": ""
+          }
+        ],
+        "location_tagged": "",
+        "comments": [],
+        "reactions": {
+          "total": 0,
+          "types": {}
+        },
+        "comments_count": 0,
+        "shares_count": 0,
+        "media": []
+      },
+      {
+        "id": "796ccb02ea15ce5eb6d7e44f0fa35017",
+        "timestamp": "",
+        "content": "",
+        "caption": "Mulkur Samson",
+        "media_screenshot_url": "",
+        "original_url": "https://www.facebook.com/mulkur.samson/posts/1267268413399596",
+        "shared": false,
+        "shared_content": "",
+        "original_poster": "",
+        "is_tagged": false,
+        "tagged_accounts": [
+          {
+            "name": "Mulkur Samson",
+            "profile_url": "https://www.facebook.com/mulkur.samson",
+            "bio": ""
+          },
+          {
+            "name": "7y",
+            "profile_url": "https://www.facebook.com/mulkur.samson/posts/1267268413399596",
+            "bio": ""
+          }
+        ],
+        "location_tagged": "",
+        "comments": [],
+        "reactions": {
+          "total": 0,
+          "types": {}
+        },
+        "comments_count": 0,
+        "shares_count": 0,
+        "media": []
+      },
+      {
+        "id": "65c96bab899ba3f3c6c78327a4ed083b",
+        "timestamp": "",
+        "content": "",
+        "caption": "",
+        "media_screenshot_url": "",
+        "original_url": "",
+        "shared": false,
+        "shared_content": "",
+        "original_poster": "",
+        "is_tagged": false,
+        "tagged_accounts": [],
+        "location_tagged": "",
+        "comments": [],
+        "reactions": {
+          "total": 0,
+          "types": {}
+        },
+        "comments_count": 0,
+        "shares_count": 0,
+        "media": []
+      },
+      {
+        "id": "e67318461ab8c2d6db3154dfee194117",
+        "timestamp": "",
+        "content": "",
+        "caption": "",
+        "media_screenshot_url": "",
+        "original_url": "",
+        "shared": false,
+        "shared_content": "",
+        "original_poster": "",
+        "is_tagged": false,
+        "tagged_accounts": [],
+        "location_tagged": "",
+        "comments": [],
+        "reactions": {
+          "total": 0,
+          "types": {}
+        },
+        "comments_count": 0,
+        "shares_count": 0,
+        "media": []
+      },
+      {
+        "id": "3d39ba17106b26aabcddd1c4d11f6a9e",
+        "timestamp": "",
+        "content": "Adarsh Jayadevan",
+        "caption": "Aravind Peri",
+        "media_screenshot_url": "",
+        "original_url": "https://www.facebook.com/srikanth767/posts/pfbid0KiVUvb1kg4vkPADfxVurSXLrEtUQd6ohc7nCBQuS6eFAvis5nXFkVFomTLnjvfVyl",
+        "shared": false,
+        "shared_content": "",
+        "original_poster": "",
+        "is_tagged": false,
+        "tagged_accounts": [
+          {
+            "name": "Aravind Peri",
+            "profile_url": "https://www.facebook.com/aravind.peri.lakshmi",
+            "bio": ""
+          },
+          {
+            "name": "Adarsh Jayadevan",
+            "profile_url": "https://www.facebook.com/adarsh.jayadevan",
+            "bio": ""
+          },
+          {
+            "name": "7y",
+            "profile_url": "https://www.facebook.com/srikanth767/posts/pfbid0KiVUvb1kg4vkPADfxVurSXLrEtUQd6ohc7nCBQuS6eFAvis5nXFkVFomTLnjvfVyl",
+            "bio": ""
+          }
+        ],
+        "location_tagged": "",
+        "comments": [],
+        "reactions": {
+          "total": 0,
+          "types": {}
+        },
+        "comments_count": 0,
+        "shares_count": 0,
+        "media": []
+      }
+    ],
+    "tagged_posts": [],
+    "shared_posts": [],
+    "comments_by_user": []
+  },
+  "locations_visited": [],
+  "extraction_metadata": {
+    "username": "srikanth767",
+    "timestamp": 1752862428.9584036,
+    "date": "2025-07-18 18:13:48",
+    "total_items": {
+      "friends": 0,
+      "pages_followed": 0,
+      "following": 0,
+      "groups": 0,
+      "own_posts": 20,
+      "tagged_posts": 0,
+      "shared_posts": 0,
+      "comments_by_user": 0,
+      "locations_visited": 0,
+      "total": 20
+    }
+  }
+}

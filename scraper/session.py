@@ -8,7 +8,7 @@ from typing import Dict, Any, Optional, List
 from playwright.async_api import async_playwright, Browser, BrowserContext, Page
 
 class FacebookSession:
-    def __init__(self, headless=True, user_data_dir="./user_data", proxy=None):
+    def __init__(self, headless=False, user_data_dir="./user_data", proxy=None):
         self.headless = headless
         self.user_data_dir = user_data_dir
         self.proxy = proxy  # Add proxy support
@@ -74,18 +74,28 @@ class FacebookSession:
                 '--proxy-bypass-list=<-loopback>'
             ])
         
+        # FORCE FULLSCREEN FOR DEBUGGING - Always add these args regardless of headless
+        browser_args.extend([
+            '--start-maximized',
+            '--start-fullscreen',
+            '--kiosk'
+        ])
+        
         if not self.headless:
             # For SSH X11 forwarding, we need to ensure proper display
             display = os.environ.get('DISPLAY', ':0')
             os.environ['DISPLAY'] = display
             print(f"Using X11 display: {display}")
         
+        # FORCE LARGER VIEWPORT FOR FULLSCREEN
+        viewport_size = {'width': 1920, 'height': 1080}
+        
         # Prepare context options
         context_options = {
             'user_data_dir': self.user_data_dir,
             'headless': self.headless,
             'args': browser_args,
-            'viewport': {'width': 1366, 'height': 768},
+            'viewport': viewport_size,
             'user_agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
             'ignore_default_args': ['--enable-automation'],
             'ignore_https_errors': True,

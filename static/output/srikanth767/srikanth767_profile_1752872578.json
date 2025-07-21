@@ -1,0 +1,485 @@
+{
+  "profile": {
+    "name": "",
+    "bio": "",
+    "about": {
+      "work": "",
+      "education": "",
+      "location": "",
+      "birthday": "",
+      "contact": {
+        "email": "",
+        "phone": ""
+      }
+    },
+    "friends": [],
+    "pages_followed": [],
+    "following": [],
+    "groups": []
+  },
+  "posts": {
+    "own_posts": [
+      {
+        "id": "ba3d4ac36b3084db972148a5f1087e4e",
+        "timestamp": "",
+        "content": "",
+        "caption": "",
+        "media_screenshot_url": "",
+        "original_url": "",
+        "shared": false,
+        "shared_content": "",
+        "original_poster": "",
+        "is_tagged": false,
+        "tagged_accounts": [],
+        "location_tagged": "",
+        "comments": [],
+        "reactions": {
+          "total": 0,
+          "types": {}
+        },
+        "comments_count": 0,
+        "shares_count": 0,
+        "media": []
+      },
+      {
+        "id": "f37196b8736d9a3ed53e6300cea24af0",
+        "timestamp": "",
+        "content": "",
+        "caption": "",
+        "media_screenshot_url": "",
+        "original_url": "",
+        "shared": false,
+        "shared_content": "",
+        "original_poster": "",
+        "is_tagged": false,
+        "tagged_accounts": [],
+        "location_tagged": "",
+        "comments": [],
+        "reactions": {
+          "total": 0,
+          "types": {}
+        },
+        "comments_count": 0,
+        "shares_count": 0,
+        "media": []
+      },
+      {
+        "id": "f20eb040763ccc192a5576476a4f7556",
+        "timestamp": "",
+        "content": "",
+        "caption": "",
+        "media_screenshot_url": "",
+        "original_url": "",
+        "shared": false,
+        "shared_content": "",
+        "original_poster": "",
+        "is_tagged": false,
+        "tagged_accounts": [],
+        "location_tagged": "",
+        "comments": [],
+        "reactions": {
+          "total": 0,
+          "types": {}
+        },
+        "comments_count": 0,
+        "shares_count": 0,
+        "media": []
+      },
+      {
+        "id": "dcaacd457ea0b690528e328f86a42ab8",
+        "timestamp": "",
+        "content": "",
+        "caption": "",
+        "media_screenshot_url": "",
+        "original_url": "",
+        "shared": false,
+        "shared_content": "",
+        "original_poster": "",
+        "is_tagged": false,
+        "tagged_accounts": [],
+        "location_tagged": "",
+        "comments": [],
+        "reactions": {
+          "total": 0,
+          "types": {}
+        },
+        "comments_count": 0,
+        "shares_count": 0,
+        "media": []
+      },
+      {
+        "id": "65ec01f89af97ade4f2b18358b171621",
+        "timestamp": "",
+        "content": "",
+        "caption": "",
+        "media_screenshot_url": "",
+        "original_url": "",
+        "shared": false,
+        "shared_content": "",
+        "original_poster": "",
+        "is_tagged": false,
+        "tagged_accounts": [],
+        "location_tagged": "",
+        "comments": [],
+        "reactions": {
+          "total": 0,
+          "types": {}
+        },
+        "comments_count": 0,
+        "shares_count": 0,
+        "media": []
+      },
+      {
+        "id": "27856981e8dae802b39e90cbd1ea3aa6",
+        "timestamp": "",
+        "content": "",
+        "caption": "",
+        "media_screenshot_url": "",
+        "original_url": "",
+        "shared": false,
+        "shared_content": "",
+        "original_poster": "",
+        "is_tagged": false,
+        "tagged_accounts": [],
+        "location_tagged": "",
+        "comments": [],
+        "reactions": {
+          "total": 0,
+          "types": {}
+        },
+        "comments_count": 0,
+        "shares_count": 0,
+        "media": []
+      },
+      {
+        "id": "2e901c96e84ae9a122b08ad1701a62e7",
+        "timestamp": "",
+        "content": "",
+        "caption": "",
+        "media_screenshot_url": "",
+        "original_url": "",
+        "shared": false,
+        "shared_content": "",
+        "original_poster": "",
+        "is_tagged": false,
+        "tagged_accounts": [],
+        "location_tagged": "",
+        "comments": [],
+        "reactions": {
+          "total": 0,
+          "types": {}
+        },
+        "comments_count": 0,
+        "shares_count": 0,
+        "media": []
+      },
+      {
+        "id": "eaeb6f038bc138f4510abe885d443643",
+        "timestamp": "",
+        "content": "",
+        "caption": "",
+        "media_screenshot_url": "",
+        "original_url": "",
+        "shared": false,
+        "shared_content": "",
+        "original_poster": "",
+        "is_tagged": false,
+        "tagged_accounts": [],
+        "location_tagged": "",
+        "comments": [],
+        "reactions": {
+          "total": 0,
+          "types": {}
+        },
+        "comments_count": 0,
+        "shares_count": 0,
+        "media": []
+      },
+      {
+        "id": "b7ca68a6b9d138be7a0675c98f5ac7c8",
+        "timestamp": "",
+        "content": "",
+        "caption": "",
+        "media_screenshot_url": "",
+        "original_url": "",
+        "shared": false,
+        "shared_content": "",
+        "original_poster": "",
+        "is_tagged": false,
+        "tagged_accounts": [],
+        "location_tagged": "",
+        "comments": [],
+        "reactions": {
+          "total": 0,
+          "types": {}
+        },
+        "comments_count": 0,
+        "shares_count": 0,
+        "media": []
+      },
+      {
+        "id": "19845e7160b417a76471c2779d00c2f4",
+        "timestamp": "",
+        "content": "",
+        "caption": "",
+        "media_screenshot_url": "",
+        "original_url": "",
+        "shared": false,
+        "shared_content": "",
+        "original_poster": "",
+        "is_tagged": false,
+        "tagged_accounts": [],
+        "location_tagged": "",
+        "comments": [],
+        "reactions": {
+          "total": 0,
+          "types": {}
+        },
+        "comments_count": 0,
+        "shares_count": 0,
+        "media": []
+      },
+      {
+        "id": "fc0b1b4d9e8cffef27d4207aaff85836",
+        "timestamp": "",
+        "content": "",
+        "caption": "",
+        "media_screenshot_url": "",
+        "original_url": "",
+        "shared": false,
+        "shared_content": "",
+        "original_poster": "",
+        "is_tagged": false,
+        "tagged_accounts": [],
+        "location_tagged": "",
+        "comments": [],
+        "reactions": {
+          "total": 0,
+          "types": {}
+        },
+        "comments_count": 0,
+        "shares_count": 0,
+        "media": []
+      },
+      {
+        "id": "2eeb765d93eda3e0fa2baf0aaccbd0df",
+        "timestamp": "",
+        "content": "",
+        "caption": "",
+        "media_screenshot_url": "",
+        "original_url": "",
+        "shared": false,
+        "shared_content": "",
+        "original_poster": "",
+        "is_tagged": false,
+        "tagged_accounts": [],
+        "location_tagged": "",
+        "comments": [],
+        "reactions": {
+          "total": 0,
+          "types": {}
+        },
+        "comments_count": 0,
+        "shares_count": 0,
+        "media": []
+      },
+      {
+        "id": "44da80f6e2572f707267542c1337f6f8",
+        "timestamp": "",
+        "content": "",
+        "caption": "",
+        "media_screenshot_url": "",
+        "original_url": "",
+        "shared": false,
+        "shared_content": "",
+        "original_poster": "",
+        "is_tagged": false,
+        "tagged_accounts": [],
+        "location_tagged": "",
+        "comments": [],
+        "reactions": {
+          "total": 0,
+          "types": {}
+        },
+        "comments_count": 0,
+        "shares_count": 0,
+        "media": []
+      },
+      {
+        "id": "1eb34bb4665e9f02faea5bb6a6099986",
+        "timestamp": "",
+        "content": "",
+        "caption": "",
+        "media_screenshot_url": "",
+        "original_url": "",
+        "shared": false,
+        "shared_content": "",
+        "original_poster": "",
+        "is_tagged": false,
+        "tagged_accounts": [],
+        "location_tagged": "",
+        "comments": [],
+        "reactions": {
+          "total": 0,
+          "types": {}
+        },
+        "comments_count": 0,
+        "shares_count": 0,
+        "media": []
+      },
+      {
+        "id": "a09a1be1ed0d808d814986f2f07e9c2e",
+        "timestamp": "",
+        "content": "",
+        "caption": "",
+        "media_screenshot_url": "",
+        "original_url": "",
+        "shared": false,
+        "shared_content": "",
+        "original_poster": "",
+        "is_tagged": false,
+        "tagged_accounts": [],
+        "location_tagged": "",
+        "comments": [],
+        "reactions": {
+          "total": 0,
+          "types": {}
+        },
+        "comments_count": 0,
+        "shares_count": 0,
+        "media": []
+      },
+      {
+        "id": "a4a8e6dbeb6b7b9054f0504615e33257",
+        "timestamp": "",
+        "content": "",
+        "caption": "",
+        "media_screenshot_url": "",
+        "original_url": "",
+        "shared": false,
+        "shared_content": "",
+        "original_poster": "",
+        "is_tagged": false,
+        "tagged_accounts": [],
+        "location_tagged": "",
+        "comments": [],
+        "reactions": {
+          "total": 0,
+          "types": {}
+        },
+        "comments_count": 0,
+        "shares_count": 0,
+        "media": []
+      },
+      {
+        "id": "f71faadc1dfdd06dc9d0de645632bc9e",
+        "timestamp": "",
+        "content": "",
+        "caption": "",
+        "media_screenshot_url": "",
+        "original_url": "",
+        "shared": false,
+        "shared_content": "",
+        "original_poster": "",
+        "is_tagged": false,
+        "tagged_accounts": [],
+        "location_tagged": "",
+        "comments": [],
+        "reactions": {
+          "total": 0,
+          "types": {}
+        },
+        "comments_count": 0,
+        "shares_count": 0,
+        "media": []
+      },
+      {
+        "id": "eef378b4a8cdc4262c2bc3c96169b3af",
+        "timestamp": "",
+        "content": "",
+        "caption": "",
+        "media_screenshot_url": "",
+        "original_url": "",
+        "shared": false,
+        "shared_content": "",
+        "original_poster": "",
+        "is_tagged": false,
+        "tagged_accounts": [],
+        "location_tagged": "",
+        "comments": [],
+        "reactions": {
+          "total": 0,
+          "types": {}
+        },
+        "comments_count": 0,
+        "shares_count": 0,
+        "media": []
+      },
+      {
+        "id": "b99f4f794bb766c531982bd2c5bbfcd7",
+        "timestamp": "",
+        "content": "",
+        "caption": "",
+        "media_screenshot_url": "",
+        "original_url": "",
+        "shared": false,
+        "shared_content": "",
+        "original_poster": "",
+        "is_tagged": false,
+        "tagged_accounts": [],
+        "location_tagged": "",
+        "comments": [],
+        "reactions": {
+          "total": 0,
+          "types": {}
+        },
+        "comments_count": 0,
+        "shares_count": 0,
+        "media": []
+      },
+      {
+        "id": "519e83e342a2d189bc0ff3fdae0f6f2c",
+        "timestamp": "",
+        "content": "",
+        "caption": "",
+        "media_screenshot_url": "",
+        "original_url": "",
+        "shared": false,
+        "shared_content": "",
+        "original_poster": "",
+        "is_tagged": false,
+        "tagged_accounts": [],
+        "location_tagged": "",
+        "comments": [],
+        "reactions": {
+          "total": 0,
+          "types": {}
+        },
+        "comments_count": 0,
+        "shares_count": 0,
+        "media": []
+      }
+    ],
+    "tagged_posts": [],
+    "shared_posts": [],
+    "comments_by_user": []
+  },
+  "locations_visited": [],
+  "extraction_metadata": {
+    "username": "srikanth767",
+    "timestamp": 1752872578.0248597,
+    "date": "2025-07-18 21:02:58",
+    "total_items": {
+      "friends": 0,
+      "pages_followed": 0,
+      "following": 0,
+      "groups": 0,
+      "own_posts": 20,
+      "tagged_posts": 0,
+      "shared_posts": 0,
+      "comments_by_user": 0,
+      "locations_visited": 0,
+      "total": 20
+    }
+  }
+}

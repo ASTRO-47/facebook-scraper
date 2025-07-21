@@ -7,10 +7,13 @@ import asyncio
 import re
 import json
 import logging
+import random
 from datetime import datetime
 from pathlib import Path
 from typing import Optional, Tuple, List, Dict, Any
 from playwright.async_api import Page, BrowserContext
+import aiofiles
+from loguru import logger
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, 
@@ -18,17 +21,21 @@ logging.basicConfig(level=logging.INFO,
 logger = logging.getLogger('facebook_utils')
 
 class ScraperUtils:
-    def __init__(self, page: Page, screenshot_dir: str = "../static/screenshots"):
+    """Utilities for the scraper"""
+    
+    def __init__(self, page: Page, screenshot_dir: Optional[str] = None):
+        """Initialize with page and optional screenshot directory"""
         self.page = page
         self.screenshot_dir = screenshot_dir
-        os.makedirs(self.screenshot_dir, exist_ok=True)
-        
-    async def take_screenshot(self, filename: str, element_selector: Optional[str] = None) -> str:
+        if self.screenshot_dir:
+            os.makedirs(self.screenshot_dir, exist_ok=True)
+
+    async def take_screenshot(self, name: str, selector: Optional[str] = None):
         """Take a screenshot of the page or a specific element"""
-        path = os.path.join(self.screenshot_dir, f"{filename}.png")
+        path = os.path.join(self.screenshot_dir, f"{name}.png")
         try:
-            if element_selector:
-                element = await self.page.query_selector(element_selector)
+            if selector:
+                element = await self.page.query_selector(selector)
                 if element:
                     await element.screenshot(path=path)
                 else:
@@ -37,7 +44,7 @@ class ScraperUtils:
                 await self.page.screenshot(path=path, full_page=True)
             return path
         except Exception as e:
-            logger.warning(f"Failed to take screenshot {filename}: {e}")
+            logger.warning(f"Failed to take screenshot {name}: {e}")
             return ""
 
     async def scroll_to_bottom(self, max_scrolls: int = 5, scroll_delay: float = 1.5):
@@ -226,19 +233,61 @@ class ScraperUtils:
         
         # Keep all other Unicode characters (including Arabic, Chinese, etc.)
         return text.strip()
+    
+    def parse_count(self, count_str: str) -> int:
+        """Parse Facebook count strings like '1.2K', '5M', '100' into integers"""
+        if not count_str:
+            return 0
+        
+        # Clean the string
+        count_str = str(count_str).strip().replace(',', '')
+        
+        # Handle different formats
+        try:
+            # Direct number
+            if count_str.isdigit():
+                return int(count_str)
+            
+            # Handle K, M, B suffixes
+            if count_str[-1].upper() in ['K', 'M', 'B']:
+                number = float(count_str[:-1])
+                suffix = count_str[-1].upper()
+                
+                multipliers = {'K': 1000, 'M': 1000000, 'B': 1000000000}
+                return int(number * multipliers[suffix])
+            
+            # Try to parse as float then convert to int
+            return int(float(count_str))
+            
+        except (ValueError, IndexError):
+            # If all parsing fails, return 0
+            return 0
 
     def generate_unique_filename(self, base: str, username: str) -> str:
         """Generate unique filename for screenshots and outputs"""
         timestamp = int(time.time())
         return f"{username}_{base}_{timestamp}"
 
-    async def human_like_delay(self, min_seconds=0.5, max_seconds=2):
-        """Add minimal human-like delays between actions"""
-        import random
-        delay = random.uniform(min_seconds, max_seconds)
-        print(f"⏳ Quick delay: {delay:.1f} seconds")
-        await asyncio.sleep(delay)
-    
+    async def human_like_delay(self, min_seconds=2, max_seconds=5):
+        """Waits for a random duration to mimic human behavior."""
+        await asyncio.sleep(random.uniform(min_seconds, max_seconds))
+
+    async def save_page_html(self, filename="debug_page.html"):
+        """Saves the current page's HTML to a file for debugging selectors."""
+        try:
+            content = await self.page.content()
+            # Use the same base output directory as screenshots if available
+            output_dir = os.path.dirname(self.screenshot_dir) if self.screenshot_dir else "static/output"
+            os.makedirs(output_dir, exist_ok=True)
+            filepath = os.path.join(output_dir, filename)
+            async with aiofiles.open(filepath, "w", encoding="utf-8") as f:
+                await f.write(content)
+            logger.info(f"📄 Saved page HTML for debugging to {filepath}")
+            return filepath
+        except Exception as e:
+            logger.error(f"❌ Could not save page HTML: {e}")
+            return None
+
     async def slow_type(self, selector, text, delay_range=(0.05, 0.3)):
         """Type text slowly like a human"""
         import random
@@ -331,7 +380,7 @@ class ScraperUtils:
         
         try:
             page_content = await self.page.content()
-            page_text = page_content.lower()
+            page_text = page_content.lower();
             
             # Check for security checkpoint indicators
             for indicator in security_indicators:

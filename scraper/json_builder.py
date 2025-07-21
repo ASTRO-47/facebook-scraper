@@ -15,8 +15,8 @@ class JSONBuilder:
     
     def build_profile_json(self, username: str, data: Dict[str, Any]) -> Dict[str, Any]:
         """Build a structured JSON output from all scraped data"""
-        # Get basic info
-        basic_info = data.get("basic_info", {})
+        # Get basic info from the "profile" key
+        basic_info = data.get("profile", {})
         
         # Format all data into the exact requested JSON structure
         profile_data = {

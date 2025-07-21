@@ -266,13 +266,13 @@ class ProfileScraper:
     
     async def get_basic_info(self) -> Dict[str, Any]:
         """
-        Extract basic profile information with improved error handling
+        Extract basic profile information with improved structure to match target JSON
         
         Returns:
             Dict containing profile information in the requested format
         """
         try:
-            logger.info("Extracting basic profile information...")
+            logger.info("Extracting enhanced profile information...")
             
             # Get profile name
             name = await self._extract_profile_name()
@@ -283,43 +283,349 @@ class ProfileScraper:
             logger.info(f"Profile bio: {bio[:50]}..." if bio else "No bio found")
             
             # Get About page information
-            about_data = await self._extract_about_info()
+            about_data = await self._extract_about_info_enhanced()
             
+            # Extract friends, pages_followed, following, and groups
+            friends_list = await self._extract_friends_summary()
+            pages_followed = await self._extract_pages_followed()
+            following_list = await self._extract_following_list()
+            groups_list = await self._extract_groups_list()
+            
+            # Structure data according to target JSON format
             result = {
                 "name": self.utils.clean_text(name),
                 "bio": self.utils.clean_text(bio),
-                "profile_picture": "",
-                "work": about_data.get("work", ""),  # Now returns string instead of list
-                "education": about_data.get("education", ""),  # Now returns string instead of list
-                "location": about_data.get("location", ""),  # Combined location field
-                "current_city": about_data.get("current_city", ""),
-                "hometown": about_data.get("hometown", ""),
-                "email": about_data.get("email", ""),
-                "phone": about_data.get("phone", ""),
-                "birthday": about_data.get("birthday", ""),
+                "about": {
+                    "work": about_data.get("work", ""),
+                    "education": about_data.get("education", ""),
+                    "location": about_data.get("location", ""),
+                    "birthday": about_data.get("birthday", ""),
+                    "contact": {
+                        "email": about_data.get("email", ""),
+                        "phone": about_data.get("phone", "")
+                    }
+                },
+                "pages_followed": pages_followed,
+                "following": following_list,
+                "friends": friends_list,
+                "groups": groups_list
             }
             
-            logger.info(f"Basic info extracted: {len([v for v in result.values() if v])} fields found")
+            logger.info(f"Enhanced profile info extracted:")
+            logger.info(f"   - Friends: {len(friends_list)}")
+            logger.info(f"   - Pages followed: {len(pages_followed)}")
+            logger.info(f"   - Following: {len(following_list)}")
+            logger.info(f"   - Groups: {len(groups_list)}")
+            
             return result
             
         except Exception as e:
-            logger.error(f"Error extracting basic info: {e}")
-            return self._get_default_basic_info()
+            logger.error(f"Error extracting enhanced profile info: {e}")
+            return self._get_default_enhanced_profile_info()
     
-    def _get_default_basic_info(self) -> Dict[str, Any]:
-        """Return default basic info structure"""
+    def _get_default_enhanced_profile_info(self) -> Dict[str, Any]:
+        """Return default enhanced profile info structure"""
         return {
             "name": "Unknown",
             "bio": "",
-            "profile_picture": "",
-            "work": [],
-            "education": [],
-            "current_city": "",
-            "hometown": "",
-            "email": "",
-            "phone": "",
-            "birthday": "",
+            "about": {
+                "work": "",
+                "education": "",
+                "location": "",
+                "birthday": "",
+                "contact": {
+                    "email": "",
+                    "phone": ""
+                }
+            },
+            "pages_followed": [],
+            "following": [],
+            "friends": [],
+            "groups": []
         }
+    
+    async def _extract_about_info_enhanced(self) -> Dict[str, Any]:
+        """Extract enhanced about information"""
+        try:
+            # Navigate to About page for detailed info
+            about_url = f"{self.profile_url}/about"
+            logger.info(f"Navigating to About page: {about_url}")
+            
+            await self.page.goto(about_url, wait_until="domcontentloaded", timeout=30000)
+            await asyncio.sleep(3)
+            
+            about_data = {}
+            
+            # Extract work info
+            work_info = await self._extract_work_info_enhanced()
+            if work_info:
+                about_data["work"] = work_info
+            
+            # Extract education info
+            education_info = await self._extract_education_info_enhanced()
+            if education_info:
+                about_data["education"] = education_info
+            
+            # Extract location
+            location_info = await self._extract_location_info_enhanced()
+            if location_info:
+                about_data["location"] = location_info
+            
+            # Extract birthday
+            birthday_info = await self._extract_birthday_info()
+            if birthday_info:
+                about_data["birthday"] = birthday_info
+            
+            # Extract contact info
+            contact_info = await self._extract_contact_info()
+            about_data["email"] = contact_info.get("email", "")
+            about_data["phone"] = contact_info.get("phone", "")
+            
+            return about_data
+            
+        except Exception as e:
+            logger.error(f"Error extracting enhanced about info: {e}")
+            return {}
+    
+    async def _extract_friends_summary(self) -> List[Dict[str, Any]]:
+        """Extract friends list with profile URLs and bios"""
+        friends_list = []
+        try:
+            # Navigate to friends page
+            friends_url = f"{self.profile_url}/friends"
+            logger.info(f"Extracting friends from: {friends_url}")
+            
+            await self.page.goto(friends_url, wait_until="domcontentloaded", timeout=30000)
+            await asyncio.sleep(3)
+            
+            # Extract friends with enhanced details
+            friend_elements = await self.page.query_selector_all('div[data-testid="friend_list_item"], a[href*="/"][aria-label]')
+            
+            for friend_el in friend_elements[:10]:  # Limit for performance
+                try:
+                    friend_data = await self._extract_single_friend_enhanced(friend_el)
+                    if friend_data:
+                        friends_list.append(friend_data)
+                except Exception as e:
+                    logger.debug(f"Error extracting friend: {e}")
+                    continue
+            
+        except Exception as e:
+            logger.debug(f"Error extracting friends: {e}")
+        
+        return friends_list
+    
+    async def _extract_pages_followed(self) -> List[Dict[str, Any]]:
+        """Extract pages followed with URLs and descriptions"""
+        pages_list = []
+        try:
+            # Navigate to pages/likes section
+            pages_url = f"{self.profile_url}/likes"
+            logger.info(f"Extracting pages from: {pages_url}")
+            
+            await self.page.goto(pages_url, wait_until="domcontentloaded", timeout=30000)
+            await asyncio.sleep(3)
+            
+            # Extract pages
+            page_elements = await self.page.query_selector_all('a[href*="/"][role="link"]:not([href*="/posts/"])')
+            
+            for page_el in page_elements[:10]:  # Limit for performance
+                try:
+                    page_data = await self._extract_single_page_enhanced(page_el)
+                    if page_data:
+                        pages_list.append(page_data)
+                except Exception as e:
+                    logger.debug(f"Error extracting page: {e}")
+                    continue
+            
+        except Exception as e:
+            logger.debug(f"Error extracting pages followed: {e}")
+        
+        return pages_list
+    
+    async def _extract_following_list(self) -> List[Dict[str, Any]]:
+        """Extract following list (people user follows)"""
+        following_list = []
+        try:
+            # This might not be directly accessible on all profiles
+            # Implementation would depend on Facebook's UI structure
+            logger.info("Following list extraction - placeholder implementation")
+            
+        except Exception as e:
+            logger.debug(f"Error extracting following list: {e}")
+        
+        return following_list
+    
+    async def _extract_groups_list(self) -> List[Dict[str, Any]]:
+        """Extract groups with URLs and descriptions"""
+        groups_list = []
+        try:
+            # Navigate to groups section
+            groups_url = f"{self.profile_url}/groups"
+            logger.info(f"Extracting groups from: {groups_url}")
+            
+            # Facebook might redirect or have different URL structures
+            try:
+                await self.page.goto(groups_url, wait_until="domcontentloaded", timeout=20000)
+                await asyncio.sleep(3)
+            except:
+                # Try alternative approach - go to main profile and look for groups
+                await self.page.goto(self.profile_url, wait_until="domcontentloaded", timeout=20000)
+                await asyncio.sleep(2)
+            
+            # Extract groups
+            group_elements = await self.page.query_selector_all('a[href*="/groups/"]:not([href*="/posts/"])')
+            
+            for group_el in group_elements[:10]:  # Limit for performance
+                try:
+                    group_data = await self._extract_single_group_enhanced(group_el)
+                    if group_data:
+                        groups_list.append(group_data)
+                except Exception as e:
+                    logger.debug(f"Error extracting group: {e}")
+                    continue
+            
+        except Exception as e:
+            logger.debug(f"Error extracting groups: {e}")
+        
+        return groups_list
+    
+    async def _extract_single_friend_enhanced(self, friend_element) -> Optional[Dict[str, Any]]:
+        """Extract single friend with enhanced details"""
+        try:
+            name = await friend_element.text_content()
+            profile_url = await friend_element.get_attribute('href')
+            
+            if not name or not profile_url:
+                return None
+                
+            # Clean up URL
+            if profile_url.startswith('/'):
+                profile_url = f"https://facebook.com{profile_url}"
+            
+            # Try to get bio from hovercard or nearby elements
+            bio = await self._extract_bio_from_context(friend_element)
+            
+            return {
+                "name": self.utils.clean_text(name),
+                "profile_url": profile_url,
+                "bio": bio or "Facebook User"
+            }
+        except Exception as e:
+            logger.debug(f"Error extracting single friend: {e}")
+            return None
+    
+    async def _extract_single_page_enhanced(self, page_element) -> Optional[Dict[str, Any]]:
+        """Extract single page with enhanced details"""
+        try:
+            name = await page_element.text_content()
+            page_url = await page_element.get_attribute('href')
+            
+            if not name or not page_url or len(name.strip()) < 2:
+                return None
+            
+            # Clean up URL
+            if page_url.startswith('/'):
+                page_url = f"https://facebook.com{page_url}"
+            
+            # Try to get page description
+            bio = await self._extract_bio_from_context(page_element)
+            
+            return {
+                "page_name": self.utils.clean_text(name),
+                "page_url": page_url,
+                "bio": bio or "Facebook Page"
+            }
+        except Exception as e:
+            logger.debug(f"Error extracting single page: {e}")
+            return None
+    
+    async def _extract_single_group_enhanced(self, group_element) -> Optional[Dict[str, Any]]:
+        """Extract single group with enhanced details"""
+        try:
+            name = await group_element.text_content()
+            group_url = await group_element.get_attribute('href')
+            
+            if not name or not group_url or len(name.strip()) < 2:
+                return None
+                
+            # Clean up URL
+            if group_url.startswith('/'):
+                group_url = f"https://facebook.com{group_url}"
+            
+            # Try to get group description
+            bio = await self._extract_bio_from_context(group_element)
+            
+            return {
+                "group_name": self.utils.clean_text(name),
+                "group_url": group_url,
+                "bio": bio or "Facebook Group"
+            }
+        except Exception as e:
+            logger.debug(f"Error extracting single group: {e}")
+            return None
+    
+    async def _extract_bio_from_context(self, element) -> str:
+        """Extract bio/description from element context"""
+        try:
+            # Look for description in nearby elements
+            parent = await element.query_selector('..')
+            if parent:
+                desc_elements = await parent.query_selector_all('div[dir="auto"], span[dir="auto"]')
+                for desc_el in desc_elements:
+                    desc_text = await desc_el.text_content()
+                    if desc_text and len(desc_text.strip()) > 10 and desc_text.strip() != await element.text_content():
+                        return self.utils.clean_text(desc_text)
+            return ""
+        except:
+            return ""
+    
+    async def _extract_work_info_enhanced(self) -> str:
+        """Extract work information as formatted string"""
+        try:
+            work_elements = await self.page.query_selector_all('div[data-testid="work"], div:has-text("Work"), a[href*="/work/"]')
+            work_info = []
+            
+            for work_el in work_elements:
+                work_text = await work_el.text_content()
+                if work_text and work_text.strip() and "work" not in work_text.lower():
+                    work_info.append(self.utils.clean_text(work_text))
+            
+            return " • ".join(work_info[:3]) if work_info else ""
+        except:
+            return ""
+    
+    async def _extract_education_info_enhanced(self) -> str:
+        """Extract education information as formatted string"""
+        try:
+            edu_elements = await self.page.query_selector_all('div[data-testid="education"], div:has-text("Education"), a[href*="/education/"]')
+            edu_info = []
+            
+            for edu_el in edu_elements:
+                edu_text = await edu_el.text_content()
+                if edu_text and edu_text.strip() and "education" not in edu_text.lower():
+                    edu_info.append(self.utils.clean_text(edu_text))
+            
+            return " • ".join(edu_info[:3]) if edu_info else ""
+        except:
+            return ""
+    
+    async def _extract_location_info_enhanced(self) -> str:
+        """Extract location information as formatted string"""
+        try:
+            location_elements = await self.page.query_selector_all('div[data-testid="location"], div:has-text("Lives in"), div:has-text("From")')
+            locations = []
+            
+            for loc_el in location_elements:
+                loc_text = await loc_el.text_content()
+                if loc_text and loc_text.strip():
+                    clean_loc = self.utils.clean_text(loc_text)
+                    if clean_loc and not any(word in clean_loc.lower() for word in ["lives", "from", "location"]):
+                        locations.append(clean_loc)
+            
+            return " • ".join(locations[:2]) if locations else ""
+        except:
+            return ""
     
     async def _extract_profile_name(self) -> str:
         """Extract profile name with multiple fallback selectors"""
